@@ -5,10 +5,16 @@
  *
  */
 
+/* Unfortunately, frotz's bool definition conflicts with that of curses.
+   But since no os_* function uses it, it's safe to let the frotz core see
+   this definition, but have the unix port see the curses version. */
+
+#ifndef __UNIX_PORT_FILE
 typedef int bool;
 
 #define TRUE 1
 #define FALSE 0
+#endif
 
 typedef unsigned char zbyte;
 typedef unsigned short zword;

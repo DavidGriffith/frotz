@@ -1,0 +1,318 @@
+(This Readme file was adapted from the one released with the MS-DOS binary.)
+
+FROTZ V2.32 - an interpreter for all Infocom games. Complies with standard
+1.0 of Graham Nelson's specification. Written by Stefan Jokisch in 1995-7
+
+    This program once started as a re-make of Mark Howell's Zip, but
+    has grown into an utterly new interpreter.
+
+    Frotz is freeware: It may be used and distributed freely provided
+    no commercial profit is involved. (c) 1995-1997 Stefan Jokisch.
+
+    Please report bugs to s.jokisch@avu.de
+    Please report unix bugs to galenh@micron.net
+
+    This is the unix port of Stefan Jokisch's nifty-neato-cool Z-machine
+interpreter.  There are only two things you need to compile Frotz:
+
+      * Some variant of Unix with an ANSI C compiler (gcc works fine)
+      * A reasonably good SYSV derived curses library
+
+    Note that the second requirement is _very_ important.  I had several people
+send me complaints about Frotz not working, and found out they were unaware
+that their curses library was obsolete.  If your system curses won't work,
+pick up and compile the ncurses library from ftp://prep.ai.mit.edu/pub/gnu
+or any GNU mirror site.
+
+Changes since Release 1:
+
+      * Fixed problems with backspace
+      * Now supports "delete" key for editing
+      * Wired in tab completion support (which I stupidly missed)
+      * Added emacs editing key support (-DEMACS_EDITING)
+
+How to Compile:
+
+    This source distribution comes with a unsophisticated but functional
+Makefile.  Edit it to reflect your system; the comments are fairly self-
+explanatory.  Once that's done, just type "make".
+
+    Color support is available by putting -DCOLOR_SUPPORT in the designated
+spot.  I've added code in ux_init.c for sound hooks, but as no sound code is
+actually written, defining SOUND_SUPPORT will merely cause compilation to fail.
+
+    Thanks for giving this a try.  Any bug reports, success stories, or
+constructive criticism will be greatly appreciated.
+
+    -- Galen Hazelwood <galenh@micron.net>
+
+Syntax: frotz [options] story-file
+
+    -d       disable color
+
+    If frotz discovers that your terminal has color support, it will
+    enable it by default.  This switch overrides that behavior.
+
+    -f #     set the foreground colour
+    -b #     set the background colour
+
+    The color numbers are the Z-machine colors, which are as follows:
+        2  =  black   3 = red       4 = green    5 = yellow
+        6  =  blue    7 = magenta   8 = cyan     9 = white
+
+    If color support is disabled in the binary, or not available on
+    your terminal, these options do nothing.
+
+    -i	     ignore runtime errors
+
+    Set this switch and Frotz no longer worries about anything the
+    game tries to do. This can help you to get around fatal errors.
+
+    -w #     set the screen width
+    -h #     set the screen height
+    -l #     set the left margin
+    -r #     set the right margin
+
+    Setting the screen format can be useful if you are running Frotz
+    under Microsoft Windows, or if you want to test a game on a more
+    narrow screen. Setting the margins is a matter of taste; Infocom
+    interpreters usually set a right margin of one character (-r1).
+
+    -S #     set the width of the transscript file
+
+    By default your transscript files are formatted to a width of 80
+    columns per line -- regardless of the current screen width. This
+    switch allows you to change this setting. In particular, use -S0
+    to deactivate automatic line splitting in transscript files.
+
+    -c #     set the number of context lines
+
+    When the game prints several pages of text in a row, Frotz stops
+    for a more prompt after each page. The first prompt appears when
+    your input reaches the top of the window. Further prompts appear
+    when the previous page has been scrolled off the window. You can
+    use this switch to make the latter more prompts appear earlier.
+
+    -u #     set the number of undo slots for multiple undo
+
+    Frotz tries to allocate as much conventional memory as possible
+    for multiple UNDO. If this strategy causes some kind of problem,
+    use this switch to set a tighter limit. In particular, you might
+    want to turn off the UNDO feature altogether by typing -u0.
+
+    -s #     set the random number seed
+
+    The given seed value is used as the initial seed value on every
+    restart. This is helpful for testing games like 'Curses' which
+    make random decisions before the first input (such that the hot
+    key Alt-S does not really help). The meaning of seed values is
+    explained in the next section.
+
+    -x       expand abbreviations (g, x, z ==> again, examine, wait)
+
+    This switch was made for old Infocom games that lack the common
+    abbreviations introduced in later games. Use it with caution: A
+    few games might use "g", "x" or "z" for different purposes.
+
+    -o       watch object movement
+    -O       watch object locating
+    -a       watch attribute assignment
+    -A       watch attribute testing
+
+    Although these switches may be of assistance while debugging new
+    games, they are are actually meant to be cheat functions. The -o
+    switch, for example, helps to locate the thief in 'Zork 1' and
+    the cat in 'Curses'. The other switches produce a lot of obscure
+    messages during the game; but some of these messages might give
+    you important clues if you watch carefully.
+
+    -t       set the Tandy bit
+
+    Some old Infocom games were sold by the Tandy Corporation. These
+    games behave slightly different when you use this option. For
+    example, 'The Witness' gets censored: bastards turn into idiots,
+    private dicks into private eyes and so on.
+
+    -p       plain ascii output only
+
+    This inhibits the output of accented letters and other characters
+    from the Latin-1 character set, replacing them with reasonable
+    alternatives.  This may be necessary on devices lacking these
+    characters.
+
+    -P       alter behaviour of piracy opcode
+
+    The piracy opcode was never used by Infocom, and this switch is
+    only useful for those who like to toy around with Z-code.
+
+Special keys:
+
+    Alt-D - toggle debugging options (-a, -A, -o, -O)
+    Alt-H - help on hot keys
+    Alt-N - new game (restart)
+    Alt-P - turn on input line playback
+    Alt-R - toggle input line recording on/off
+    Alt-S - set the random number seed
+    Alt-U - multiple undo, works even for old V1 to V4 games
+    Alt-X - exit game
+
+    When testing a text adventure it can be difficult to reproduce a
+    specific bug. To avoid this problem you should use the Alt-R key
+    to record all your inputs in a command file. Later you can press
+    Alt-P to feed the command file back into Frotz. In many cases,
+    however, you will find that the result is different because most
+    games contain random events. Luckily, Frotz provides a hot key
+    to control these events. Type Alt-S and you are asked for a seed
+    value, i.e. a value in the range from 1 to 32767. Normally, you
+    would choose a number >= 1000. Smaller values generate a special
+    sequence of random numbers as proposed by Nelson. (For instance,
+    the seed value 4 generates 1, 2, 3, 4, 1, 2, 3, 4, 1...). In any
+    case, random events become predictable until the next restart.
+
+    See also the command line option -s above.
+
+    cursor left/Ctrl-B	- move one character to the left
+    cursor right/Ctrl-F	- move one character to the right
+    home/Ctrl-A		- move to beginning of line
+    end/Ctrl-E		- move to end of line
+    backspace		- delete character to the left
+    delete/Ctrl-D       - delete character below cursor
+    insert		- toggle overwrite mode on/off
+    escape/Ctrl-U	- delete whole input line
+    cursor up/Ctrl-P	- get previous command
+    cursor down/Ctrl-N	- get next command
+    page up		- scroll status window up ('Beyond Zork')
+    page down		- scroll status window down ('Beyond Zork')
+    tab			- word completion (like "tcsh" under Unix)
+
+    Note that the various Control aliases only function if emacs editing
+    support has been compiled into your binary.  See the Makefile for
+    more information.
+
+    When you need to type an unpleasantly long word, try to type the
+    first three or four letters then press the tabulator key. If you
+    are lucky, Frotz fills in some or all of the missing letters. A
+    high beep noise indicates that the word is ambiguous; a low beep
+    indicates that it does not exist. Apart from that, you can also
+    use the history feature to get to previous input lines. Type the
+    beginning of the input line you are looking for, then use cursor
+    up/down to scroll through all input lines matching that prefix.
+
+Questions and answers:
+
+    Q: What is Frotz?
+    A: Frotz runs text adventures which come in so-called story files:
+       ZORK1.DAT, TRINITY.DAT, CURSES.Z5, JIGSAW.Z8, ARTHUR.ZIP etc.
+
+    Q: Where can I find story files to use with Frotz?
+    A: First, you can use the files from your original Infocom games. It
+       is possible to play Atari ST, Amiga or Macintosh games on your PC
+       once you manage to transfer the story files. Some people even
+       extracted story files from old Atari 800, Apple II and C-64 disks
+       (ask your local 8bit guru). Second, there is an increasing number
+       of new games available on the Internet. Check the if-archive at
+       ftp.gmd.de.
+
+    Q: Why does Frotz stop with an error message?
+    A: It might have detected a bug in the story file other interpreters
+       overlooked. Use the -i switch to run your story file anyway. It's
+       also possible that the story file is corrupt; be sure to download
+       story files in binary mode, especially when you use a WWW browser.
+
+    Q: Is there a way to exit Frotz in emergency situations?
+    A: Try Ctrl-break, Ctrl-C, or Ctrl-Z.  The last one suspends your process
+       and returns you to the shell, allowing you to kill it.
+
+    Q: What do I need to play graphic games?
+    A: A different port of Frotz.  Try the MS-DOS version if you can use
+       it, or wait for the X Windows port.  You can run some of the V6 games
+       without graphics--Arthur and Journey seem to work, but not Shogun or
+       Zork Zero.  (Shogun dies because I can't backscroll; Zork 0 just
+       sputters and dies rather amusingly.)
+
+    Q: What do I need for sound?
+    A: A different port of Frotz, or a later version of this one.  Sound
+       support will first be available on Linux, and any other system which
+       can use the Open Sound System (or OSS/Lite).
+
+    Q: How can I send transscription to the printer?
+    A: Type PRN as file name.
+
+    Q: Why do I get weird characters instead of accented letters?
+    A: Because your display/terminal/window doesn't support the Latin-1
+       character set properly.  Use the -p flag, which uses plain ASCII
+       output and converts accented letters appropriately.
+
+    Q: Why don't the number pad keys work in 'Beyond Zork'?
+    A: Because curses dosen't seem to know how to handle them properly.
+       I might add a hack to support them later.
+
+    Q: How can I scroll the status window in 'Beyond Zork'?
+    A: Use page up/down instead of cursor up/down.
+
+    Q: Why are my default color selections so weird?
+    A: You're used to using the standard PC color values.  The unix port
+       wants color numbers in Z-machine form.  Quick reference:
+          2  =  black   3 = red       4 = green    5 = yellow
+          6  =  blue    7 = magenta   8 = cyan     9 = white
+
+
+List of fatal errors:
+
+    - "Bad stack frame"
+    - "Byte swapped story file"
+    - "Call to illegal address"
+    - "Call to non-routine" [1]
+    - "Cannot open story file"
+    - "Division by zero"
+    - "Error reading save file"
+    - "Illegal attribute"
+    - "Illegal object" [2]
+    - "Illegal window"
+    - "Illegal window property"
+    - "Jump to illegal address"
+    - "Nesting stream #3 too deep"
+    - "No such property"
+    - "Out of memory"
+    - "Print at illegal address"
+    - "Stack overflow" [3]
+    - "Stack underflow" [4]
+    - "Store out of dynamic memory"
+    - "Story file read error"
+    - "Text buffer overflow"
+    - "Unknown opcode"
+    - "Unknown Z-code version"
+    - "Can't Happen (os_scroll_area)" [5]
+
+    [1] The first byte of a routine must be less than 16.
+    [2] In V4 and above, object numbers > 2000 are considered illegal.
+    [3] Checked on every call instruction.
+    [4] Checked on every return from a subroutine.
+    [5] Unix-specific.  Should only happen in Shogun.
+
+Acknowledgements:
+
+    Many thanks to Paul D. Doherty for his continuing support of this
+    project. Thanks to everyone who sent bug reports, contributions or
+    helpful hints (in alphabetical order):
+
+    Thomas Biskup, Ian Carpenter, Graeme Cree, Jason Dyer,
+    Carl Edman, Julian Eggebrecht, Bernhard Fuchs, Joe Hachem,
+    John Kennedy, Kirk Klobe, Marnix Klooster, John Mackin,
+    Paul O'Brian, Magnus Olsson, Barry Prescott, L. Ross Raszewski,
+    Ambat Sasi Nair, Alan Sherrod, Linards Ticmanis and Paolo Vece.
+
+    Last but not least, thanks to the porters:
+
+    David Kinder (Amiga), Rich Lawrence (Windows 95/NT),
+    Andrew Holdsworth (RiscOS), Christos Dimitrakakis (HP-UX),
+    Christopher J. Madsen (OS/2), Galen Hazelwood (Unix curses library),
+    Ian Dean (Windows CE).
+
+    Executables are available from ftp.gmd.de and from
+
+	http://www.geocities.com/SiliconValley/Heights/3222/frotz.html
+
+    which is the Frotz home page maintained by Chris Madsen.
+
+

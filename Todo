@@ -1,0 +1,12 @@
+Things to do and bugs to investigate
+------------------------------------
+
+* Write sound support.  This is on hold until frotz supports the new "Blorb"
+  format.
+
+* Border Zone has a strange status line feature, mixing bright and dull
+  whites.  Not sure what's going on here.
+
+* Add support for GNU readline/history libraries instead of the kludgy
+  editing routines I wrote.  If I can manage this, I'll probably release
+  it as a patch rather than part of a release.

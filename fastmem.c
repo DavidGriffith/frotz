@@ -207,8 +207,26 @@ void init_memory (void)
 
     /* Open story file */
 
-    if ((story_fp = fopen (story_name, "rb")) == NULL)
-	os_fatal ("Cannot open story file");
+    if ((story_fp = fopen (story_name, "rb")) == NULL) {
+
+        char *path, *p, tmp[256];
+
+        /* Story file may be on INFOCOM_PATH, rather than current directory */
+        if ((path = getenv("INFOCOM_PATH")) == NULL)
+	  os_fatal ("Cannot open story file");
+
+	p=strtok(path,":");
+	while (p != NULL) {
+	    sprintf(tmp, "%s/%s", p, story_name);
+	    if ((story_fp = fopen (tmp, "rb")) == NULL)
+	      p = strtok(NULL, ":");
+	    else
+	      p = NULL;
+	}
+
+	if (story_fp == NULL)
+	  os_fatal ("Cannot open story file");
+    }
 
     /* Allocate memory for story header */
 

@@ -1,0 +1,279 @@
+
+Dumb-Frotz, a frotz port for a standard C library and a dumb terminal.
+
+Port by Alembic Petrofsky <alembic@petrofsky.berkeley.ca.us>.
+Version 2.32r1, July 1998
+
+==============================
+HISTORY AND ALLEGED USEFULNESS
+==============================
+
+   In 1995 I quickly hacked zip to make it usable in an emacs shell-mode
+   buffer.  This gave me unlimited scrollback and a gazillion
+   input-editing features.  It also mixed in the status line with the
+   game text so that as I scrolled back I could easily see where and when
+   I had been at each input line.  (This work eventually became the
+   dumbio.c file that was added to the jzip distribution in release
+   2.02.)
+
+   In 1997, I decided to do a similar job on frotz, partially so as to be
+   able to play v6 games, and partially as a silly exercise in unnatural
+   ways to support Z-machine I/O.  I included some sort of support for
+   all the required z-machine features, including all the ones that are
+   impossible to do naturally with just the standard library:
+   cursor-addressable screen output, reverse video, pictures,
+   single-character input, timed input, and input editing.
+
+   The result is potentially useful to/for:
+     - emacs junkies like myself
+     - character cell displays that are too dumb for curses.
+     - retro-freaks using a Teletype.
+     - speech synthesizers that work on a simple input stream.
+     - systems for which you have an ansi C library and no other port of frotz.
+     - collectors of z-machine curiosities
+
+========
+BUILDING
+========
+
+   cc -o dumb-frotz *.c
+
+===========
+BASIC USAGE
+===========
+
+   Invoke dumb-frotz like so:
+
+     dumb-frotz [options] story-file [graphics-file]
+
+   While playing, enter "\help" to see the list of special escape
+   characters and commands.  It looks like this:
+
+     DUMB-FROTZ runtime help:
+       General Commands:
+         \help    Show this message.
+         \set     Show the current values of runtime settings.
+         \s       Show the current contents of the whole screen.
+         \d       Discard the part of the input before the cursor.
+         \wN      Advance clock N/10 seconds, possibly causing the current
+                    and subsequent inputs to timeout.
+         \w       Advance clock by the amount of real time since this input
+                    started (times the current speed factor).
+         \t       Advance clock just enough to timeout the current input
+       Reverse-Video Display Method Settings:
+         \rn   none    \rc   CAPS    \rd   doublestrike    \ru   underline
+         \rbC  show rv blanks as char C (orthogonal to above modes)
+       Output Compression Settings:
+         \cn      none: show whole screen before every input.
+         \cm      max: show only lines that have new nonblank characters.
+         \cs      spans: like max, but emit a blank line between each span of
+                    screen lines shown.
+         \chN     Hide top N lines (orthogonal to above modes).
+       Misc Settings:
+         \sfX     Set speed factor to X.  (0 = never timeout automatically).
+         \mp      Toggle use of MORE prompts
+         \ln      Toggle display of line numbers.
+         \lt      Toggle display of the line type identification chars.
+         \vb      Toggle visual bell.
+         \pb      Toggle display of picture outline boxes.
+         (Toggle commands can be followed by a 1 or 0 to set value ON or OFF.)
+       Character Escapes:
+         \\  backslash    \#  backspace    \[  escape    \_  return
+         \< \> \^ \.  cursor motion        \1 ..\0  f1..f10
+         \D ..\X   Standard Frotz hotkeys.  Use \H (help) to see the list.
+       Line Type Identification Characters:
+         Input lines:
+           untimed  timed
+           >        T      A regular line-oriented input
+           )        t      A single-character input
+           }        D      A line input with some input before the cursor.
+                              (Use \d to discard it.)
+         Output lines:
+           ]     Output line that contains the cursor.
+           .     A blank line emitted as part of span compression.
+                 (blank) Any other output line.
+
+   I won't attempt to fully explain all the features, but I will
+   discuss the implementation of each of the "impossible" ones.
+
+================================
+CURSOR-ADDRESSABLE SCREEN OUTPUT
+================================
+
+   Dumb-frotz internally keeps an image of a rectangular screen that the
+   game can update in a random-access manner (at least in Z-machine
+   versions 4 and above it can).  There are two basic approaches
+   supported for keeping the user informed as to the contents of the
+   screen: dump the whole thing to stdout every turn, or print just the
+   interesting parts.
+
+   The first approach, selected by the \cn (compression: none) command,
+   is useful if you're really using a dumb terminal.  You essentially get
+   get a really dumb version of curses that refreshes the display each
+   turn by redrawing the entire thing (with a mark to show you where the
+   cursor is) and then redraws the cursor line at the bottom, where you
+   type your input.  For optimum visual effect, use on a large fast
+   terminal display, set height and width (-h and -w) to 1 less and 3
+   less than what you've got, and blink each time you press return.
+
+   In the compressed approach (\cm) we output only the lines that have
+   new information.  In the default mode (\cs) we also add some blank
+   lines so that lines that are from different parts of the screen
+   aren't displayed right next to each other.
+
+=============
+REVERSE VIDEO
+=============
+
+   Reverse video can minimally be indicated by using capitals and
+   underscores: "REVERSE_VIDEO".  For the sake of printing terminals,
+   we also support (using backspaces) underlining and doublestriking.
+
+========
+PICTURES
+========
+
+   Pictures are shown as outlines with the picture number in the lower
+   right-hand corner, like so:
+
+	+--------+
+	|::::::::|
+	|::::::37|
+	+--------+
+
+   Dumb-frotz reads pc picture files, which end in .cg1, .eg1, or .mg1.
+   It doesn't support pictures that are split into two or three files.
+   For the four infocom games, you can get the mg1 files from
+   ftp.gmd.de:/if-archive/infocom/missing-files.  You actually only need
+   the first couple blocks of each file, which contain the dimensions
+   for all the pictures.
+
+   Dumb-frotz scales the pictures according to the screen width and
+   height you are using (settable with the -h and -w command-line
+   options).  All the infocom games deal pretty well with this.  Here
+   is the opening screen for Zork Zero:
+
+   +-------------------------------+---------+-------------------------------+
+   |:::::::Banquet Hall      ::::::|:::::::::|:::::         Flatheadia:::::::|
+   |:::::::Moves:::0    :::::::::::|:::::::::|::++::::::::::Score:   0::::::5|
+   +-------------------------------|:::::::24|-------------------------------+
+   +------+                        +---------+                       +-------+
+   |::::::|                                                          |:::::::|
+   |::::::|  +--------+ nother frantic day at the castle; Lord       |:::::::|
+   |::::::|  |::::::::| Dimwit Flathead the Excessive has invited a  |:::::::|
+   |::::::|  |:::::::2| few thousand friends over for dinner. Three  |:::::::|
+   |::::::|  +--------+ hundred dragons have been slaughtered for    |:::::::|
+   |::::::|  the occasion, and the kitchen is suffocated by the      |:::::::|
+   |::::::|  stench of their roasting flesh.                         |:::::::|
+   |::::::|                                                          |:::::::|
+   |::::::|  Banquet Hall                                            |:::::::|
+   |::::::|  +---+ The hall is filled to capacity, and the thousands |:::::::|
+   |::::::|  |216| of reveling guests are raising quite a din. The   |:::::::|
+   |::::::|  +---+ primary exits are to the west and south; smaller  |:::::::|
+   |::::::|  openings lead east and northeast.                       |:::::::|
+   |::::::|     Dimwit is seated at the dais. His loud voice carries |:::::::|
+   |::::::|  across the crowded hall. "Now that the statue is done,  |:::::::|
+   |::::::|  we must do something ceremonial. I have it! A           |:::::::|
+   |::::::|  dedication! We'll give everyone in the kingdom a year   |:::::::|
+   |:::497|  off and invite them to the Fublio Valley..."            |::::498|
+   +------+                                                          +-------+
+
+======================
+SINGLE-CHARACTER INPUT
+======================
+
+   We assume a normal line-buffered input environment, which means that
+   single character input is not really possible.  When the game wants a
+   single character, you must type the character and a return (i.e. enter
+   a single-character line).  If you just hit return (i.e. enter a blank
+   line) then the return is used as the character.  If you enter a
+   multiple-character line, the extra characters are used one at a time
+   for subsequent single-character inputs, with no screen update in
+   between.  This is useful for traversing menus.  You can tell if the
+   game expects a single character or a full line by observing the
+   line-type character which is output in the first column of every line.
+   You can enter the non-printing characters (arrow keys, etc.) using
+   backslashed escape sequences.
+
+===========
+TIMED INPUT
+===========
+
+   Standard getchar can not be made to timeout.  However, we can and do
+   keep track of real time (to one second granularity) using time().  The
+   effect we produce is that the game is paused while reading input, but
+   when you finish entering a line, the game is first advanced by the
+   amount of real time that elapsed while you were typing the line, and
+   then the line is fed to the game.
+
+   For example, if a game repeatedly does a read with a one second
+   timeout, like Border Zone, and the user takes five seconds to enter
+   the line "north", then the timeout routine is called five times, which
+   updates the game's clock, and then "north" is returned to the game
+   (unless the timeout routine returned "abort" one of those times, in
+   which case the "north" is discarded).  If you've been sitting thinking
+   for a little while and want to check if anything has happened then
+   enter '\w'.  This will trigger some number of timeouts to bring the
+   game up to the current time.
+
+=============
+INPUT EDITING
+=============
+
+   This is the most blecherous requirement of the Z-machine: the game may
+   insert things into the input buffer, which the player must then be
+   able to edit.  We minimally support this by showing the player the
+   game-provided input, and allowing him to type in something to be
+   appended to it, or to enter \d to discard it and enter something else.
+
+================
+TIPS FOR PLAYING
+================
+
+   The escape sequences for the cursor keys are a pain to type, but you
+   hardly ever need them.  For infocom hint menus, you can use N and P.
+   In Beyond Zork, use space for down; - and + for left and right.  In
+   Journey, use space to switch menus; first letter of an item to select
+   it.  You're only screwed when you want to choose [cancel]: you have to
+   use down several times and return.  (You'd think one of '[', 'c', or
+   escape would work, but I guess that would be too easy.)  With both of
+   these games, you need to use \rc to see menu highlighting.  As far as
+   I know, these are the only two infocom titles for which reverse-video
+   is important.  Other games show the current menu item with a '>',
+   and/or leave the cursor on it.
+
+=======
+CAVEATS
+=======
+
+   Supposedly, this will work in any ansi C environment.  Some things
+   that might prevent that:
+
+     - non-ascii character set.  I assumed this a couple places.  Let me
+       know if you're actually using EBCDIC or a Teletype.  I'll clean
+       things up and add some sort of transliteration.
+
+     - lack of 8-bit char and 16-bit short.  I didn't bother to think
+       much about this.  If you're using a 36-bit Honeywell or
+       something, let me know.
+
+     - Other bugs in my code.  I'm sure there's plenty of 'em.
+       I've only tested it on a couple unix systems.
+
+     - non-ansi compliance of your system.  That's your problem.
+       Please don't bother sending me any "#ifdef MICROSHAFT ..."
+       patches.
+
+======
+CETERA
+======
+
+   Comments, questions, suggestions, bug reports, bugfixes, donations,
+   insults, &c. are all welcome.
+
+   If you want to take this thing to even more ridiculous extremes, here
+   are two ideas I had that I didn't implement:
+
+     - Render images internally; have a command to dump screen to a ppm file.
+     - Do ascii rendering of images, a la pbmtoascii.  With zoom and pan, the
+       images might actually be intelligible.

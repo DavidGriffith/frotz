@@ -146,6 +146,14 @@ static int unix_read_char(int extkeys)
 		return ZC_TIME_OUT;
 	    else
 		continue;
+	case 0:
+		/* Zero is the character code returned by curses when the
+		   user types Ctrl-@ (or Ctrl-Space).  It is also
+		   ZC_TIME_OUT.  If the user accidentally hits Ctrl-@, we
+		   must not return a bogus timeout to the program.
+		*/
+		continue;
+
 	/* Screen decluttering. */
 	case MOD_CTRL ^ 'L': case MOD_CTRL ^ 'R':
 	    clearok( curscr, 1); refresh(); clearok( curscr, 0);

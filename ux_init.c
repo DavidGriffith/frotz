@@ -49,8 +49,7 @@
 #include "ux_frotz.h"
 
 #define INFORMATION "\
-\n\
-FROTZ V2.41 - An interpreter for all Infocom and other Z-Machine games.\n\
+ - An interpreter for all Infocom and other Z-Machine games.\n\
 Complies with standard 1.0 of Graham Nelson's specification.\n\
 \n\
 Syntax: frotz [options] story-file\n\
@@ -252,6 +251,7 @@ void os_process_arguments (int argc, char *argv[])
     } while (c != EOF);
 
     if (optind != argc - 1) {
+	printf("FROTZ V%s", VERSION);
 	puts (INFORMATION);
 	printf ("\t-Z # error checking mode (default = %d)\n"
 	    "\t     %d = don't report errors   %d = report first error\n"

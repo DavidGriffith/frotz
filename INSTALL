@@ -2,10 +2,10 @@
    READ THIS FILE ALL THE WAY THROUGH BEFORE ATTEMPTING TO INSTALL FROTZ
 ---------------------------------------------------------------------------
 
-The Unix port of Frotz was written mainly with Linux in mind. Fortunately,
-the source is rather generic C code and runs well on pretty much all
-current Unices.  These are the only two things needed to compile and run
-Frotz:
+The Unix port of Frotz was written mainly with Linux in mind.
+Fortunately, the source is rather generic C code and runs well on pretty
+much all current Unixen.  These are the only two things needed to compile
+and run Frotz:
 
 	* Some variant of Unix with an ANSI C compiler (gcc works fine)
 	* A reasonably good SYSV derived curses library (ncurses is best)
@@ -21,6 +21,25 @@ It's always a good idea to have the GNU version of make(1) around.
 If you want sound support, you'll need the OSS drivers (found on Linux
 machines and some *BSD machines).  Support for other drivers is in the
 works.
+
+
+====================
+Precompiled Frotz ||
+====================
+
+NetBSD:  It's in the pkgsrc tree!
+
+FreeBSD:  It's in the ports tree!
+
+MacOS X:  It's at
+http://www.ifarchive.org/indexes/if-archiveXinfocomXinterpretersXfrotz.html
+
+Debian:  Debian isn't so good at keeping an up-to-date version of Frotz
+around, so check http://packages.debian.org/testing/games/frotz.html to
+make sure before you use apt-get or whatever.
+
+See http://www.cs.csubak.edu/~dgriffi/proj/frotz/prepackaged.html for
+up-to-date information on precompiled Frotz packages
 
 
 =======================
@@ -40,10 +59,12 @@ ports, RPM, DEB, or whatever packaging scheme suits you.
 Compiling and installing Frotz ||
 =================================
 
-Type "make" to compile Frotz.  If you get any showstopping complaints,
-it's most likely because you didn't tell make where your curses library
-is, where the curses header is, if you're using plain old curses or
-ncurses, or you're trying to use sound on an unsupported platform.
+Make sure you're in the directory that was created when you untarred the
+Frotz tarball.  Type "make" to compile Frotz.  If you get any showstopping
+complaints, it's most likely because you didn't tell make where your
+curses library is, where the curses header is, if you're using plain old
+curses or ncurses, or you're trying to use sound on an unsupported
+platform.
 
 Under Linux, the header file "soundcard.h" is usually found in
 <sys/soundcard.h>.  *BSD has this file in <soundcard.h>.  The Makefile and
@@ -60,6 +81,7 @@ Once the compile is complete, make sure you have the correct permissions
 to write where you want Frotz installed, then type "make install".
 
 To uninstall Frotz, type "make uninstall".
+
 
 ========================================
 Installing and playing games on Frotz ||
@@ -143,22 +165,24 @@ versions of ncurses supplied on SGI's freeware CDs and in SGI's freeware
 archive.  You MUST compile and install at least ncurses 5.0 from source.
 Versions of ncurses older than 5.0 are also broken on Irix.
 
-MacOS X:  According to Steven Frank <stevenf@mail.panic.com>, Frotz
-compiles fine on MacOS X if you change "gcc" to "cc" in the Makefile.
-The compiler is actually GCC, but is named "cc" for some strange reason.
-You will need to install ncurses, which will compile cleanly, but runs
-into trouble during installation.  You'll have to baby it along until a
-new version of ncurses comes out to address the install trouble.
+MacOS X:  You must use "cc" instead of "gcc" even though it's really GCC.
+This is a quirk of the Mac OS X Developer Tools.  MAN_PREFIX in the
+Makefile should be set to "/usr/local/share".
+
+Installing ncurses on MacOS X used to be troublesome because of some
+nonstandard places for things, but it seems that thse problems have been
+solved with ncurses 5.2.  A precompiled version of ncurses for MacOS X is
+available at http://gnu-darwin.sourceforge.net/.
 
 Solaris:  Some versions of curses on Solaris have trouble with color
 support.  At least the one in Solaris 2.6 works okay.  If compiled with
 the -02 option on an UltraSPARC using gcc 2.8.1, you may get lots of weird
 segfaults. The problem seems UltraSPARC related and it's not clear if this
 problem crosses flavor boundaries (ie, if UltraLinux or NetBSD on
-UltraSparc have this problem too).  Since version 2.8.x of gcc had lots of
-strange problems, gcc might be to blame.  I don't have sufficient access
-to test this theory, so if you're able to enlighten me on this, please do
-so.
+UltraSparc have this problem too).  Because version 2.8.x of gcc had lots
+of strange problems, gcc might be to blame.  I don't have sufficient
+access to test this theory, so if you're able to enlighten me on this,
+please do so.
 
 SunOS:  Uncomment the "MEMMOVE_DEF..." line in the Makefile before
 compiling.  Since I don't have access to a SunOS machine or an install CD

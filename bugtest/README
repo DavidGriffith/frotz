@@ -1,7 +1,7 @@
 These programs are intended to excercise the interpreter that it is
 functioning according to spec.  As far as I can determine, the programs
 are in the public domain or made freely available with no restrictions.
-Copyrights are retained by the original authors.
+Copyrights are retained by the original authors where noted.
 
 
 crashme.inf	Self-modifying reproducing Z-code.  Generates random junk
@@ -9,12 +9,14 @@ crashme.inf	Self-modifying reproducing Z-code.  Generates random junk
 		shouldn't die except on fatal errors.
 		Written by Evin Robertson in 1999.
 
+
 crashme.z5	Above code compiled to a Version 5 Z-machine binary.
 
 
 etude/		TerpEtude (etude.z5).  Excercises the Z-machine for proper
 		behavior.  Does not test error-handling.
 		Written by Andrew Plotkin in 1997
+
 
 gntests.inf	Assorted tests for checking proper handling of fonts,
 		accents, input codes, colors, header, and timed input.
@@ -31,5 +33,6 @@ strictz.inf	Another error-checking program intended specifically to
 		check Frotz's error-checking by attempting to cause
 		all possible non-fatal errors.
 		Written by Torbjorn Andersson in 1998.
+
 
 strictz.z5	Above code compiled to a Version 5 Z-machine binary.

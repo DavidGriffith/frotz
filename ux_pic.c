@@ -136,6 +136,12 @@ bool unix_init_pictures (void)
 		h_screen_rows, y_scale);
       pict_info[i].width = round_div(pict_info[i].orig_width *
 		h_screen_cols, x_scale);
+
+      /* Don't let dimensions get rounded to nothing. */
+      if (pict_info[i].orig_height && !pict_info[i].height)
+         pict_info[1].height = 1;
+      if (pict_info[i].orig_width && !pict_info[i].width)
+         pict_info[i].width = 1;
     }
     success = TRUE;
   } while (0);

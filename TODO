@@ -1,6 +1,6 @@
-========================================================
-Stuff to do for a minor update in no particular order ||
-========================================================
+=====================================
+Stuff to do that's probably simple ||
+=====================================
 
 Frotz has so far, been completely configurable throught the command-line.
 When I added the config file support, I noticed the need to add overrides
@@ -17,6 +17,12 @@ hotkey menu instead
 
 Hotkey menu needs work.
 
+For the hotkey thing, I think a good way to approach this would be to
+add a META-M hotkey.  This would bring up a menu from which one can alter
+and save any of the settings for Frotz.
+
+Blink the screen instead of ringing the bell when in quiet mode.
+
 Add zlib support to allow Frotz to read gzipped story files.
 
 Add support for debug verbs (teleport, pilfer, bamf, (frotz|futz|lumen),
@@ -28,17 +34,20 @@ Add an option to define the type of machine the Z-Machine is running on
 games might cause trouble and this is a rather frivilous option, so I'll
 let it go for now.
 
+Fix bugs!  (see file BUGS)
+
+
+=========================================================
+Stuff to do that'll probably require major overhauling ||
+=========================================================
+
 Add support for more sound drivers, not just OSS.
 
 Reorganize the source code into a "src" directory, documentation into a
 "doc" directory, and so on.
 
-Fix bugs!  (see file BUGS)
-
-
-===================================================
-Stuff to do for the next major release (ie 2.50) ||
-===================================================
+Add support for speech output.  When there is new output, the new output
+would be piped to a speech synthesis program.
 
 Modify os_display_string() so that it behaves like printf() with character
 conversions and all that nifty stuff.
@@ -47,16 +56,19 @@ More sensible handling of saves, transcripts, and game files.  This might
 be best handled by doing a complete rewrite of the Unix-specific code,
 which probably ought to be done anyhow.
 
-Curses menu to select desired game.  Current working code heavily borrows
+Curses menu to select desired game.  Current working code heavily borrowed
 from Alan Shutko's <ats@hubert.wustl.edu> "int-fiction" frontend program.
 
 Blorb gamefile support.
 
 Blorb sound support on all platforms.
 
-Implement Glk support.
+Implement Glk support.  As of release 2.42, Glk support development has
+been abandoned.
 
 An X11 graphical interface using GTK widgets (thus allowing V6 full support).
+
+Cocoa support for OSX.
 
 =========================================
 Stuff that would be really really nice ||

@@ -1,4 +1,4 @@
-FROTZ V2.41 - An interpreter for all Infocom games and other Z-machine  games.
+FROTZ V2.42 - An interpreter for all Infocom games and other Z-machine games.
 Complies with standard 1.0 of Graham Nelson's specification.
 
 Originally written by Stefan Jokisch in 1995-1997.
@@ -21,9 +21,15 @@ Unix port currently maintained by David Griffith.
 The latest information on Unix Frotz is available at the Unix Frotz
 homepage at http://www.cs.csubak.edu/~dgriffi/frotz/.
 
-The latest release of Unix Frotz is available for FTP download at
-ftp://ftp.gmd.de/if-archive/infocom/interpreters/frotz/frotz-<version>.tar.gz
-or any reliable mirror such as http://www.ifarchive.org.
+The latest release of Unix Frotz is available for FTP download at:
+ftp://ftp.ifarchive.org/if-archive/infocom/interpreters/frotz/frotz-<version>.tar.gz
+
+and on the World Wide Web at:
+
+http://www.ifarchive.org/if-archive/infocom/interpreters/frotz/frotz-<version>.tar.gz
+
+http://www.ifarchive.org also lists several mirrors which may be better
+choices depending on where you live.
 
 For installation information, see the file "INSTALL".
 
@@ -46,7 +52,7 @@ like a .deb, .rpm, Slackware package, the NetBSD pkgsrc tree, FreeBSD's
 ports tree, or anything like that so I can note that on the Unix Frotz
 webpage at http://www.cs.csubak.edu/~dgriffi.  _PLEASE_ don't try to do
 anything like have auto-install scripts grab files from that page.  Use
-ftp.gmd.de or one of its mirrors for that.
+ifarchive.org or one of its mirrors for that.
 
 
 ====================

@@ -1,0 +1,25 @@
+Hi David,
+
+This is the KDE port guy again.
+
+I want to be able to close one story file and open a new one, all without
+exiting the main program.
+
+For this to work, I had to modify the last line in interpret() in
+process.c from
+
+finished--;
+
+to
+
+finished = 0;
+
+Otherwise the static variable 'finished' ends up as 9998 when starting the
+second story, instead of the correct value of 0.
+
+Perhaps useful to include in the reference implementation?
+
+Cheers,
+
+Peter
+

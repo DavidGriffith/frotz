@@ -149,7 +149,7 @@ position before quitting, you must use the "SAVE" command.
 
 RESTORE - This restores a previously saved position.
 
-RESTART - This stops the store and restarts it from the beginning.
+RESTART - This stops the game and restarts it from the beginning.
 
 SAVE - This saves a "snapshot" of your current position.  You can return
 to a saved position in the future by using the "RESTORE" command.

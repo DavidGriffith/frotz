@@ -40,8 +40,8 @@ OSS sound on non-Linux machines ||
 The only machines using the OSS drivers I can test sound on are Linux/x86,
 NetBSD/x86, and Sparcs running NetBSD.  The sound from the NetBSD machines
 sounds horrrible (twice as slow, full of static).  I'm not sure what the
-problem is.  So far, I haven't heard of anyone trying sound on machines
-other than Linux/x86.
+problem is.  So far, I haven't heard of anyone getting sound to work on
+machines other than Linux/x86.
 
 
 =====================

@@ -1,3 +1,28 @@
+Summary of changes between Unix Frotz 2.41 and Unix Frotz 2.42:
+===============================================================
+
+Unix Frotz 2.42 was released on Monday March 11, 2002.
+
+NEW FEATURES
+
+- Makefile updated to play nicer with Mac OS X.
+
+
+BUG FIXES
+
+- Al Petrofsky sent a fix to prevent Frotz from aborting when Ctrl-Space
+  is entered (in ux_input.c).  Actually it was sent to Debian's bug list
+  several months ago, but not to me.  He also submitted a patch which
+  prevents picture dimensions from being rounded down to zero (ux_pic.c).
+  Sidebars in Arthur are now visible.
+
+- Steven Frank was mistakenly identified as the submitter of the fix to
+  allow Unix Frotz to display properly on screens narrower than 80
+  columns.  The true submitter was Justin Wesley.  The machine used was
+  an Agenda PDA running Linux.
+
+
+
 Summary of changes between Unix Frotz 2.40 and Unix Frotz 2.41:
 ===============================================================
 
@@ -115,5 +140,3 @@ NEW FEATURES
 
 - History searchs has been added.  Type the beginning of a past command
   and hit the up or down arrow key.
-
-

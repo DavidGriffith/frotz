@@ -1,8 +1,21 @@
-/*
- * text.c
+/* text.c - Text manipulation functions
+ *	Copyright (c) 1995-1997 Stefan Jokisch
  *
- * Text manipulation functions
+ * This file is part of Frotz.
  *
+ * Frotz is free software; you can redistribute it and/or modify
+ * it under the terms of the GNU General Public License as published by
+ * the Free Software Foundation; either version 2 of the License, or
+ * (at your option) any later version.
+ *
+ * Frotz is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU General Public License for more details.
+ *
+ * You should have received a copy of the GNU General Public License
+ * along with this program; if not, write to the Free Software
+ * Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA 02111-1307, USA
  */
 
 #include "frotz.h"
@@ -45,7 +58,7 @@ zchar translate_from_zscii (zbyte c)
     if (c == 0xfe)
 	return ZC_SINGLE_CLICK;
 
-    if (c >= 0x9b && story_id != BEYOND_ZORK)
+    if (c >= 0x9b && story_id != BEYOND_ZORK) {
 
 	if (hx_unicode_table != 0) {	/* game has its own Unicode table */
 
@@ -74,6 +87,7 @@ zchar translate_from_zscii (zbyte c)
 		return zscii_to_latin1[c - 0x9b];
 
 	    } else return '?';
+    }
 
     return c;
 
@@ -97,7 +111,7 @@ zbyte translate_to_zscii (zchar c)
     if (c == ZC_MENU_CLICK)
 	return 0xfc;
 
-    if (c >= ZC_LATIN1_MIN)
+    if (c >= ZC_LATIN1_MIN) {
 
 	if (hx_unicode_table != 0) {	/* game has its own Unicode table */
 
@@ -129,6 +143,7 @@ zbyte translate_to_zscii (zchar c)
 	    return '?';
 
 	}
+    }
 
     return c;
 
@@ -364,6 +379,9 @@ static void decode_text (enum string_type st, zword addr)
     int shift_lock = 0;
     int status = 0;
 
+    ptr = NULL;		/* makes compilers shut up */
+    byte_addr = 0;
+
     /* Calculate the byte address if necessary */
 
     if (st == ABBREVIATION)
@@ -382,7 +400,7 @@ static void decode_text (enum string_type st, zword addr)
 	    byte_addr = (long) addr << 3;
 
 	if (byte_addr >= story_size)
-	    runtime_error ("Print at illegal address");
+	    runtime_error (ERR_ILL_PRINT_ADDR);
 
     }
 
@@ -889,6 +907,8 @@ void tokenise_line (zword text, zword token, zword dct, bool flag)
     zword addr2;
     zbyte length;
     zbyte c;
+
+    length = 0;		/* makes compilers shut up */
 
     /* Use standard dictionary if the given dictionary is zero */
 

@@ -1,8 +1,21 @@
-/*
- * screen.c
+/* screen.c - Generic screen manipulation
+ *	Copyright (c) 1995-1997 Stefan Jokisch
  *
- * Generic screen manipulation
+ * This file is part of Frotz.
  *
+ * Frotz is free software; you can redistribute it and/or modify
+ * it under the terms of the GNU General Public License as published by
+ * the Free Software Foundation; either version 2 of the License, or
+ * (at your option) any later version.
+ *
+ * Frotz is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU General Public License for more details.
+ *
+ * You should have received a copy of the GNU General Public License
+ * along with this program; if not, write to the Free Software
+ * Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA 02111-1307, USA
  */
 
 #include "frotz.h"
@@ -26,15 +39,15 @@ static struct {
     {   UNKNOWN,  0,   0,   0 }
 };
 
-static font_height = 1;
-static font_width = 1;
+static int font_height = 1;
+static int font_width = 1;
 
 static bool input_redraw = FALSE;
 static bool more_prompts = TRUE;
 static bool discarding = FALSE;
 static bool cursor = TRUE;
 
-static input_window = 0;
+static int input_window = 0;
 
 static struct {
     zword y_pos;
@@ -55,6 +68,7 @@ static struct {
     zword line_count;
 } wp[8], *cwp;
 
+
 /*
  * winarg0
  *
@@ -70,7 +84,7 @@ static zword winarg0 (void)
 	return cwin;
 
     if (zargs[0] >= ((h_version == V6) ? 8 : 2))
-	runtime_error ("Illegal window");
+	runtime_error (ERR_ILL_WIN);
 
     return zargs[0];
 
@@ -92,7 +106,7 @@ static zword winarg2 (void)
 	return cwin;
 
     if (zargs[2] >= 8)
-	runtime_error ("Illegal window");
+	runtime_error (ERR_ILL_WIN);
 
     return zargs[2];
 
@@ -181,7 +195,7 @@ zword get_max_width (zword win)
     if (h_version == V6) {
 
 	if (win >= 8)
-	    runtime_error ("Illegal window");
+	    runtime_error (ERR_ILL_WIN);
 
 	return wp[win].x_size - wp[win].left - wp[win].right;
 
@@ -587,7 +601,7 @@ static void set_window (zword win)
  *
  */
 
-static void erase_window (zword win)
+void erase_window (zword win)
 {
     zword y = wp[win].y_pos;
     zword x = wp[win].x_pos;
@@ -682,7 +696,7 @@ static void erase_screen (zword win)
 
 }/* erase_screen */
 
-#ifdef AMIGA
+/* #ifdef AMIGA */
 
 /*
  * resize_screen
@@ -706,7 +720,7 @@ void resize_screen (void)
 
 }/* resize_screen */
 
-#endif
+/* #endif */
 
 /*
  * restart_screen
@@ -1083,7 +1097,7 @@ void z_get_wind_prop (void)
     flush_buffer ();
 
     if (zargs[1] >= 16)
-	runtime_error ("Illegal window property");
+	runtime_error (ERR_ILL_WIN_PROP);
 
     store (((zword *) (wp + winarg0 ())) [zargs[1]]);
 
@@ -1146,7 +1160,7 @@ void z_picture_data (void)
 
     for (i = 0; mapper[i].story_id != UNKNOWN; i++)
 
-	if (story_id == mapper[i].story_id)
+	if (story_id == mapper[i].story_id) {
 
 	    if (pic == mapper[i].pic) {
 
@@ -1160,6 +1174,7 @@ void z_picture_data (void)
 	    } else if (pic == mapper[i].pic1 || pic == mapper[i].pic2)
 
 		avail = FALSE;
+	}
 
     storew ((zword) (table + 0), (zword) (height));
     storew ((zword) (table + 2), (zword) (width));
@@ -1259,7 +1274,7 @@ void z_put_wind_prop (void)
     flush_buffer ();
 
     if (zargs[1] >= 16)
-	runtime_error ("Illegal window property");
+	runtime_error (ERR_ILL_WIN_PROP);
 
     ((zword *) (wp + winarg0 ())) [zargs[1]] = zargs[2];
 
@@ -1450,6 +1465,10 @@ void z_set_cursor (void)
 
     /* Protect the margins */
 
+    if (y == 0)			/* use cursor line if y-coordinate is 0 */
+	y = wp[win].y_cursor;
+    if (x == 0)			/* use cursor column if x-coordinate is 0 */
+	x = wp[win].x_cursor;
     if (x <= wp[win].left || x > wp[win].x_size - wp[win].right)
 	x = wp[win].left + 1;
 

@@ -1,73 +1,128 @@
-
-# Define your c compiler.  I recommend gcc if you've got it.
-#CC = cc
+#Define your C compiler.  I recommend gcc if you have it.
 CC = gcc
+#CC = cc
 
 # Define your optimization flags.  Most compilers understand -O and -O2,
-# Debugging (don't use)
-#OPTS = -Wall -g
-# Standard
+# Standard (note: Solaris on UltraSparc using gcc 2.8.x might not like this.)
 OPTS = -O2
 # Pentium with gcc 2.7.0 or better
 #OPTS = -O2 -fomit-frame-pointer -malign-functions=2 -malign-loops=2 \
--malign-jumps=2
+#-malign-jumps=2
 
-# There are a few defines which may be necessary to make frotz compile on
-# your system.  Most of these are fairly straightforward.
-#    -DNO_MEMMOVE:    Use this if your not-so-standard c library lacks the
-#                     memmove(3) function. (SunOS, other old BSDish systems)
-#
-# You may need to define one of these to get the getopt prototypes:
-#    -DUSE_UNISTD_H:  Use this if your getopt prototypes are in unistd.h.
-#                     (Solaris?)
-#    -DUSE_GETOPT_H:  Use this if you have a separate /usr/include/getopt.h
-#                     file containing the getopt prototypes. (Linux, IRIX 5?)
-#    -DUSE_NOTHING:   I've heard reports of some systems defining getopt in
-#                     stdlib.h, which unix.c automatically includes.
-#                     (*BSD, Solaris?)
-#
-# If none of the above are defined, frotz will define the getopt prototypes
-# itself.
-#
-#    -DUSE_NCURSES_H: Use this if you want to include ncurses.h rather
-#                     than curses.h.
-#
-# These defines add various cosmetic features to the interpreter:
-#    -DCOLOR_SUPPORT: If the terminal you're using has color support, frotz
-#                     will use the curses color routines...if your curses
-#                     library supports color.
-#    -DEMACS_EDITING: This enables some of the standard emacs editing keys
-#                     (Ctrl-B,-F,-P,-N, etc.) to be used when entering
-#                     input.  I can't see any reason why you wouldn't want
-#                     to define it--it can't hurt anything--but you do
-#                     have that option.
-#
-#DEFS = -DUSE_GETOPT_H -DCOLOR_SUPPORT -DEMACS_EDITING
-DEFS =
+# Define where you want Frotz to be installed.  Usually this is /usr/local
+PREFIX = /usr/local
+#PREFIX =
 
-# This should point to the location of your curses or ncurses include file
-# if it's in a non-standard place.
-#INCL = -I/usr/local/include
+# Define where you want Frotz to look for frotz.conf.
+CONFIG_DIR = /usr/local/etc
+#CONFIG_DIR = /etc
+#CONFIG_DIR = /usr/pkg/etc
+#CONFIG_DIR =
+
+# Uncomment this if you want color support.  Usually this requires ncurses.
+#COLOR_DEFS = -DCOLOR_SUPPORT
+
+# Uncomment this if you have an OSS soundcard driver and want classical
+# Infocom sound support.
+#SOUND_DEFS = -DOSS_SOUND
+
+# This should point to the location of your curses.h or ncurses.h include
+# file if your compiler doesn't know about it.
+INCL = -I/usr/local/include
+#INCL = -I/usr/pkg/include
+#INCL = -I/usr/freeware/include
 #INCL = -I/5usr/include
-INCL =
+#INCL =
 
 # This should define the location and name of whatever curses library you're
-# linking with.
-#LIB = -L/usr/local/lib
-#CURSES = -lncurses
+# linking with.  Usually, this isn't necessary if /etc/ld.so.conf is set
+# up correctly.
+LIB = -L/usr/local/lib
+#LIB = -L/usr/pkg/lib
+#LIB = -L/usr/freeware/lib
 #LIB = -L/5usr/lib
-LIB =
-CURSES = -lcurses
+#LIB =
 
+# One of these must be uncommented, use ncurses if you have it.
+CURSES = -lncurses	# Linux always uses ncurses.
+#CURSES = -lcurses
+
+# Comment this out if you're not using ncurses.
+CURSES_DEF = -DUSE_NCURSES_H
+
+# Uncomment this if you're compiling Unix Frotz on a machine that lacks
+# the memmove(3) system call.  If you don't know what this means, leave it
+# alone.
+#MEMMOVE_DEF = -DNO_MEMMOVE
+
+# Uncomment this if for some wacky reason you want to compile Unix Frotz
+# under Cygwin under Windoze.  This sort of thing is not reccomended.
+#EXTENSION = .exe
+
+
+#####################################################
 # Nothing under this line should need to be changed.
+#####################################################
 
-OBJECTS = buffer.o fastmem.o files.o hotkey.o input.o main.o math.o object.o \
-          process.o random.o redirect.o screen.o sound.o stream.o table.o \
-          text.o ux_init.o ux_input.o ux_pic.o ux_screen.o ux_sample.o \
-          ux_text.o variable.o
+VERSION = 2.40
 
-CFLAGS = $(OPTS) $(DEFS) $(INCL)
+BINNAME = frotz
 
-frotz: $(OBJECTS)
-	$(CC) -o frotz $(OBJECTS) $(LIB) $(CURSES)
+DISTNAME = $(BINNAME)-$(VERSION)
 
+OBJECTS = buffer.o err.o fastmem.o files.o hotkey.o input.o main.o \
+	math.o object.o process.o quetzal.o random.o redirect.o \
+	screen.o sound.o stream.o table.o text.o ux_init.o ux_input.o \
+	ux_pic.o ux_screen.o ux_text.o variable.o \
+	ux_audio_none.o ux_audio_oss.o
+
+OPT_DEFS = -DCONFIG_DIR="\"$(CONFIG_DIR)\"" $(CURSES_DEF)
+
+COMP_DEFS = $(OPT_DEFS) $(COLOR_DEFS) $(SOUND_DEFS) $(SOUNDCARD) \
+	$(MEMMOVE_DEF)
+
+CFLAGS = $(OPTS) $(COMP_DEFS) $(INCL)
+
+
+$(BINNAME): soundcard.h $(OBJECTS)
+	$(CC) -o $(BINNAME)$(EXTENSION) $(OBJECTS) $(LIB) $(CURSES)
+
+soundcard.h:
+	@if [ ! -f soundcard.h ] ; then ./findsound.sh; fi
+
+install: $(BINNAME)
+	strip $(BINNAME)
+	install -c -m 755 $(BINNAME)$(EXTENSION) $(PREFIX)/bin
+	install -c -m 644 $(BINNAME).6 $(PREFIX)/man/man6
+
+uninstall:
+	rm -f $(PREFIX)/bin/$(BINNAME)$(EXTENSION)
+	rm -f $(PREFIX)/man/man6/$(BINNAME).6
+
+deinstall: uninstall
+
+clean:
+	rm -f *.o
+
+distro: dist
+
+dist: distclean
+	cd .. ; tar cfv $(DISTNAME).tar $(DISTNAME) ; gzip -f $(DISTNAME).tar
+
+distclean: clean
+	rm -f soundcard.h
+	rm -f $(BINNAME)$(EXTENSION)
+
+realclean: distclean
+
+clobber: distclean
+
+help:
+	@echo
+	@echo "Targets:"
+	@echo "    frotz"
+	@echo "    install"
+	@echo "    uninstall"
+	@echo "    clean"
+	@echo "    distclean"
+	@echo

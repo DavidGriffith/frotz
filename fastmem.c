@@ -1,15 +1,32 @@
+/* fastmem.c - Memory related functions (fast version without virtual memory)
+ *	Copyright (c) 1995-1997 Stefan Jokisch
+ *
+ * This file is part of Frotz.
+ *
+ * Frotz is free software; you can redistribute it and/or modify
+ * it under the terms of the GNU General Public License as published by
+ * the Free Software Foundation; either version 2 of the License, or
+ * (at your option) any later version.
+ *
+ * Frotz is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU General Public License for more details.
+ *
+ * You should have received a copy of the GNU General Public License
+ * along with this program; if not, write to the Free Software
+ * Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA 02111-1307, USA
+ */
+
 /*
- * fastmem.c
- *
- * Memory related functions (fast version without virtual memory)
- *
+ * New undo mechanism added by Jim Dunleavy <jim.dunleavy@erha.ie>
  */
 
 #include <stdio.h>
 #include <string.h>
 #include "frotz.h"
 
-#ifdef __MSDOS__
+#ifdef MSDOS_16BIT
 
 #include <alloc.h>
 
@@ -40,6 +57,13 @@ extern void split_window (zword);
 extern void script_open (void);
 extern void script_close (void);
 
+extern FILE *os_path_open (const char *, const char *);
+
+extern zword save_quetzal (FILE *, FILE *);
+extern zword restore_quetzal (FILE *, FILE *);
+
+extern void erase_window (zword);
+
 extern void (*op0_opcodes[]) (void);
 extern void (*op1_opcodes[]) (void);
 extern void (*op2_opcodes[]) (void);
@@ -53,11 +77,29 @@ zbyte far *pcp = NULL;
 
 static FILE *story_fp = NULL;
 
-static zbyte far *undo[MAX_UNDO_SLOTS];
+/*
+ * Data for the undo mechanism.
+ * This undo mechanism is based on the scheme used in Evin Robertson's
+ * Nitfol interpreter.
+ * Undo blocks are stored as differences between states.
+ */
 
-static undo_slots = 0;
-static undo_count = 0;
-static undo_valid = 0;
+typedef struct undo_struct undo_t;
+struct undo_struct {
+    undo_t *next;
+    undo_t *prev;
+    long pc;
+    long diff_size;
+    zword frame_count;
+    zword stack_size;
+    zword frame_offset;
+    /* undo diff and stack data follow */
+};
+
+static undo_t *first_undo = NULL, *last_undo = NULL, *curr_undo = NULL;
+static zbyte *undo_mem = NULL, *prev_zmp, *undo_diff;
+
+static int undo_count = 0;
 
 /*
  * get_header_extension
@@ -207,26 +249,8 @@ void init_memory (void)
 
     /* Open story file */
 
-    if ((story_fp = fopen (story_name, "rb")) == NULL) {
-
-        char *path, *p, tmp[256];
-
-        /* Story file may be on INFOCOM_PATH, rather than current directory */
-        if ((path = getenv("INFOCOM_PATH")) == NULL)
-	  os_fatal ("Cannot open story file");
-
-	p=strtok(path,":");
-	while (p != NULL) {
-	    sprintf(tmp, "%s/%s", p, story_name);
-	    if ((story_fp = fopen (tmp, "rb")) == NULL)
-	      p = strtok(NULL, ":");
-	    else
-	      p = NULL;
-	}
-
-	if (story_fp == NULL)
-	  os_fatal ("Cannot open story file");
-    }
+    if ((story_fp = os_path_open(story_name, "rb")) == NULL)
+	os_fatal ("Cannot open story file");
 
     /* Allocate memory for story header */
 
@@ -276,7 +300,7 @@ void init_memory (void)
 
 	}
 
-    no_match:
+    no_match: ; /* null statement */
 
     }
 
@@ -365,25 +389,54 @@ void init_undo (void)
 {
     void far *reserved;
 
-    if (reserve_mem != 0)
+    reserved = NULL;	/* makes compilers shut up */
+
+    if (reserve_mem != 0) {
 	if ((reserved = malloc (reserve_mem)) == NULL)
 	    return;
-
-    while (undo_slots < option_undo_slots && undo_slots < MAX_UNDO_SLOTS) {
-
-	void far *mem = malloc ((long) sizeof (stack) + h_dynamic_size);
-
-	if (mem == NULL)
-	    break;
-
-	undo[undo_slots++] = mem;
-
     }
+
+    /* Allocate h_dynamic_size bytes for previous dynamic zmp state
+       + 1.5 h_dynamic_size for Quetzal diff + 2. */
+    undo_mem = malloc ((h_dynamic_size * 5) / 2 + 2);
+    if (undo_mem != NULL) {
+	prev_zmp = undo_mem;
+	undo_diff = undo_mem + h_dynamic_size;
+	memcpy (prev_zmp, zmp, h_dynamic_size);
+    } else
+	option_undo_slots = 0;
 
     if (reserve_mem != 0)
 	free (reserved);
 
 }/* init_undo */
+
+/*
+ * free_undo
+ *
+ * Free count undo blocks from the beginning of the undo list.
+ *
+ */
+
+static void free_undo (int count)
+{
+    undo_t *p;
+
+    if (count > undo_count)
+	count = undo_count;
+    while (count--) {
+	p = first_undo;
+	if (curr_undo == first_undo)
+	    curr_undo = curr_undo->next;
+	first_undo = first_undo->next;
+	free (p);
+	undo_count--;
+    }
+    if (first_undo)
+	first_undo->prev = NULL;
+    else
+	last_undo = NULL;
+}/* free_undo */
 
 /*
  * reset_memory
@@ -397,9 +450,10 @@ void reset_memory (void)
 
     fclose (story_fp);
 
-    while (undo_slots--)
-	free (undo[undo_slots]);
-
+    if (undo_mem) {
+	free_undo (undo_count);
+	free (undo_mem);
+    }
     free (zmp);
 
 }/* reset_memory */
@@ -415,7 +469,7 @@ void storeb (zword addr, zbyte value)
 {
 
     if (addr >= h_dynamic_size)
-	runtime_error ("Store out of dynamic memory");
+	runtime_error (ERR_STORE_RANGE);
 
     if (addr == H_FLAGS + 1) {	/* flags register is modified */
 
@@ -483,6 +537,7 @@ void z_restart (void)
     restart_screen ();
 
     sp = fp = stack + STACK_SIZE;
+    frame_count = 0;
 
     if (h_version != V6) {
 
@@ -597,68 +652,93 @@ void z_restore (void)
 	if ((gfp = fopen (new_name, "rb")) == NULL)
 	    goto finished;
 
-	/* Load game file */
+	if (option_save_quetzal) {
+	    success = restore_quetzal (gfp, story_fp);
 
-	release = (unsigned) fgetc (gfp) << 8;
-	release |= fgetc (gfp);
+	} else {
+	    /* Load game file */
 
-	(void) fgetc (gfp);
-	(void) fgetc (gfp);
+	    release = (unsigned) fgetc (gfp) << 8;
+	    release |= fgetc (gfp);
 
-	/* Check the release number */
+	    (void) fgetc (gfp);
+	    (void) fgetc (gfp);
 
-	if (release == h_release) {
+	    /* Check the release number */
 
-	    pc = (long) fgetc (gfp) << 16;
-	    pc |= (unsigned) fgetc (gfp) << 8;
-	    pc |= fgetc (gfp);
+	    if (release == h_release) {
 
-	    SET_PC (pc)
+		pc = (long) fgetc (gfp) << 16;
+		pc |= (unsigned) fgetc (gfp) << 8;
+		pc |= fgetc (gfp);
 
-	    sp = stack + (fgetc (gfp) << 8);
-	    sp += fgetc (gfp);
-	    fp = stack + (fgetc (gfp) << 8);
-	    fp += fgetc (gfp);
+		SET_PC (pc)
 
-	    for (i = (int) (sp - stack); i < STACK_SIZE; i++) {
-		stack[i] = (unsigned) fgetc (gfp) << 8;
-		stack[i] |= fgetc (gfp);
+		sp = stack + (fgetc (gfp) << 8);
+		sp += fgetc (gfp);
+		fp = stack + (fgetc (gfp) << 8);
+		fp += fgetc (gfp);
+
+		for (i = (int) (sp - stack); i < STACK_SIZE; i++) {
+		    stack[i] = (unsigned) fgetc (gfp) << 8;
+		    stack[i] |= fgetc (gfp);
+		}
+
+		fseek (story_fp, 0, SEEK_SET);
+
+		for (addr = 0; addr < h_dynamic_size; addr++) {
+		    int skip = fgetc (gfp);
+		    for (i = 0; i < skip; i++)
+			zmp[addr++] = fgetc (story_fp);
+		    zmp[addr] = fgetc (gfp);
+		    (void) fgetc (story_fp);
+		}
+
+		/* Check for errors */
+
+		if (ferror (gfp) || ferror (story_fp) || addr != h_dynamic_size)
+		    success = -1;
+		else
+
+		    /* Success */
+
+		    success = 2;
+
+	    } else print_string ("Invalid save file\n");
+	}
+
+	if ((short) success >= 0) {
+
+	    /* Close game file */
+
+	    fclose (gfp);
+
+	    if ((short) success > 0) {
+		zbyte old_screen_rows;
+		zbyte old_screen_cols;
+
+		/* In V3, reset the upper window. */
+		if (h_version == V3)
+		    split_window (0);
+
+		LOW_BYTE (H_SCREEN_ROWS, old_screen_rows);
+		LOW_BYTE (H_SCREEN_COLS, old_screen_cols);
+
+		/* Reload cached header fields. */
+		restart_header ();
+
+		/*
+		 * Since QUETZAL files may be saved on many different machines,
+		 * the screen sizes may vary a lot. Erasing the status window
+		 * seems to cover up most of the resulting badness.
+		 */
+		if (h_version > V3 && h_version != V6
+		    && (h_screen_rows != old_screen_rows
+		    || h_screen_cols != old_screen_cols))
+		    erase_window (1);
 	    }
-
-	    fseek (story_fp, 0, SEEK_SET);
-
-	    for (addr = 0; addr < h_dynamic_size; addr++) {
-		int skip = fgetc (gfp);
-		for (i = 0; i < skip; i++)
-		    zmp[addr++] = fgetc (story_fp);
-		zmp[addr] = fgetc (gfp);
-		(void) fgetc (story_fp);
-	    }
-
-	    /* Check for errors */
-
-	    if (ferror (gfp) || ferror (story_fp) || addr != h_dynamic_size)
-		os_fatal ("Error reading save file");
-
-	    /* Reset upper window (V3 only) */
-
-	    if (h_version == V3)
-		split_window (0);
-
-	    /* Initialise story header */
-
-	    restart_header ();
-
-	    /* Success */
-
-	    success = 2;
-
-	} else print_string ("Invalid save file\n");
-
-	/* Close game file */
-
-	fclose (gfp);
-
+	} else
+	    os_fatal ("Error reading save file");
     }
 
 finished:
@@ -671,6 +751,87 @@ finished:
 }/* z_restore */
 
 /*
+ * mem_diff
+ *
+ * Set diff to a Quetzal-like difference between a and b,
+ * copying a to b as we go.  It is assumed that diff points to a
+ * buffer which is large enough to hold the diff.
+ * mem_size is the number of bytes to compare.
+ * Returns the number of bytes copied to diff.
+ *
+ */
+
+static long mem_diff (zbyte *a, zbyte *b, zword mem_size, zbyte *diff)
+{
+    unsigned size = mem_size;
+    zbyte *p = diff;
+    unsigned j;
+    zbyte c;
+
+    for (;;) {
+	for (j = 0; size > 0 && (c = *a++ ^ *b++) == 0; j++)
+	    size--;
+	if (size == 0) break;
+	size--;
+	if (j > 0x8000) {
+	    *p++ = 0;
+	    *p++ = 0xff;
+	    *p++ = 0xff;
+	    j -= 0x8000;
+	}
+	if (j > 0) {
+	    *p++ = 0;
+	    j--;
+	    if (j <= 0x7f) {
+		*p++ = j;
+	    } else {
+		*p++ = (j & 0x7f) | 0x80;
+		*p++ = (j & 0x7f80) >> 7;
+	    }
+	}
+	*p++ = c;
+	*(b - 1) ^= c;
+    }
+    return p - diff;
+}/* mem_diff */
+
+/*
+ * mem_undiff
+ *
+ * Applies a quetzal-like diff to dest
+ *
+ */
+
+static void mem_undiff (zbyte *diff, long diff_length, zbyte *dest)
+{
+    zbyte c;
+
+    while (diff_length) {
+	c = *diff++;
+	diff_length--;
+	if (c == 0) {
+	    unsigned runlen;
+
+	    if (!diff_length)
+		return;  /* Incomplete run */
+	    runlen = *diff++;
+	    diff_length--;
+	    if (runlen & 0x80) {
+		if (!diff_length)
+		    return; /* Incomplete extended run */
+		c = *diff++;
+		diff_length--;
+		runlen = (runlen & 0x7f) | (((unsigned) c) << 7);
+	    }
+
+	    dest += runlen + 1;
+	} else {
+	    *dest++ ^= c;
+	}
+    }
+}/* mem_undiff */
+
+/*
  * restore_undo
  *
  * This function does the dirty work for z_restore_undo.
@@ -680,38 +841,30 @@ finished:
 int restore_undo (void)
 {
 
-    if (undo_slots == 0)	/* undo feature unavailable */
+    if (option_undo_slots == 0)	/* undo feature unavailable */
 
 	return -1;
 
-    else if (undo_valid == 0)	/* no saved game state */
+    if (curr_undo == NULL)	/* no saved game state */
 
 	return 0;
 
-    else {			/* undo possible */
+    /* undo possible */
 
-	long pc;
+    memcpy (zmp, prev_zmp, h_dynamic_size);
+    SET_PC (curr_undo->pc)
+    sp = stack + STACK_SIZE - curr_undo->stack_size;
+    fp = stack + curr_undo->frame_offset;
+    frame_count = curr_undo->frame_count;
+    mem_undiff ((zbyte *) (curr_undo + 1), curr_undo->diff_size, prev_zmp);
+    memcpy (sp, (zbyte *)(curr_undo + 1) + curr_undo->diff_size,
+	    curr_undo->stack_size * sizeof (*sp));
 
-	if (undo_count == 0)
-	    undo_count = undo_slots;
+    curr_undo = curr_undo->prev;
 
-	memcpy (stack, undo[undo_count - 1], sizeof (stack));
-	memcpy (zmp, undo[undo_count - 1] + sizeof (stack), h_dynamic_size);
+    restart_header ();
 
-	pc = ((long) stack[0] << 16) | stack[1];
-	sp = stack + stack[2];
-	fp = stack + stack[3];
-
-	SET_PC (pc)
-
-	restart_header ();
-
-	undo_count--;
-	undo_valid--;
-
-	return 2;
-
-    }
+    return 2;
 
 }/* restore_undo */
 
@@ -727,7 +880,7 @@ void z_restore_undo (void)
 
     store ((zword) restore_undo ());
 
-}/* restore_undo */
+}/* z_restore_undo */
 
 /*
  * z_save, save [a part of] the Z-machine state to disk.
@@ -790,40 +943,44 @@ void z_save (void)
 	if ((gfp = fopen (new_name, "wb")) == NULL)
 	    goto finished;
 
-	/* Write game file */
+	if (option_save_quetzal) {
+	    success = save_quetzal (gfp, story_fp);
+	} else {
+	    /* Write game file */
 
-	fputc ((int) hi (h_release), gfp);
-	fputc ((int) lo (h_release), gfp);
-	fputc ((int) hi (h_checksum), gfp);
-	fputc ((int) lo (h_checksum), gfp);
+	    fputc ((int) hi (h_release), gfp);
+	    fputc ((int) lo (h_release), gfp);
+	    fputc ((int) hi (h_checksum), gfp);
+	    fputc ((int) lo (h_checksum), gfp);
 
-	GET_PC (pc)
+	    GET_PC (pc)
 
-	fputc ((int) (pc >> 16) & 0xff, gfp);
-	fputc ((int) (pc >> 8) & 0xff, gfp);
-	fputc ((int) (pc) & 0xff, gfp);
+	    fputc ((int) (pc >> 16) & 0xff, gfp);
+	    fputc ((int) (pc >> 8) & 0xff, gfp);
+	    fputc ((int) (pc) & 0xff, gfp);
 
-	nsp = (int) (sp - stack);
-	nfp = (int) (fp - stack);
+	    nsp = (int) (sp - stack);
+	    nfp = (int) (fp - stack);
 
-	fputc ((int) hi (nsp), gfp);
-	fputc ((int) lo (nsp), gfp);
-	fputc ((int) hi (nfp), gfp);
-	fputc ((int) lo (nfp), gfp);
+	    fputc ((int) hi (nsp), gfp);
+	    fputc ((int) lo (nsp), gfp);
+	    fputc ((int) hi (nfp), gfp);
+	    fputc ((int) lo (nfp), gfp);
 
-	for (i = nsp; i < STACK_SIZE; i++) {
-	    fputc ((int) hi (stack[i]), gfp);
-	    fputc ((int) lo (stack[i]), gfp);
+	    for (i = nsp; i < STACK_SIZE; i++) {
+		fputc ((int) hi (stack[i]), gfp);
+		fputc ((int) lo (stack[i]), gfp);
+	    }
+
+	    fseek (story_fp, 0, SEEK_SET);
+
+	    for (addr = 0, skip = 0; addr < h_dynamic_size; addr++)
+		if (zmp[addr] != fgetc (story_fp) || skip == 255 || addr + 1 == h_dynamic_size) {
+		    fputc (skip, gfp);
+		    fputc (zmp[addr], gfp);
+		    skip = 0;
+		} else skip++;
 	}
-
-	fseek (story_fp, 0, SEEK_SET);
-
-	for (addr = 0, skip = 0; addr < h_dynamic_size; addr++)
-	    if (zmp[addr] != fgetc (story_fp) || skip == 255 || addr + 1 == h_dynamic_size) {
-		fputc (skip, gfp);
-		fputc (zmp[addr], gfp);
-		skip = 0;
-	    } else skip++;
 
 	/* Close game file and check for errors */
 
@@ -856,35 +1013,58 @@ finished:
 
 int save_undo (void)
 {
-    long pc;
+    long diff_size;
+    zword stack_size;
+    undo_t *p;
 
-    if (undo_slots == 0)	/* undo feature unavailable */
+    if (option_undo_slots == 0)		/* undo feature unavailable */
 
 	return -1;
 
-    else {			/* save undo possible */
+    /* save undo possible */
 
-	if (undo_count == undo_slots)
-	    undo_count = 0;
-
-	GET_PC (pc)
-
-	stack[0] = (zword) (pc >> 16);
-	stack[1] = (zword) (pc & 0xffff);
-	stack[2] = (zword) (sp - stack);
-	stack[3] = (zword) (fp - stack);
-
-	memcpy (undo[undo_count], stack, sizeof (stack));
-	memcpy (undo[undo_count] + sizeof (stack), zmp, h_dynamic_size);
-
-	if (++undo_count == undo_slots)
-	    undo_count = 0;
-	if (++undo_valid > undo_slots)
-	    undo_valid = undo_slots;
-
-	return 1;
-
+    while (last_undo != curr_undo) {
+	p = last_undo;
+	last_undo = last_undo->prev;
+	free (p);
+	undo_count--;
     }
+    if (last_undo)
+	last_undo->next = NULL;
+    else
+	first_undo = NULL;
+
+    if (undo_count == option_undo_slots)
+	free_undo (1);
+
+    diff_size = mem_diff (zmp, prev_zmp, h_dynamic_size, undo_diff);
+    stack_size = stack + STACK_SIZE - sp;
+    do {
+	p = malloc (sizeof (undo_t) + diff_size + stack_size * sizeof (*sp));
+	if (p == NULL)
+	    free_undo (1);
+    } while (!p && undo_count);
+    if (p == NULL)
+	return -1;
+    GET_PC (p->pc)
+    p->frame_count = frame_count;
+    p->diff_size = diff_size;
+    p->stack_size = stack_size;
+    p->frame_offset = fp - stack;
+    memcpy (p + 1, undo_diff, diff_size);
+    memcpy ((zbyte *)(p + 1) + diff_size, sp, stack_size * sizeof (*sp));
+
+    if (!first_undo) {
+	p->prev = NULL;
+	first_undo = p;
+    } else {
+	last_undo->next = p;
+	p->prev = last_undo;
+    }
+    p->next = NULL;
+    curr_undo = last_undo = p;
+    undo_count++;
+    return 1;
 
 }/* save_undo */
 

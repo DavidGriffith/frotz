@@ -1,21 +1,34 @@
+/* main.c - Frotz V2.40 main function
+ *	Copyright (c) 1995-1997 Stefan Jokisch
+ *
+ * This file is part of Frotz.
+ *
+ * Frotz is free software; you can redistribute it and/or modify
+ * it under the terms of the GNU General Public License as published by
+ * the Free Software Foundation; either version 2 of the License, or
+ * (at your option) any later version.
+ *
+ * Frotz is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU General Public License for more details.
+ *
+ * You should have received a copy of the GNU General Public License
+ * along with this program; if not, write to the Free Software
+ * Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA 02111-1307, USA
+ */
+
 /*
- * main.c
- *
- * Frotz V2.32 main function
- *
  * This is an interpreter for Infocom V1 to V6 games. It also supports
  * the recently defined V7 and V8 games. Please report bugs to
  *
  *    s.jokisch@avu.de
  *
- * Frotz is freeware. It may be used and distributed freely provided
- * no commercial profit is involved. (c) 1995-1997 Stefan Jokisch
- *
  */
 
 #include "frotz.h"
 
-#ifndef __MSDOS__
+#ifndef MSDOS_16BIT
 #define cdecl
 #endif
 
@@ -26,7 +39,7 @@ extern void reset_memory (void);
 
 /* Story file name, id number and size */
 
-const char *story_name = 0;
+char *story_name = 0;
 
 enum story story_id = UNKNOWN;
 long story_size = 0;
@@ -77,6 +90,7 @@ zword hx_unicode_table = 0;
 zword stack[STACK_SIZE];
 zword *sp = 0;
 zword *fp = 0;
+zword frame_count = 0;
 
 /* IO streams */
 
@@ -116,25 +130,14 @@ int option_piracy = 0;
 int option_undo_slots = MAX_UNDO_SLOTS;
 int option_expand_abbreviations = 0;
 int option_script_cols = 80;
+int option_save_quetzal = 1;
+int option_sound = 1;
+char *option_zcode_path;
+
 
 /* Size of memory to reserve (in bytes) */
 
 long reserve_mem = 0;
-
-/*
- * runtime_error
- *
- * An error has occured. Ignore it or pass it to os_fatal.
- *
- */
-
-void runtime_error (const char *s)
-{
-
-    if (!option_ignore_errors)
-	{ flush_buffer (); os_fatal (s); }
-
-}/* runtime_error */
 
 /*
  * z_piracy, branch if the story file is a legal copy.
@@ -161,6 +164,8 @@ int cdecl main (int argc, char *argv[])
 {
 
     os_process_arguments (argc, argv);
+
+    init_err ();
 
     init_memory ();
 

@@ -10,11 +10,16 @@
    this definition, but have the unix port see the curses version. */
 
 #ifndef __UNIX_PORT_FILE
+#include <signal.h>
 typedef int bool;
 
 #define TRUE 1
 #define FALSE 0
 #endif
+
+
+#include <stdio.h>
+
 
 typedef unsigned char zbyte;
 typedef unsigned short zword;
@@ -35,7 +40,7 @@ typedef unsigned char zchar;
 /*** Constants that may be set at compile time ***/
 
 #ifndef MAX_UNDO_SLOTS
-#define MAX_UNDO_SLOTS 25
+#define MAX_UNDO_SLOTS 500
 #endif
 #ifndef MAX_FILE_NAME
 #define MAX_FILE_NAME 80
@@ -61,6 +66,9 @@ typedef unsigned char zchar;
 #endif
 #ifndef DEFAULT_AUXILARY_NAME
 #define DEFAULT_AUXILARY_NAME "story.aux"
+#endif
+#ifndef DEFAULT_SAVE_DIR	/* DG */
+#define DEFAULT_SAVE_DIR ".frotz-saves"
 #endif
 
 /*** Story file header format ***/
@@ -254,81 +262,9 @@ extern zbyte *zmp;
 
 #endif
 
-#if defined (__MSDOS__)
+/* A bunch of x86 assembly code previously appeared here. */
 
-extern zbyte far *pcp;
-extern zbyte far *zmp;
-
-#define lo(v)	((zbyte *)&v)[0]
-#define hi(v)	((zbyte *)&v)[1]
-
-#define SET_WORD(addr,v) asm {\
-    les bx,zmp;\
-    add bx,addr;\
-    mov ax,v;\
-    xchg al,ah;\
-    mov es:[bx],ax }
-
-#define LOW_WORD(addr,v) asm {\
-    les bx,zmp;\
-    add bx,addr;\
-    mov ax,es:[bx];\
-    xchg al,ah;\
-    mov v,ax }
-
-#define HIGH_WORD(addr,v) asm {\
-    mov bx,word ptr zmp;\
-    add bx,word ptr addr;\
-    mov al,bh;\
-    mov bh,0;\
-    mov ah,0;\
-    adc ah,byte ptr addr+2;\
-    mov cl,4;\
-    shl ax,cl;\
-    add ax,word ptr zmp+2;\
-    mov es,ax;\
-    mov ax,es:[bx];\
-    xchg al,ah;\
-    mov v,ax }
-
-#define CODE_WORD(v) asm {\
-    les bx,pcp;\
-    mov ax,es:[bx];\
-    xchg al,ah;\
-    mov v,ax;\
-    add word ptr pcp,2 }
-
-#define GET_PC(v) asm {\
-    mov bx,word ptr pcp+2;\
-    sub bx,word ptr zmp+2;\
-    mov ax,bx;\
-    mov cl,4;\
-    shl bx,cl;\
-    mov cl,12;\
-    shr ax,cl;\
-    add bx,word ptr pcp;\
-    adc al,0;\
-    sub bx,word ptr zmp;\
-    sbb al,0;\
-    mov word ptr v,bx;\
-    mov word ptr v+2,ax }
-
-#define SET_PC(v) asm {\
-    mov bx,word ptr zmp;\
-    add bx,word ptr v;\
-    mov al,bh;\
-    mov bh,0;\
-    mov ah,0;\
-    adc ah,byte ptr v+2;\
-    mov cl,4;\
-    shl ax,cl;\
-    add ax,word ptr zmp+2;\
-    mov word ptr pcp,bx;\
-    mov word ptr pcp+2,ax }
-
-#endif
-
-#if !defined (AMIGA) && !defined (__MSDOS__)
+#if !defined (AMIGA) && !defined (MSDOS_16BIT)
 
 extern zbyte *pcp;
 extern zbyte *zmp;
@@ -344,6 +280,7 @@ extern zbyte *zmp;
 #define SET_PC(v)         { pcp = zmp + v; }
 
 #endif
+
 
 /*** Story file header data ***/
 
@@ -388,7 +325,7 @@ extern zword hx_unicode_table;
 
 /*** Various data ***/
 
-extern const char *story_name;
+extern char *story_name;
 
 extern enum story story_id;
 extern long story_size;
@@ -396,9 +333,10 @@ extern long story_size;
 extern zword stack[STACK_SIZE];
 extern zword *sp;
 extern zword *fp;
+extern zword frame_count;
 
 extern zword zargs[8];
-extern zargc;
+extern int zargc;
 
 extern bool ostream_screen;
 extern bool ostream_script;
@@ -407,29 +345,32 @@ extern bool ostream_record;
 extern bool istream_replay;
 extern bool message;
 
-extern cwin;
-extern mwin;
+extern int cwin;
+extern int mwin;
 
-extern mouse_x;
-extern mouse_y;
+extern int mouse_x;
+extern int mouse_y;
 
 extern bool enable_wrapping;
 extern bool enable_scripting;
 extern bool enable_scrolling;
 extern bool enable_buffering;
 
-extern option_attribute_assignment;
-extern option_attribute_testing;
-extern option_object_locating;
-extern option_object_movement;
-extern option_context_lines;
-extern option_left_margin;
-extern option_right_margin;
-extern option_ignore_errors;
-extern option_piracy;
-extern option_undo_slots;
-extern option_expand_abbreviations;
-extern option_script_cols;
+extern int option_attribute_assignment;
+extern int option_attribute_testing;
+extern int option_object_locating;
+extern int option_object_movement;
+extern int option_context_lines;
+extern int option_left_margin;
+extern int option_right_margin;
+extern int option_ignore_errors;
+extern int option_piracy;
+extern int option_undo_slots;
+extern int option_expand_abbreviations;
+extern int option_script_cols;
+extern int option_save_quetzal;
+extern int option_sound;	/* dg */
+extern char *option_zcode_path;	/* dg */
 
 extern long reserve_mem;
 
@@ -546,6 +487,70 @@ void 	z_verify (void);
 void 	z_window_size (void);
 void 	z_window_style (void);
 
+/* Definitions for error handling functions and error codes. */
+
+extern int err_report_mode;
+
+void	init_err (void);
+void	runtime_error (int);
+
+/* Error codes */
+#define ERR_TEXT_BUF_OVF 1	/* Text buffer overflow */
+#define ERR_STORE_RANGE 2	/* Store out of dynamic memory */
+#define ERR_DIV_ZERO 3		/* Division by zero */
+#define ERR_ILL_OBJ 4		/* Illegal object */
+#define ERR_ILL_ATTR 5		/* Illegal attribute */
+#define ERR_NO_PROP 6		/* No such property */
+#define ERR_STK_OVF 7		/* Stack overflow */
+#define ERR_ILL_CALL_ADDR 8	/* Call to illegal address */
+#define ERR_CALL_NON_RTN 9	/* Call to non-routine */
+#define ERR_STK_UNDF 10		/* Stack underflow */
+#define ERR_ILL_OPCODE 11	/* Illegal opcode */
+#define ERR_BAD_FRAME 12	/* Bad stack frame */
+#define ERR_ILL_JUMP_ADDR 13	/* Jump to illegal address */
+#define ERR_SAVE_IN_INTER 14	/* Can't save while in interrupt */
+#define ERR_STR3_NESTING 15	/* Nesting stream #3 too deep */
+#define ERR_ILL_WIN 16		/* Illegal window */
+#define ERR_ILL_WIN_PROP 17	/* Illegal window property */
+#define ERR_ILL_PRINT_ADDR 18	/* Print at illegal address */
+#define ERR_MAX_FATAL 18
+
+/* Less serious errors */
+#define ERR_JIN_0 19		/* @jin called with object 0 */
+#define ERR_GET_CHILD_0 20	/* @get_child called with object 0 */
+#define ERR_GET_PARENT_0 21	/* @get_parent called with object 0 */
+#define ERR_GET_SIBLING_0 22	/* @get_sibling called with object 0 */
+#define ERR_GET_PROP_ADDR_0 23	/* @get_prop_addr called with object 0 */
+#define ERR_GET_PROP_0 24	/* @get_prop called with object 0 */
+#define ERR_PUT_PROP_0 25	/* @put_prop called with object 0 */
+#define ERR_CLEAR_ATTR_0 26	/* @clear_attr called with object 0 */
+#define ERR_SET_ATTR_0 27	/* @set_attr called with object 0 */
+#define ERR_TEST_ATTR_0 28	/* @test_attr called with object 0 */
+#define ERR_MOVE_OBJECT_0 29	/* @move_object called moving object 0 */
+#define ERR_MOVE_OBJECT_TO_0 30	/* @move_object called moving into object 0 */
+#define ERR_REMOVE_OBJECT_0 31	/* @remove_object called with object 0 */
+#define ERR_GET_NEXT_PROP_0 32	/* @get_next_prop called with object 0 */
+#define ERR_NUM_ERRORS (32)
+
+/* There are four error reporting modes: never report errors;
+  report only the first time a given error type occurs; report
+  every time an error occurs; or treat all errors as fatal
+  errors, killing the interpreter. I strongly recommend
+  "report once" as the default. But you can compile in a
+  different default by changing the definition of
+  ERR_DEFAULT_REPORT_MODE. In any case, the player can
+  specify a report mode on the command line by typing "-Z 0"
+  through "-Z 3". */
+
+#define ERR_REPORT_NEVER (0)
+#define ERR_REPORT_ONCE (1)
+#define ERR_REPORT_ALWAYS (2)
+#define ERR_REPORT_FATAL (3)
+
+/* #define ERR_DEFAULT_REPORT_MODE ERR_REPORT_ONCE */
+#define ERR_DEFAULT_REPORT_MODE ERR_REPORT_NEVER
+
+
 /*** Various global functions ***/
 
 zchar	translate_from_zscii (zbyte);
@@ -560,8 +565,6 @@ void 	print_string (const char *);
 
 void 	stream_mssg_on (void);
 void 	stream_mssg_off (void);
-
-void	runtime_error (const char *);
 
 void	ret (zword);
 void 	store (zword);

@@ -1,0 +1,75 @@
+Summary of changes between Unix Frotz 2.32R2 and Unix Frotz 2.40:
+=================================================================
+
+
+Unix Frotz 2.40 was released on Saturday November 11, 2000.
+
+BUG FIXES
+
+- Tab-completion now works in the middle of a sentence.
+
+- Assorted fixes to make gcc stop complaining when using -Wall and -ansi
+  flags.  These fixes included adding curly braces to avoid
+  ambiguous-looking if-then-elses, adding parens to avoid abiguous-looking
+  ands and ors, initializing variables even though there was no need to.
+
+- Several functions in ux_text.c used functions that wanted
+  *char.  Instead they were being passed *zchar.  Irix's cc
+  complained.  Casts were added to fix this.
+
+- The terminal erase character, as set with stty, now functions as
+  backspace.  On many terminals, this character is DEL.
+
+- Background colors should now work properly.
+
+- timeout() from curses is now used for times input instead of a busy
+  loop.
+
+- ^L and ^R now redraw the screen instead of being passed as input to the
+  Z-machine.
+
+- ISO-Latin-1 characters are now valid input unless in plain ASCII mode.
+  This makes the meta bit unusable for hotkeys.  On terminals with 8-bit
+  character sets, alt usually sends ESC anyway.
+
+- With zstrict error-checking tuning, the -i (for ignore errors) is
+  superfluous and therefore has been removed.
+
+- A supplementary memmove() function has been added for machines that lack
+  it.  As I don't have access to a machine like this, the code is
+  untested.
+
+
+NEW FEATURES
+
+- Merged changed from Frotz 2.40 for DOS.
+
+- Beginning with 2.40, the reference version of Frotz (the DOS version) is
+ distributed under the GNU Public License rather than the old "no
+ commercial profit" license.
+
+- Unix Frotz 2.40, like the reference version, is now distributed under
+  the GNU Public License.
+
+- V6 games supported by drawing the outlines of pictures.  True display of
+  the graphics are on hold until the X11 with GTK version is complete.
+
+- Classical Infocom sound effects supported through the OSS drivers.  I'm
+  only aware of "Lurking Horror" and "Sherlock: The Riddle of the Crown
+  Jewels" as having such sound effects.  See the INSTALL file for
+  information on where the sound files should go.
+
+- System-wide and per-user config files.
+
+- Quetzal save format is now the default.  Old Zip 2.0 format is still
+  supported by command line option or config file setting.
+
+- $ZCODE_PATH and $INFOCOM_PATH environmental variables searched for game
+  files.
+
+- Faster undo functionality (borrowed from Nitfol).
+
+- History searchs has been added.  Type the beginning of a past command
+  and hit the up or down arrow key.
+
+

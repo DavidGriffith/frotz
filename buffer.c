@@ -1,8 +1,21 @@
-/*
- * buffer.c
+/* buffer.c - Text buffering and word wrapping
+ *	Copyright (c) 1995-1997 Stefan Jokisch
  *
- * Text buffering and word wrapping
+ * This file is part of Frotz.
  *
+ * Frotz is free software; you can redistribute it and/or modify
+ * it under the terms of the GNU General Public License as published by
+ * the Free Software Foundation; either version 2 of the License, or
+ * (at your option) any later version.
+ *
+ * Frotz is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU General Public License for more details.
+ *
+ * You should have received a copy of the GNU General Public License
+ * along with this program; if not, write to the Free Software
+ * Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA 02111-1307, USA
  */
 
 #include "frotz.h"
@@ -12,7 +25,7 @@ extern void stream_word (const zchar *);
 extern void stream_new_line (void);
 
 static zchar buffer[TEXT_BUFFER_SIZE];
-static bufpos = 0;
+static int bufpos = 0;
 
 static zchar prev_c = 0;
 
@@ -72,7 +85,9 @@ void print_char (zchar c)
 
 	    /* Flush the buffer before a whitespace or after a hyphen */
 
-	    if (c == ' ' || c == ZC_INDENT || c == ZC_GAP || prev_c == '-' && c != '-')
+	    if (c == ' ' || c == ZC_INDENT || c == ZC_GAP || (prev_c == '-' && c != '-'))
+
+
 		flush_buffer ();
 
 	    /* Set the flag if this is part one of a style or font change */
@@ -91,7 +106,7 @@ void print_char (zchar c)
 	buffer[bufpos++] = c;
 
 	if (bufpos == TEXT_BUFFER_SIZE)
-	    runtime_error ("Text buffer overflow");
+	    runtime_error (ERR_TEXT_BUF_OVF);
 
     } else stream_char (c);
 

@@ -1,8 +1,21 @@
-/*
- * files.c
+/* files.c - Transscription, recording and playback
+ *	Copyright (c) 1995-1997 Stefan Jokisch
  *
- * Transscription, recording and playback
+ * This file is part of Frotz.
  *
+ * Frotz is free software; you can redistribute it and/or modify
+ * it under the terms of the GNU General Public License as published by
+ * the Free Software Foundation; either version 2 of the License, or
+ * (at your option) any later version.
+ *
+ * Frotz is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU General Public License for more details.
+ *
+ * You should have received a copy of the GNU General Public License
+ * along with this program; if not, write to the Free Software
+ * Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA 02111-1307, USA
  */
 
 #include <stdio.h>
@@ -28,7 +41,7 @@ char command_name[MAX_FILE_NAME + 1] = DEFAULT_COMMAND_NAME;
 extern char latin1_to_ibm[];
 #endif
 
-static script_width = 0;
+static int script_width = 0;
 
 static FILE *sfp = NULL;
 static FILE *rfp = NULL;
@@ -341,7 +354,7 @@ static void record_code (int c, bool force_encoding)
 static void record_char (zchar c)
 {
 
-    if (c != ZC_RETURN)
+    if (c != ZC_RETURN) {
 
 	if (c < ZC_HKEY_MIN || c > ZC_HKEY_MAX) {
 
@@ -351,7 +364,7 @@ static void record_char (zchar c)
 		record_code (mouse_x, TRUE);
 		record_code (mouse_y, TRUE);
 	    }
-
+    }
 	} else record_code (1000 + c - ZC_HKEY_MIN, TRUE);
 
 }/* record_char */
@@ -476,7 +489,7 @@ static zchar replay_char (void)
 
     if ((c = replay_code ()) != EOF) {
 
-	if (c != '\n')
+	if (c != '\n') {
 
 	    if (c < 1000) {
 
@@ -490,6 +503,7 @@ static zchar replay_char (void)
 		return c;
 
 	    } else return ZC_HKEY_MIN + c - 1000;
+	}
 
 	ungetc ('\n', pfp);
 

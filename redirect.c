@@ -1,8 +1,21 @@
-/*
- * redirect.c
+/* redirect.c - Output redirection to Z-machine memory
+ *	Copyright (c) 1995-1997 Stefan Jokisch
  *
- * Output redirection to Z-machine memory
+ * This file is part of Frotz.
  *
+ * Frotz is free software; you can redistribute it and/or modify
+ * it under the terms of the GNU General Public License as published by
+ * the Free Software Foundation; either version 2 of the License, or
+ * (at your option) any later version.
+ *
+ * Frotz is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU General Public License for more details.
+ *
+ * You should have received a copy of the GNU General Public License
+ * along with this program; if not, write to the Free Software
+ * Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA 02111-1307, USA
  */
 
 #include "frotz.h"
@@ -11,7 +24,7 @@
 
 extern zword get_max_width (zword);
 
-static depth = -1;
+static int depth = -1;
 
 static struct {
     zword xsize;
@@ -46,7 +59,7 @@ void memory_open (zword table, zword xsize, bool buffering)
 
 	ostream_memory = TRUE;
 
-   } else runtime_error ("Nesting stream #3 too deep");
+   } else runtime_error (ERR_STR3_NESTING);
 
 }/* memory_open */
 

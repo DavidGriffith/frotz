@@ -1,8 +1,21 @@
-/*
- * object.c
+/* object.c - Object manipulation opcodes
+ *	Copyright (c) 1995-1997 Stefan Jokisch
  *
- * Object manipulation opcodes
+ * This file is part of Frotz.
  *
+ * Frotz is free software; you can redistribute it and/or modify
+ * it under the terms of the GNU General Public License as published by
+ * the Free Software Foundation; either version 2 of the License, or
+ * (at your option) any later version.
+ *
+ * Frotz is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU General Public License for more details.
+ *
+ * You should have received a copy of the GNU General Public License
+ * along with this program; if not, write to the Free Software
+ * Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA 02111-1307, USA
  */
 
 #include "frotz.h"
@@ -34,7 +47,7 @@ static zword object_address (zword obj)
     /* Check object number */
 
     if (obj > ((h_version <= V3) ? 255 : MAX_OBJECT))
-	runtime_error ("Illegal object");
+	runtime_error (ERR_ILL_OBJ);
 
     /* Return object address */
 
@@ -149,6 +162,11 @@ static void unlink_object (zword object)
     zword parent_addr;
     zword sibling_addr;
 
+    if (object == 0) {
+	runtime_error (ERR_REMOVE_OBJECT_0);
+	return;
+    }
+
     obj_addr = object_address (object);
 
     if (h_version <= V3) {
@@ -251,7 +269,7 @@ void z_clear_attr (void)
 	    return;
 
     if (zargs[1] > ((h_version <= V3) ? 31 : 47))
-	runtime_error ("Illegal attribute");
+	runtime_error (ERR_ILL_ATTR);
 
     /* If we are monitoring attribute assignment display a short note */
 
@@ -262,6 +280,11 @@ void z_clear_attr (void)
 	print_string (" ");
 	print_num (zargs[1]);
 	stream_mssg_off ();
+    }
+
+    if (zargs[0] == 0) {
+	runtime_error (ERR_CLEAR_ATTR_0);
+	return;
     }
 
     /* Get attribute address */
@@ -297,6 +320,12 @@ void z_jin (void)
 	print_string (" ");
 	print_object (zargs[1]);
 	stream_mssg_off ();
+    }
+
+    if (zargs[0] == 0) {
+	runtime_error (ERR_JIN_0);
+	branch (0 == zargs[1]);
+	return;
     }
 
     obj_addr = object_address (zargs[0]);
@@ -351,6 +380,13 @@ void z_get_child (void)
 	stream_mssg_off ();
     }
 
+    if (zargs[0] == 0) {
+	runtime_error (ERR_GET_CHILD_0);
+	store (0);
+	branch (FALSE);
+	return;
+    }
+
     obj_addr = object_address (zargs[0]);
 
     if (h_version <= V3) {
@@ -399,6 +435,12 @@ void z_get_next_prop (void)
     zbyte value;
     zbyte mask;
 
+    if (zargs[0] == 0) {
+	runtime_error (ERR_GET_NEXT_PROP_0);
+	store (0);
+	return;
+    }
+
     /* Property id is in bottom five (six) bits */
 
     mask = (h_version <= V3) ? 0x1f : 0x3f;
@@ -419,7 +461,7 @@ void z_get_next_prop (void)
 	/* Exit if the property does not exist */
 
 	if ((value & mask) != zargs[1])
-	    runtime_error ("No such property");
+	    runtime_error (ERR_NO_PROP);
 
     }
 
@@ -448,6 +490,12 @@ void z_get_parent (void)
 	print_string ("@get_parent ");
 	print_object (zargs[0]);
 	stream_mssg_off ();
+    }
+
+    if (zargs[0] == 0) {
+	runtime_error (ERR_GET_PARENT_0);
+	store (0);
+	return;
     }
 
     obj_addr = object_address (zargs[0]);
@@ -498,6 +546,12 @@ void z_get_prop (void)
     zbyte value;
     zbyte mask;
 
+    if (zargs[0] == 0) {
+	runtime_error (ERR_GET_PROP_0);
+	store (0);
+	return;
+    }
+
     /* Property id is in bottom five (six) bits */
 
     mask = (h_version <= V3) ? 0x1f : 0x3f;
@@ -521,7 +575,7 @@ void z_get_prop (void)
 
 	prop_addr++;
 
-	if (h_version <= V3 && !(value & 0xe0) || h_version >= V4 && !(value & 0xc0)) {
+	if ((h_version <= V3 && !(value & 0xe0)) || (h_version >= V4 && !(value & 0xc0))) {
 
 	    LOW_BYTE (prop_addr, bprop_val)
 	    wprop_val = bprop_val;
@@ -556,6 +610,12 @@ void z_get_prop_addr (void)
     zword prop_addr;
     zbyte value;
     zbyte mask;
+
+    if (zargs[0] == 0) {
+	runtime_error (ERR_GET_PROP_ADDR_0);
+	store (0);
+	return;
+    }
 
     if (story_id == BEYOND_ZORK)
 	if (zargs[0] > MAX_OBJECT)
@@ -638,6 +698,13 @@ void z_get_sibling (void)
 {
     zword obj_addr;
 
+    if (zargs[0] == 0) {
+	runtime_error (ERR_GET_SIBLING_0);
+	store (0);
+	branch (FALSE);
+	return;
+    }
+
     obj_addr = object_address (zargs[0]);
 
     if (h_version <= V3) {
@@ -698,6 +765,16 @@ void z_insert_obj (void)
 	stream_mssg_off ();
     }
 
+    if (obj1 == 0) {
+	runtime_error (ERR_MOVE_OBJECT_0);
+	return;
+    }
+
+    if (obj2 == 0) {
+	runtime_error (ERR_MOVE_OBJECT_TO_0);
+	return;
+    }
+
     /* Get addresses of both objects */
 
     obj1_addr = object_address (obj1);
@@ -752,6 +829,11 @@ void z_put_prop (void)
     zword value;
     zbyte mask;
 
+    if (zargs[0] == 0) {
+	runtime_error (ERR_PUT_PROP_0);
+	return;
+    }
+
     /* Property id is in bottom five or six bits */
 
     mask = (h_version <= V3) ? 0x1f : 0x3f;
@@ -772,13 +854,13 @@ void z_put_prop (void)
     /* Exit if the property does not exist */
 
     if ((value & mask) != zargs[1])
-	runtime_error ("No such property");
+	runtime_error (ERR_NO_PROP);
 
     /* Store the new property value (byte or word sized) */
 
     prop_addr++;
 
-    if (h_version <= V3 && !(value & 0xe0) || h_version >= V4 && !(value & 0xc0)) {
+    if ((h_version <= V3 && !(value & 0xe0)) || (h_version >= V4 && !(value & 0xc0))) {
 	zbyte v = zargs[2];
 	SET_BYTE (prop_addr, v)
     } else {
@@ -831,7 +913,7 @@ void z_set_attr (void)
 	    return;
 
     if (zargs[1] > ((h_version <= V3) ? 31 : 47))
-	runtime_error ("Illegal attribute");
+	runtime_error (ERR_ILL_ATTR);
 
     /* If we are monitoring attribute assignment display a short note */
 
@@ -842,6 +924,11 @@ void z_set_attr (void)
 	print_string (" ");
 	print_num (zargs[1]);
 	stream_mssg_off ();
+    }
+
+    if (zargs[0] == 0) {
+	runtime_error (ERR_SET_ATTR_0);
+	return;
     }
 
     /* Get attribute address */
@@ -876,7 +963,7 @@ void z_test_attr (void)
     zbyte value;
 
     if (zargs[1] > ((h_version <= V3) ? 31 : 47))
-	runtime_error ("Illegal attribute");
+	runtime_error (ERR_ILL_ATTR);
 
     /* If we are monitoring attribute testing display a short note */
 
@@ -887,6 +974,12 @@ void z_test_attr (void)
 	print_string (" ");
 	print_num (zargs[1]);
 	stream_mssg_off ();
+    }
+
+    if (zargs[0] == 0) {
+	runtime_error (ERR_TEST_ATTR_0);
+	branch (FALSE);
+	return;
     }
 
     /* Get attribute address */

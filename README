@@ -1,0 +1,72 @@
+FROTZ V2.40 - An interpreter for all Infocom games and other Z-machine games.
+Complies with standard 1.0 of Graham Nelson's specification.
+
+Originally written by Stefan Jokisch in 1995-1997.
+Reference code currently maintained by Jim Dunleavy.
+Ported to Unix by Galen Hazelwood.
+Unix port currently maintained by David Griffith.
+
+- Compiles and runs on most common flavors of Unix, both open source and not.
+- Plays all Z-code games including V6.
+- Old-style sound support through OSS driver.
+- Config files.
+- Stricter error checking.
+- Default use fo the Quetzal file format.  Command line option to use the
+  old format.
+- Now distributed under the GNU Public License.
+
+The latest information on Unix Frotz is available at the Unix Frotz
+homepage at http://www.cs.csubak.edu/~dgriffi/frotz/.
+
+The latest release of Unix Frotz is available for FTP download at
+ftp://ftp.gmd.de/if-archive/infocom/interpreters/frotz/frotz-<version>.tar.gz
+or any reliable mirror such as http://www.ifarchive.org.
+
+For installation information, see the file "INSTALL".
+
+For information on what Interactive Fiction is and how to play it, see the
+file "HOW_TO_PLAY".
+
+For update history, see the file "Changelog".
+
+For information on known bugs in Frotz, see the file "BUGS".
+
+For bug reports, check the Unix Frotz website to see if there's a new
+release.  If not, send your bug report to me at dgriffi@cs.csubak.edu.
+
+
+============
+Packaging ||
+============
+Please email me if you wish to put Unix Frotz into something
+like a .deb, .rpm, Slackware package, the NetBSD pkgsrc tree, FreeBSD's
+ports tree, or anything like that so I can note that on the Unix Frotz
+webpage at http://www.cs.csubak.edu/~dgriffi.  _PLEASE_ don't try to do
+anything like have auto-install scripts grab files from that page.  Use
+ftp.gmd.de or one of its mirrors for that.
+
+
+====================
+Maintainer switch ||
+====================
+A few months after I submitted my superpatch against Galen Hazelwood's
+Unix port of Frotz 2.32, I started playing around again with Unix Frotz to
+start adding new features.  I emailed Galen asking if he would be putting
+out a new release of Unix Frotz any time soon because I had some nifty new
+features to add.  He replied with "no" and asked if I was volunteering to
+take over the port.
+
+
+====================
+The switch to GPL ||
+====================
+Beginning with version 2.40, Frotz is now licensed under the GNU Public
+License.  This change came about from an email conversation with Stefan
+Jokisch in late May 2000.  I asked if he was still developing the core
+code and asked if he'd consider changing the license to GPL or
+BSD-like.  He replied by introducing me to Jim Dunleavy to whom he handed
+off development of the Frotz core code.  At that time, he decided to
+change the license to GPL starting with the one Jim was working on.  Jim
+and I then swapped patches back and forth to do some more work on the core
+code and so now we have Frotz 2.40.
+

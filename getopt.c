@@ -3,12 +3,15 @@
  *
  * Replacement for a Unix style getopt function
  *
+ * Quick, clean, and portable to funky systems that don't have getopt()
+ * for whatever reason.
+ *
  */
 
 #include <stdio.h>
 #include <string.h>
 
-#ifndef __MSDOS__
+#ifndef MSDOS_16BIT
 #define cdecl
 #endif
 
@@ -19,7 +22,7 @@ const char *optarg = NULL;
 
 int cdecl getopt (int argc, char *argv[], const char *options)
 {
-    static pos = 1;
+    static int pos = 1;
 
     const char *p;
 
@@ -36,14 +39,14 @@ int cdecl getopt (int argc, char *argv[], const char *options)
 
     if (optopt == ':' || p == NULL) {
 
-	fputs ("illegal option -- ", stderr);
+	fputs ("illegal option -- ", stdout);
 	goto error;
 
-    } else if (p[1] == ':')
+    } else if (p[1] == ':') {
 
 	if (optind >= argc) {
 
-	    fputs ("option requires an argument -- ", stderr);
+	    fputs ("option requires an argument -- ", stdout);
 	    goto error;
 
 	} else {
@@ -56,13 +59,13 @@ int cdecl getopt (int argc, char *argv[], const char *options)
 	    pos = 1; optind++;
 
 	}
-
+    }
     return optopt;
 
 error:
 
-    fputc (optopt, stderr);
-    fputc ('\n', stderr);
+    fputc (optopt, stdout);
+    fputc ('\n', stdout);
 
     return '?';
 

@@ -1,16 +1,34 @@
-/*
- * process.c
+/* process.c - Interpreter loop and program control
+ *	Copyright (c) 1995-1997 Stefan Jokisch
  *
- * Interpreter loop and program control
+ * This file is part of Frotz.
  *
+ * Frotz is free software; you can redistribute it and/or modify
+ * it under the terms of the GNU General Public License as published by
+ * the Free Software Foundation; either version 2 of the License, or
+ * (at your option) any later version.
+ *
+ * Frotz is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU General Public License for more details.
+ *
+ * You should have received a copy of the GNU General Public License
+ * along with this program; if not, write to the Free Software
+ * Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA 02111-1307, USA
  */
 
 #include "frotz.h"
 
+#ifdef DJGPP
+#include "djfrotz.h"
+#endif
+
+
 zword zargs[8];
 int zargc;
 
-static finished = 0;
+static int finished = 0;
 
 static void __extended__ (void);
 static void __illegal__ (void);
@@ -270,6 +288,11 @@ void interpret (void)
 
 	}
 
+#if defined(DJGPP) && defined(SOUND_SUPPORT)
+    if (end_of_sound_flag)
+	end_of_sound ();
+#endif
+
     } while (finished == 0);
 
     finished--;
@@ -294,16 +317,17 @@ void call (zword routine, int argc, zword *args, int ct)
     int i;
 
     if (sp - stack < 4)
-	runtime_error ("Stack overflow");
+	runtime_error (ERR_STK_OVF);
 
     GET_PC (pc)
 
-    *--sp = (zword) (pc >> 9);		/* for historical reasons */
-    *--sp = (zword) (pc & 0x1ff);	/* Frotz keeps its stack  */
-    *--sp = (zword) (fp - stack - 1);	/* format compatible with */
-    *--sp = (zword) (argc | (ct << 8));	/* Mark Howell's Zip      */
+    *--sp = (zword) (pc >> 9);
+    *--sp = (zword) (pc & 0x1ff);
+    *--sp = (zword) (fp - stack - 1);
+    *--sp = (zword) (argc | (ct << (option_save_quetzal ? 12 : 8)));
 
     fp = sp;
+    frame_count++;
 
     /* Calculate byte address of routine */
 
@@ -317,7 +341,7 @@ void call (zword routine, int argc, zword *args, int ct)
 	pc = (long) routine << 3;
 
     if (pc >= story_size)
-	runtime_error ("Call to illegal address");
+	runtime_error (ERR_ILL_CALL_ADDR);
 
     SET_PC (pc)
 
@@ -326,9 +350,12 @@ void call (zword routine, int argc, zword *args, int ct)
     CODE_BYTE (count)
 
     if (count > 15)
-	runtime_error ("Call to non-routine");
+	runtime_error (ERR_CALL_NON_RTN);
     if (sp - stack < count)
-	runtime_error ("Stack overflow");
+	runtime_error (ERR_STK_OVF);
+
+    if (option_save_quetzal)
+	fp[0] |= (zword) count << 8;	/* Save local var count for Quetzal. */
 
     value = 0;
 
@@ -364,11 +391,12 @@ void ret (zword value)
     int ct;
 
     if (sp > fp)
-	runtime_error ("Stack underflow");
+	runtime_error (ERR_STK_UNDF);
 
     sp = fp;
 
-    ct = *sp++ >> 8;
+    ct = *sp++ >> (option_save_quetzal ? 12 : 8);
+    frame_count--;
     fp = stack + 1 + *sp++;
     pc = *sp++;
     pc = ((long) *sp++ << 9) | pc;
@@ -430,7 +458,7 @@ void branch (bool flag)
 
     } else offset = off1;		/* it's a short branch */
 
-    if (specifier & 0x80)
+    if (specifier & 0x80) {
 
 	if (offset > 1) {		/* normal branch */
 
@@ -439,6 +467,7 @@ void branch (bool flag)
 	    SET_PC (pc)
 
 	} else ret (offset);		/* special case, return 0 or 1 */
+    }
 
 }/* branch */
 
@@ -546,7 +575,7 @@ static void __extended__ (void)
 static void __illegal__ (void)
 {
 
-    runtime_error ("Illegal opcode");
+    runtime_error (ERR_ILL_OPCODE);
 
 }/* __illegal__ */
 
@@ -560,7 +589,7 @@ static void __illegal__ (void)
 void z_catch (void)
 {
 
-    store ((zword) (fp - stack));
+    store (option_save_quetzal ? frame_count : (zword) (fp - stack));
 
 }/* z_catch */
 
@@ -575,10 +604,19 @@ void z_catch (void)
 void z_throw (void)
 {
 
-    if (zargs[1] > STACK_SIZE)
-	runtime_error ("Bad stack frame");
+    if (option_save_quetzal) {
+	if (zargs[1] > frame_count)
+	    runtime_error (ERR_BAD_FRAME);
 
-    fp = stack + zargs[1];
+	/* Unwind the stack a frame at a time. */
+	for (; frame_count > zargs[1]; --frame_count)
+	    fp = stack + 1 + fp[1];
+    } else {
+	if (zargs[1] > STACK_SIZE)
+	    runtime_error (ERR_BAD_FRAME);
+
+	fp = stack + zargs[1];
+    }
 
     ret (zargs[0]);
 
@@ -655,7 +693,7 @@ void z_jump (void)
     pc += (short) zargs[0] - 2;
 
     if (pc >= story_size)
-	runtime_error ("Jump to illegal address");
+	runtime_error (ERR_ILL_JUMP_ADDR);
 
     SET_PC (pc)
 

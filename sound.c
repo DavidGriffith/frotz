@@ -1,11 +1,28 @@
-/*
- * sound.c
+/* sound.c - Sound effect function
+ *	Copyright (c) 1995-1997 Stefan Jokisch
  *
- * Sound effect function
+ * This file is part of Frotz.
  *
+ * Frotz is free software; you can redistribute it and/or modify
+ * it under the terms of the GNU General Public License as published by
+ * the Free Software Foundation; either version 2 of the License, or
+ * (at your option) any later version.
+ *
+ * Frotz is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU General Public License for more details.
+ *
+ * You should have received a copy of the GNU General Public License
+ * along with this program; if not, write to the Free Software
+ * Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA 02111-1307, USA
  */
 
 #include "frotz.h"
+
+#ifdef DJGPP
+#include "djfrotz.h"
+#endif
 
 #define EFFECT_PREPARE 1
 #define EFFECT_PLAY 2
@@ -16,8 +33,8 @@ extern int direct_call (zword);
 
 static zword routine = 0;
 
-static next_sample = 0;
-static next_volume = 0;
+static int next_sample = 0;
+static int next_volume = 0;
 
 static bool locked = FALSE;
 static bool playing = FALSE;
@@ -81,6 +98,10 @@ static void start_next_sample (void)
 void end_of_sound (void)
 {
 
+#if defined(DJGPP) && defined(SOUND_SUPPORT)
+    end_of_sound_flag = 0;
+#endif
+
     playing = FALSE;
 
     if (!locked) {
@@ -113,7 +134,7 @@ void z_sound_effect (void)
     zword effect = zargs[1];
     zword volume = zargs[2];
 
-    if (number >= 3) {
+    if (number >= 3 || number == 0) {
 
 	locked = TRUE;
 

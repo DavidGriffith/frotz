@@ -1,9 +1,23 @@
 /*
- * ux_text.c
+ * ux_text.c - Unix interface, text functions
  *
- * Unix interface, text functions
+ * This file is part of Frotz.
  *
+ * Frotz is free software; you can redistribute it and/or modify
+ * it under the terms of the GNU General Public License as published by
+ * the Free Software Foundation; either version 2 of the License, or
+ * (at your option) any later version.
+ *
+ * Frotz is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU General Public License for more details.
+ *
+ * You should have received a copy of the GNU General Public License
+ * along with this program; if not, write to the Free Software
+ * Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA 02111-1307, USA
  */
+
 
 #define __UNIX_PORT_FILE
 
@@ -20,9 +34,14 @@
 #include "frotz.h"
 #include "ux_frotz.h"
 
-#ifdef COLOR_SUPPORT
+/* When color_enabled is FALSE, we still minimally keep track of colors by
+ * setting current_color to A_REVERSE if the game reads the default
+ * foreground and background colors and swaps them.  If we don't do this,
+ * Strange Results can happen when playing certain V6 games when
+ * color_enabled is FALSE.
+ */
+bool color_enabled = FALSE;
 int current_color = 0;
-#endif
 
 static char latin1_to_ascii[] =
     "   !  c  L  >o<Y  |  S  '' C  a  << not-  R  _  "
@@ -111,27 +130,27 @@ static int unix_convert(int color)
  *
  */
 
-#ifdef COLOR_SUPPORT
-static int colorspace[10][10];
-static int count = 0;
-#endif
-
 void os_set_colour (int new_foreground, int new_background)
 {
-#ifdef COLOR_SUPPORT
-    int saved_style;
-
-    saved_style = current_text_style;
     if (new_foreground == 1) new_foreground = h_default_foreground;
     if (new_background == 1) new_background = h_default_background;
-    if (!colorspace[new_foreground][new_background]) {
-      init_pair(++count, unix_convert(new_foreground), unix_convert(new_background));
-      colorspace[new_foreground][new_background] = count;
-    }
-    current_color = COLOR_PAIR(colorspace[new_foreground][new_background]);
-    os_set_text_style(saved_style);
+    if (color_enabled) {
+#ifdef COLOR_SUPPORT
+	static int colorspace[10][10];
+	static int n_colors = 0;
 
+	if (!colorspace[new_foreground][new_background]) {
+	  init_pair(++n_colors, unix_convert(new_foreground),
+			unix_convert(new_background));
+	  colorspace[new_foreground][new_background] = n_colors;
+	}
+	current_color = COLOR_PAIR(colorspace[new_foreground][new_background]);
 #endif
+    } else
+      current_color = (((new_foreground == h_default_background)
+			&& (new_background == h_default_foreground))
+			? A_REVERSE : 0);
+    os_set_text_style(current_text_style);
 }/* os_set_colour */
 
 /*
@@ -154,12 +173,7 @@ void os_set_text_style (int new_style)
     if (new_style & REVERSE_STYLE) temp |= A_REVERSE;
     if (new_style & BOLDFACE_STYLE) temp |= A_BOLD;
     if (new_style & EMPHASIS_STYLE) temp |= A_UNDERLINE;
-#ifdef COLOR_SUPPORT
-    attrset(temp | current_color);
-#else
-    attrset(temp);
-#endif
-
+    attrset(temp ^ current_color);
 }/* os_set_text_style */
 
 /*
@@ -211,7 +225,7 @@ void os_display_char (zchar c)
 	  addch(c);
 	return;
     }
-    if (c >= 32 && c <= 126) {
+    if (c >= ZC_ASCII_MIN && c <= ZC_ASCII_MAX) {
         addch(c);
 	return;
     }
@@ -271,7 +285,10 @@ int os_char_width (zchar c)
 	char c2 = *ptr++;
 	char c3 = *ptr++;
 
-	width++;
+	/* Why, oh, why did you declare variables that way??? */
+
+	if (c1 == c1)  /* let's avoid confusing the compiler (and me) */
+	  width++;
 	if (c2 != ' ')
 	  width++;
 	if (c3 != ' ')

@@ -1,0 +1,70 @@
+=====================
+Arrow Key Handling ||
+=====================
+
+Arrow key handling for V6 is a bit broken.  In "Journey", there are five
+columns along the bottom of the screen for choosing commands.  The first
+column (starting from the left) lists party commands.  The second lists
+party members with an arrow pointing to the right.  The three remaining
+columns list available commands which can be given to the characters.  If
+a command appears to the right of a character's name, you can key over to
+that command and the character will do that activity.  For example, "Cast"
+appears to the right of Praxix's name.  Key over to "Cast" and hit enter.
+A list of spells to cast will appear.  The problem is that you cannot key
+over to a column on the right unless a valid command exists to the right
+of the option currently in focus.
+
+To see this bug in action, start the game and enter the tavern.  Notice
+how you then have only "Exit" and "Game" as the available party commands.
+Bergon has no available commands.  Commands are available to Praxix,
+Esher, and Tag; but you can't move the selection (cursor, I guess)
+directly over to the right and Frotz beeps at you.  Frotz should move pick
+the next option above or below and to the right of the current option in
+cases like this.
+
+
+==================
+Screen Resizing ||
+==================
+
+There are some significant problems involved in getting screen resizes (as
+in resizing an xterm) to work correctly at least with Frotz's
+implementation of the Z-Machine and probably the Z-Machine standard
+itself.  For this reason, I have not implemented screen resizing for Frotz
+2.40.  I know that some zcode interpreters are able to deal with resizes
+somewhat gracefully, but I haven't seen one yet that will handle some
+weirder situations.  Infocom's "Border Zone" and "Beyond Zork are
+especially troublesome for doing resizes.  Nitfol seems to have the best
+handling of screen resizes.  Since it uses the Glk library, I'm inclined
+to think the Glk library is at least partially responsible.  If you have
+any other ideas on how to cleanly resize screens, I'd like to hear them.
+
+The Z-Machine seems to assume that when the screen dimensions are set,
+they will never change over the course of the game, even across saves and
+restores.  For some reason, saves include screen dimensions and I've yet
+to discover how to override the Z-Machine from setting its dimensions to
+the saved ones instead of how the current screen really is.  When the
+Z-Machine was first defined by Infocom, this made sense since terminal
+screens rarely, if ever, changed their dimensions and few people were
+assumed to trade saves across platforms.
+
+
+============================
+OSS sound on NetBSD/sparc ||
+============================
+
+The only machines using the OSS drivers I can test sound on are Linux/x86
+machines and Sparcs running NetBSD.  The sound from the NetBSD/sparc
+machines sounds horrrible (twice as slow, full of static).  I'm sure
+there's an endian problem somewhere, but I know very little about sound
+programming.  So far, I haven't heard of anyone trying sound on machines
+other than Linux/x86.
+
+
+===================
+Other Known Bugs ||
+===================
+
+Sound flag is not being set properly.
+
+

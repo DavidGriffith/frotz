@@ -50,23 +50,27 @@
 
 #define INFORMATION "\
 \n\
-FROTZ V2.40 - An interpreter for all Infocom and other Z-Machine games.\n\
+FROTZ V2.41 - An interpreter for all Infocom and other Z-Machine games.\n\
 Complies with standard 1.0 of Graham Nelson's specification.\n\
 \n\
 Syntax: frotz [options] story-file\n\
 \n\
-  -a   watch attribute setting  \t -p   plain ASCII output only\n\
-  -A   watch attribute testing  \t -P   alter piracy opcode\n\
-  -b # background color         \t -r # right margin\n\
-  -c # context lines            \t -q   quiet (disable sound effects\n\
-  -d   disable color            \t -Q   use old-style save format\n\
-  -e   enable sound             \t -s # random number seed value\n\
-  -f # foreground colour        \t -S # transcript width\n\
-  -F   force color mode         \t -t   set Tandy bit\n\
-  -h # screen height            \t -u # slots for multiple undo\n\
+  -a   watch attribute setting  \t -O   watch object locating\n\
+  -A   watch attribute testing  \t -p   plain ASCII output only\n\
+  -b # background color         \t -P   alter piracy opcode\n\
+  -c # context lines            \t -r # right margin\n\
+  -d   disable color            \t -q   quiet (disable sound effects)\n\
+  -e   enable sound             \t -Q   use old-style save format\n\
+  -f # foreground colour        \t -s # random number seed value\n\
+  -F   Force color mode         \t -S # transscript width\n\
+  -h # screen height            \t -t   set Tandy bit\n\
+  -i   ignore fatal errors      \t -u # slots for multiple undo\n\
   -l # left margin              \t -w # screen width\n\
-  -o   watch object movement    \t -x   expand abbreviations g/x/z\n\
-  -O   watch object locating"
+  -o   watch object movement    \t -x   expand abbreviations g/x/z"
+
+
+
+
 
 static int user_disable_color = 0;
 static int user_force_color = 0;
@@ -108,6 +112,7 @@ void os_fatal (const char *s)
       os_set_text_style(0);
       os_display_string((zchar *)s);
       os_display_string((zchar *)"\n");
+      new_line();
       os_reset_screen();
       exit(1);
     }
@@ -222,7 +227,7 @@ void os_process_arguments (int argc, char *argv[])
 		    user_disable_color = 0;
 		    break;
           case 'h': user_screen_height = atoi(optarg); break;
-/*	  case 'i': option_ignore_errors = 1; break;	*/
+	  case 'i': option_ignore_errors = 1; break;
 	  case 'l': option_left_margin = atoi(optarg); break;
 	  case 'o': option_object_movement = 1; break;
 	  case 'O': option_object_locating = 1; break;
@@ -638,10 +643,10 @@ int getconfig(char *configfile)
 			option_attribute_testing =  getbool(value);
 		}
 
-/*		else if (strcmp(varname, "error_halt") == 0) {
-			option_ignore_errors = !getbool(value);
+		else if (strcmp(varname, "ignore_fatal") == 0) {
+			option_ignore_errors = getbool(value);
 		}
-*/
+
 		else if (strcmp(varname, "color") == 0) {
 			user_disable_color = !getbool(value);
 		}

@@ -76,6 +76,20 @@ extern char *progname;
 extern char *gamepath;	/* use to find sound files */
 
 
+struct frotz_config {
+	bool enable_color;
+	bool force_color;
+	int fg_color;
+	int bg_color;
+	int width;
+	int height;
+	int seed;
+	bool tandy;
+	bool piracy;
+};
+
+
+
 /*** Functions specific to the Unix port of Frotz ***/
 
 int     getconfig(char *);

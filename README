@@ -1,4 +1,4 @@
-FROTZ V2.40 - An interpreter for all Infocom games and other Z-machine games.
+FROTZ V2.41 - An interpreter for all Infocom games and other Z-machine  games.
 Complies with standard 1.0 of Graham Nelson's specification.
 
 Originally written by Stefan Jokisch in 1995-1997.
@@ -11,8 +11,11 @@ Unix port currently maintained by David Griffith.
 - Old-style sound support through OSS driver.
 - Config files.
 - Stricter error checking.
-- Default use fo the Quetzal file format.  Command line option to use the
-  old format.
+- Default use of the Quetzal file format.  Command line option to use the
+  old format.  There are several differences between the old-style save
+  format at Quetzal such that converting from old-style and Quetzal is
+  difficult if not impossible.  This also means you can't restore an
+  old-style save and then save your game in Quetzal.
 - Now distributed under the GNU Public License.
 
 The latest information on Unix Frotz is available at the Unix Frotz

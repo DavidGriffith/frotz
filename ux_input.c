@@ -624,7 +624,7 @@ int os_read_file_name (char *file_name, const char *default_name, int flag)
 #ifdef NO_MEMMOVE
 /*
  * This is for operating systems based on 4.2BSD or older or SYSVR3 or
- * older.  Because they lack the memmove(3) system call, it is provided
+ * older.  Since they lack the memmove(3) system call, it is provided
  * here.  Because I don't have a machine like this to play with, this code
  * is untested.  If you happen to have a spare SunOS 4.1.x install CD
  * lying around, please consider sending it my way.  Dave.

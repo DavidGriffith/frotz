@@ -49,7 +49,6 @@
 #include <sys/ioctl.h>
 #include <sys/wait.h>
 
-
 extern void end_of_sound(void);
 
 /* Buffer used to store sample data */
@@ -200,9 +199,7 @@ void os_prepare_sample (int number)
           namelen, basename, number);
 
 
-
   samples = fopen(filename, "r");
-
   if (samples == NULL) {
     perror(filename);
     return;

@@ -1,6 +1,50 @@
+Summary of changes between Unix Frotz 2.40 and Unix Frotz 2.41:
+===============================================================
+
+Unix Frotz 2.41 was released on Monday May 21, 2001.
+
+NEW FEATURES
+
+- Now includes several test zcode programs in the bugtest/ subdirectory.
+  These are crashme, TerpEtude, gntests, and strictz.
+
+- Unix Frotz confirmed to compile and run on Mac OS X.  See INSTALL for
+  details.
+  (Confirmation by Steven Frank)
+
+- Status line padding in screen.c changed to allow for screens narrower
+  than 80 columns.
+  (Patch by Steven Frank)
+
+
+BUG FIXES AND MINOR ENHANCEMENTS
+
+- In BUGS, an idiosyncracy of "Journey" by Infocom was mistakenly
+  identified as a bug in Frotz.
+  (Reported by someone whom I forget)
+
+- In text.c, static zchar zscii_to_latin1[] was being improperly
+  initialized.  The bug caused Latin1-style quotes <<like this>> to look
+  >>like this<<.
+  (Reported and fixed by Matteo De Luigi)
+
+- In the 2.40 release, I disabled the -i option thinking it wasn't needed.
+  This was probably a mistake.  Even if the -Z option is set to '0' (don't
+  report errors), fatal errors will still be reported.  Some careless
+  programmers have released buggy games which include fatal errors.
+  Proper interpreters should abort upon encountering them, but some don't.
+  The -i option is intended as a kludge to deal with such games and for
+  debugging by ignoring the requirement to abort.  This option should not
+  be used as an excuse to write bad code.  Code in object_address() in
+  object.c was modified to complain about attempts to address illegal
+  objects.  This was motivated by an illegal object access in the game
+  "Enemies" by Andy Phillips.
+  (Reported by Thomas Troeger and David Picton)
+
+
+
 Summary of changes between Unix Frotz 2.32R2 and Unix Frotz 2.40:
 =================================================================
-
 
 Unix Frotz 2.40 was released on Saturday November 11, 2000.
 

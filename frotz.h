@@ -547,8 +547,7 @@ void	runtime_error (int);
 #define ERR_REPORT_ALWAYS (2)
 #define ERR_REPORT_FATAL (3)
 
-/* #define ERR_DEFAULT_REPORT_MODE ERR_REPORT_ONCE */
-#define ERR_DEFAULT_REPORT_MODE ERR_REPORT_NEVER
+#define ERR_DEFAULT_REPORT_MODE ERR_REPORT_ONCE
 
 
 /*** Various global functions ***/

@@ -16,6 +16,8 @@ download ncurses from ftp://ftp.gnu/org/gnu/ncurses/.  If you insist on
 using the vendor-supplied curses library, see the platform-specific info
 below.
 
+It's always a good idea to have the GNU version of make(1) around.
+
 If you want sound support, you'll need the OSS drivers (found on Linux
 machines and some *BSD machines).  Support for other drivers is in the
 works.
@@ -126,7 +128,8 @@ notices you don't have a config file of your own in "$HOME/.frotzrc".
 Platform-specific issues ||
 ===========================
 
-Linux:  No apparent problems
+Linux:  No apparent problems.  This is the only platform on which sound is
+known to work properly.
 
 [Net|Open|Free]BSD:  Install ncurses.  The standard BSD curses library
 won't work.
@@ -139,6 +142,13 @@ Irix:  The vendor-supplied curses library is broken as well as all
 versions of ncurses supplied on SGI's freeware CDs and in SGI's freeware
 archive.  You MUST compile and install at least ncurses 5.0 from source.
 Versions of ncurses older than 5.0 are also broken on Irix.
+
+MacOS X:  According to Steven Frank <stevenf@mail.panic.com>, Frotz
+compiles fine on MacOS X if you change "gcc" to "cc" in the Makefile.
+The compiler is actually GCC, but is named "cc" for some strange reason.
+You will need to install ncurses, which will compile cleanly, but runs
+into trouble during installation.  You'll have to baby it along until a
+new version of ncurses comes out to address the install trouble.
 
 Solaris:  Some versions of curses on Solaris have trouble with color
 support.  At least the one in Solaris 2.6 works okay.  If compiled with

@@ -43,11 +43,19 @@
 
 static zword object_address (zword obj)
 {
+    zchar obj_num[10];
 
     /* Check object number */
 
-    if (obj > ((h_version <= V3) ? 255 : MAX_OBJECT))
+    if (obj > ((h_version <= V3) ? 255 : MAX_OBJECT)) {
+	snprintf(obj_num, sizeof(obj_num), "%d", obj);
+	os_display_string("@Attempt to address illegal object ");
+	os_display_string(obj_num);
+	os_display_string(".  This is normally fatal.");
+	new_line();
 	runtime_error (ERR_ILL_OBJ);
+    }
+
 
     /* Return object address */
 

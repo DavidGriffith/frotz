@@ -1563,7 +1563,9 @@ static void pad_status_line (int column)
 
     spaces = units_left () / os_char_width (' ') - column;
 
-    while (spaces--)
+    /* while (spaces--) */
+    /* Justin Wesley's fix for narrow displays (Agenda PDA) */
+    while (spaces-- > 0)
 	screen_char (' ');
 
 }/* pad_status_line */

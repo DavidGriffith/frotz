@@ -20,11 +20,15 @@ CONFIG_DIR = /usr/local/etc
 #CONFIG_DIR =
 
 # Uncomment this if you want color support.  Usually this requires ncurses.
-#COLOR_DEFS = -DCOLOR_SUPPORT
+COLOR_DEFS = -DCOLOR_SUPPORT
 
 # Uncomment this if you have an OSS soundcard driver and want classical
-# Infocom sound support.
-#SOUND_DEFS = -DOSS_SOUND
+# Infocom sound support.  Currently this works only for Linux.
+# SOUND_DEFS = -DOSS_SOUND
+
+# Uncomment the type of sound driver you want to use.
+# OSS
+#SOUND_LIB = -lossaudio
 
 # This should point to the location of your curses.h or ncurses.h include
 # file if your compiler doesn't know about it.
@@ -64,7 +68,7 @@ CURSES_DEF = -DUSE_NCURSES_H
 # Nothing under this line should need to be changed.
 #####################################################
 
-VERSION = 2.40
+VERSION = 2.41
 
 BINNAME = frotz
 
@@ -72,8 +76,8 @@ DISTNAME = $(BINNAME)-$(VERSION)
 
 OBJECTS = buffer.o err.o fastmem.o files.o hotkey.o input.o main.o \
 	math.o object.o process.o quetzal.o random.o redirect.o \
-	screen.o sound.o stream.o table.o text.o ux_init.o ux_input.o \
-	ux_pic.o ux_screen.o ux_text.o variable.o \
+	screen.o sound.o stream.o table.o text.o ux_init.o \
+	ux_input.o ux_pic.o ux_screen.o ux_text.o variable.o \
 	ux_audio_none.o ux_audio_oss.o
 
 OPT_DEFS = -DCONFIG_DIR="\"$(CONFIG_DIR)\"" $(CURSES_DEF)
@@ -85,12 +89,16 @@ CFLAGS = $(OPTS) $(COMP_DEFS) $(INCL)
 
 
 $(BINNAME): soundcard.h $(OBJECTS)
-	$(CC) -o $(BINNAME)$(EXTENSION) $(OBJECTS) $(LIB) $(CURSES)
+	$(CC) -o $(BINNAME)$(EXTENSION) $(OBJECTS) $(LIB) $(CURSES) $(SOUND_LIB)
+
+all: $(BINNAME)
 
 soundcard.h:
 	@if [ ! -f soundcard.h ] ; then ./findsound.sh; fi
 
 install: $(BINNAME)
+	install -d $(PREFIX)/bin
+	install -d $(PREFIX)/man/man6
 	strip $(BINNAME)
 	install -c -m 755 $(BINNAME)$(EXTENSION) $(PREFIX)/bin
 	install -c -m 644 $(BINNAME).6 $(PREFIX)/man/man6
@@ -107,7 +115,9 @@ clean:
 distro: dist
 
 dist: distclean
-	cd .. ; tar cfv $(DISTNAME).tar $(DISTNAME) ; gzip -f $(DISTNAME).tar
+	cd .. ; tar cf $(DISTNAME).tar $(DISTNAME) ; gzip -f $(DISTNAME).tar
+	@echo
+	@echo "$(DISTNAME).tar.gz created"
 
 distclean: clean
 	rm -f soundcard.h

@@ -1,26 +1,10 @@
-=====================
-Arrow Key Handling ||
-=====================
+=======================
+Bug-testing Programs ||
+=======================
 
-Arrow key handling for V6 is a bit broken.  In "Journey", there are five
-columns along the bottom of the screen for choosing commands.  The first
-column (starting from the left) lists party commands.  The second lists
-party members with an arrow pointing to the right.  The three remaining
-columns list available commands which can be given to the characters.  If
-a command appears to the right of a character's name, you can key over to
-that command and the character will do that activity.  For example, "Cast"
-appears to the right of Praxix's name.  Key over to "Cast" and hit enter.
-A list of spells to cast will appear.  The problem is that you cannot key
-over to a column on the right unless a valid command exists to the right
-of the option currently in focus.
-
-To see this bug in action, start the game and enter the tavern.  Notice
-how you then have only "Exit" and "Game" as the available party commands.
-Bergon has no available commands.  Commands are available to Praxix,
-Esher, and Tag; but you can't move the selection (cursor, I guess)
-directly over to the right and Frotz beeps at you.  Frotz should move pick
-the next option above or below and to the right of the current option in
-cases like this.
+Unix Frotz now comes with crashme, TerpEtude, gntests, and strictz.
+These are intended to excercise the interpreter and verify that it is
+functioning according to spec.  You will find these programs in bugtest/.
 
 
 ==================
@@ -30,8 +14,8 @@ Screen Resizing ||
 There are some significant problems involved in getting screen resizes (as
 in resizing an xterm) to work correctly at least with Frotz's
 implementation of the Z-Machine and probably the Z-Machine standard
-itself.  For this reason, I have not implemented screen resizing for Frotz
-2.40.  I know that some zcode interpreters are able to deal with resizes
+itself.  For this reason, I have not implemented screen resizing for
+Frotz.  I know that some zcode interpreters are able to deal with resizes
 somewhat gracefully, but I haven't seen one yet that will handle some
 weirder situations.  Infocom's "Border Zone" and "Beyond Zork are
 especially troublesome for doing resizes.  Nitfol seems to have the best
@@ -49,16 +33,27 @@ screens rarely, if ever, changed their dimensions and few people were
 assumed to trade saves across platforms.
 
 
-============================
-OSS sound on NetBSD/sparc ||
-============================
+==================================
+OSS sound on non-Linux machines ||
+==================================
 
-The only machines using the OSS drivers I can test sound on are Linux/x86
-machines and Sparcs running NetBSD.  The sound from the NetBSD/sparc
-machines sounds horrrible (twice as slow, full of static).  I'm sure
-there's an endian problem somewhere, but I know very little about sound
-programming.  So far, I haven't heard of anyone trying sound on machines
+The only machines using the OSS drivers I can test sound on are Linux/x86,
+NetBSD/x86, and Sparcs running NetBSD.  The sound from the NetBSD machines
+sounds horrrible (twice as slow, full of static).  I'm not sure what the
+problem is.  So far, I haven't heard of anyone trying sound on machines
 other than Linux/x86.
+
+
+=====================
+Arrow Key Handling ||
+=====================
+
+Not really a bug, but an idiosyncracy.  In "Journey", sometimes you can't
+use the right-arrow key to move from the "party commands" menu to the
+"individual commands" menu.  IMHO, this is a bit sloppy, but it isn't
+Frotz's fault.  Instead, use the spacebar to jump from menu to menu.
+I mistakenly attributed this to an unknown bug.  That'll teach
+me to do bugtesting when I'm about to nod off to sleep.
 
 
 ===================

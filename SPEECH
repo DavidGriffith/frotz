@@ -1,0 +1,52 @@
+===============================================
+-----------------------------------------------
+|  Speech synthesis and recognition in Frotz  |
+-----------------------------------------------
+===============================================
+
+This is highly-experimental code being commissioned by a presently
+undisclosed party.  When complete, Frotz (at least for Linux and NetBSD)
+will speak its output and accept voice for input.  The libraries being
+used to do this are Flite and Sphinx2.  Public release in any meaningful
+way is on hold until the project is complete and I have been paid.  In
+case you're wondering, this voice-enabled version of Frotz will appear
+as another make target in the Unix Frotz tarball.
+
+
+Flite (http://cmuflite.org/) is a small run-time speech synthesis engine
+created by Carnegie Mellon University around 1999.  It's intended as a
+lightweight substitute for University of Edinburgh's Festival Speech
+Synthesis System and CMU's Festbox project.  Flite is somewhat based on
+Festival, but requires neither of those systems to compile and run.  At
+first I wanted to use Festival for voice output, but this quickly became
+impractical for various reasons (like the fact it only outputs to NAS).
+
+
+Sphinx2 (http://www.speech.cs.cmu.edu/sphinx/) is also from Carnagie
+Mellon.  It is unique among voice-recognition schemes with which most
+people are familiar in that it doesn't need to be trained.  That's
+right.  Joe Blow can walk in off the street, talk to a program using
+Sphinx, and be understood.  The tradeoff is that the programmer must
+know beforehand what words are to be recognized.  This makes it
+difficult, if not impossible for voice-input to be used for arbitrary
+games.  The game's dictionary must be parsed and a pronunciation guide
+made.  This must be done manually because of the way the Z-machine
+recognizes words.  Because it only cares about the first six letters, a
+real person must check for words longer than six letters, figure out
+what the rest of the letters are, and how the words should be
+pronounced.  This is the core of the problem of supporting arbitrary
+games.  A computer cannot "know" what a story is about in order to guess
+what the remaining letters are.
+
+You've probably encountered programs that do voice recognition like
+Sphinx does without realizing it.  The most common example I can think
+of is how many locales handle collect calls.  You get a phone call and
+an obviously recorded voice says something like the following:
+
+	You have a collect call from <caller speaks name>.
+	To accept the charges, please say "yes".
+
+That program is expecting to hear "yes" and is configured with several
+ways that "yes" might be constructed.  For good measure, "yeah", "yep",
+"yup", "uh-huh", "alright", "okay", and other affirmatives are probably
+programmed in there too. I don't know.  I haven't checked.

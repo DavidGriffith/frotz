@@ -1,25 +1,13 @@
-=====================================
-Stuff to do that's probably simple ||
-=====================================
+Rework os_process_arguments() in src/curses/ux_init.c to make Frotz more
+convenient to use as a BBS door or MUD module.
 
-Frotz has so far, been completely configurable throught the command-line.
-When I added the config file support, I noticed the need to add overrides
-for some options like "color", "sound", and "ascii".  This sort of thing
-is exhausting available command-line switches.
-
-Rewrite curses code to permit Frotz to work with BSD's curses.
-
-Add mouse support through.  Not sure how useful this would be, but someone
-did ask.
+Add mouse support through.  Not sure how useful this would be, but
+someone did ask.
 
 Remove debug options from command line.  They should be set through the
 hotkey menu instead
 
 Hotkey menu needs work.
-
-For the hotkey thing, I think a good way to approach this would be to
-add a META-M hotkey.  This would bring up a menu from which one can alter
-and save any of the settings for Frotz.
 
 Blink the screen instead of ringing the bell when in quiet mode.
 
@@ -29,49 +17,21 @@ Add support for debug verbs (teleport, pilfer, bamf, (frotz|futz|lumen),
 tail, travis, lummox, systolic, lingo, spiel, rooms, items, omap,
 embezzle).  I really like the Rezrov's cheat functions.
 
-Add an option to define the type of machine the Z-Machine is running on
-(DECsystem 20, AppleIIe, etc).  Using the wrong machine for certain V6
-games might cause trouble and this is a rather frivilous option, so I'll
-let it go for now.
+Give the hotmenu a full ncurses-based interface.  This would allow MUCH
+more flexibility in configuring Frotz.
 
-Fix bugs!  (see file BUGS)
+More sensible handling of saves, transcripts, and game files.
 
-
-=========================================================
-Stuff to do that'll probably require major overhauling ||
-=========================================================
-
-Add support for more sound drivers, not just OSS.
-
-Reorganize the source code into a "src" directory, documentation into a
-"doc" directory, and so on.
-
-Add support for speech output.  When there is new output, the new output
-would be piped to a speech synthesis program.
-
-Modify os_display_string() so that it behaves like printf() with character
-conversions and all that nifty stuff.
-
-More sensible handling of saves, transcripts, and game files.  This might
-be best handled by doing a complete rewrite of the Unix-specific code,
-which probably ought to be done anyhow.
-
-Curses menu to select desired game.  Current working code heavily borrowed
-from Alan Shutko's <ats@hubert.wustl.edu> "int-fiction" frontend program.
+Curses menu to select desired game.  Current working code heavily
+borrowed from Alan Shutko's <ats@hubert.wustl.edu> "int-fiction"
+frontend program.
 
 Blorb gamefile support.
 
-Blorb sound support on all platforms.
-
-Implement Glk support.  As of release 2.42, Glk support development has
-been abandoned.
+Blorb sound support on all platforms.  Full support will probably
+require a sound driver which can accept multiple inputs simultanously
+(such as esound or ALSA).
 
 An X11 graphical interface using GTK widgets (thus allowing V6 full support).
 
 Cocoa support for OSX.
-
-=========================================
-Stuff that would be really really nice ||
-=========================================
-
-BeOS support.  I guess it's close enough to Unix.

@@ -1,15 +1,15 @@
 Begin4
 Title:			Unix Frotz
-Version:		2.42
-Entered-date:		[unreleased 2001-05-20]
+Version:		2.43
+Entered-date:		2002-10-27
 Description:		An interpreter for all Infocom games and other
 			Z-machine games.  Compiles with standard 1.0 of
 			Graham Nelson's specification.
 Keywords:		infocom, frotz, text-adventure, zork
 Author:			dgriffi@cs.csubak.edu (David Griffith)
 Maintained-by:		dgriffi@cs.csubak.edu (David Griffith)
-Primary-site:		ftp://ftp.gmd.de/if-archive/infocom/interpreters/frotz/frotz-2.42.tar.gz
-Alternate-site:		http://www.cs.csubak.edu/~dgriffi/frotz.html
+Primary-site:		ftp://ftp.ifarchive.org/if-archive/infocom/interpreters/frotz/frotz-2.43.tar.gz
+Alternate-site:		http://www.cs.csubak.edu/~dgriffi/proj/frotz/
 Original-site:
 Platforms:		All reasonably POSIX-compliant flavors of Unix.
 			Use ncurses if vendor-supplied curses won't work.

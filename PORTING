@@ -1,0 +1,150 @@
+Frotz is a very portable program and as such has been ported to quite a
+lot of different platforms.
+
+
+These are actively-maintained ports and their webpages (if known):
+------------------------------------
+
+WinFrotz
+Frotz for machines running Microsoft Windows.
+http://www.d.kinder.btinternet.co.uk
+
+AmigaFrotz
+Frotz for the Amiga series of computers.
+(no webpage)
+
+FrotzCE
+Frotz for PocketPC machines running WindowsCE.
+http://www.pyram-id.demon.co.uk/FrotzCE.html
+(Based on 2.32)
+
+DOS
+Good ol' DOS
+(no webpage)
+
+Kwest
+Frotz ported to KDE.
+http://users.pandora.be/peter.bienstman/kwest/
+
+EbmFrotz
+Frotz ported to Franklin's eBookman.
+http://www.twpo.com.au/cwarrens/ebm
+
+
+
+Nobody maintains these ports:
+-----------------------------
+
+Pilot Frotz
+Frotz for Palm Pilot machines.
+http://www.geocities.com/SiliconValley/Way/2367/
+(Link has been dead for several months)
+
+
+
+Frotz might work well with these platforms:
+-------------------------------------------
+
+Apple IIgs.
+I'm fairly sure that with its greater memory capacity than the ealier
+members of the Apple II family, at least text-mode Frotz should be
+doable.  Perhaps even graphics and sound could be done.
+
+RISC/OS
+I don't see why not.
+
+Texas Instruments TI-92 and TI-92+ graphing calculators:
+With a Motorola 680000 of some sort and loads of nifty development
+software, it should be a worthwhile effort.  Look at
+http://www.ticalc.org or all sorts of interesting things that have been
+done with this calculator.
+
+CP/M:
+Usually we'll have a 64 kilobyte limit to memory.  Fortunately there is
+a solution in the form of an interpreter written in Z80 assembly called
+ZXZVM available at the IF Archive.  It seems specific to the Spectrum
++3, PCW16, and PCW10 CP/M machines.  I'd be most pleased if someone with
+one of those new IMSAI Series 2 machines is able to get ZXZVM working on
+that machine.  However, at http://www.imsai.net, the new machine is
+described as having 1 meg of static system memory.  Given all this,
+Frotz might be doable on some more beefy CP/M machines.
+
+
+Frotz probably won't work on these platforms:
+---------------------------------------------
+
+Apple II:
+The IIe and IIc with expanded memory (at least 143k) might be enough for
+running up to V5, but I'm not sure if Frotz will appreciate working in
+such a small space.  Yes, I know that several Solid Gold editions were
+released for Apple II.
+
+Commodore 64:
+Memory is limited to a bit less than 64 kilobytes.  In the heyday of
+Infocom, the C64 could barely support V4 games.
+
+Commodore 128:
+Probably same troubles as with Apple II.
+
+Atari 8-bit:
+Probably troubles as with the Commodore 64.
+
+Wireless phones:
+They might have enough memory to handle Frotz, but I have severe doubts
+about how usable any sort of Interactive Fiction can be on such a
+device.  Phones were not designed to be used as general-purpose
+terminals.
+
+Digital cameras:
+Someone ported the venerable arcade machine emulator MAME to a Kodak
+digital camera some time ago.  There should be enough space and
+processing power to run Frotz, but as with wireless phones, IF is
+impractical on such a platform.
+
+
+I asked Brian Moriarty, author of several works of Interactive Fiction
+for Infocom about the feasability of porting Frotz to machines using the
+MOS 6502 (Apple II, Atari 8-bit, Commodore 64 and 128).  Here is his
+response to my emailed question:
+
+
+Date: Thu, 8 Aug 2002 18:54:51 -0400
+From: Brian Moriarty <prof@ludix.com>
+To: Dave <dgriffi@cs.csubak.edu>
+Subject: RE: porting Frotz to 6502 machines
+
+The original 6502 ZIPs were hand-written in assembler, and
+the resulting binaries were usually quite small (around 8k).
+Of course, a C compiler wouldn't be quite as efficient.
+
+The larger problem is that many of the later Z features (beyond
+version 2) simply won't work on an Atari, C64 or Apple II,
+either due to RAM, display or disk drive restrictions. When moving
+into versions 3 and beyond, we decided to leave that class of
+machine behind.
+
+-----Original Message-----
+From: Dave [mailto:dgriffi@cs.csubak.edu]
+Sent: Thursday, August 08, 2002 6:43 PM
+To: prof@ludix.com
+Subject: porting Frotz to 6502 machines
+
+
+
+Brian Moriarty,
+
+I was wondering if I could pick your brain a bit on Z-machine portability.
+One of the ongoing goals for the Frotz project is extreme portability,
+including to all sorts of old architectures.  I've been pondering porting
+Frotz to 6502 machines such as the C64, Apple II, and Atari 8-bit
+computers.  Doing some investigation with the CC65 6502 C compiler brought
+me to the conclusion that Frotz would produce a binary too large to fit in
+the memory of these machines.  Apple IIgs might work.  Given your work on
+making Z-machine interpreters for these machines (albeit in assembly, I
+assume) would this be an accurate assumption?
+
+Also, given what I've found out about the new upcoming IMSAI Series 2
+machine, this might be capable of handling Frotz.
+
+
+

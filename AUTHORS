@@ -1,5 +1,5 @@
 Original Frotz reference code:
-	Stefan Jokisch <s.jokisch@avu.de>
+	Stefan Jokisch <stefan.jokisch@gmx.de>
 
 Original Unix port:
 	Galen Hazelwood <galenh@micron.net>
@@ -25,8 +25,8 @@ in patches.  These include, but are not limited to:
 Torbjorn Anderson, Timo Korvola, Martin Frost, Mihail Milushev, David
 Picton, Chris Sullivan, Leonard Richardson, Stephen Kitt, Paul E Coad,
 Paul Janzen, Brad Town, Jason C Penney, Denis Hirschfeldt, Jacob Nevins,
-Matteo De Luigi, Steven Frank, Thomas Troeger, and others that I've
-forgotten.
+Matteo De Luigi, Steven Frank, Thomas Troeger, David Kinder, and others
+that I've forgotten.
 
 Michael Edmonson (author of Rezrov) and Evin Robertson (author of Nitfol)
 deserve recognition for the ideas that I've borrowed from their programs.

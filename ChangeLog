@@ -1,3 +1,63 @@
+Summary of changes between Unix Frotz 2.42 and Unix Frotz 2.43:
+===============================================================
+
+Unix Frotz 2.43 was released on Monday October 28, 2002.
+
+NEW FEATURES
+
+- Dumb interface has been added as a compile target.
+  See the DUMB file for commentary.
+
+- Experimental voice input and output.  This code is not yet available
+  to the public.  See the SPEECH file for more info.
+
+- Added David Kinder's Unicode Test 1.0 to the Z-machine Test Suite
+
+- Added Inform Randomization Test 1.0 to the Z-machine Test Suite.
+
+
+ENHANCEMENTS
+
+- Confirmed to work with NetBSD 1.6.x curses library.  Unlike with
+  ncurses, color mode will work when $TERM is "xterm".  See the BUGS
+  file for commentary.
+
+- Consolidated and organized most global variables into a few global
+  structs.
+
+- Added patches from David Kinder to facilitate loading a new game
+  without exiting Frotz entirely.  Files affected: buffer.c, process.c,
+  and sound.c.
+
+- Rewrote most documentation.  Fixed typos in the rest.
+
+- Reorganized source tree to make portability to different platforms
+  easier.  The bugtest/ directory is now src/test/ and is called the
+  "Z-machine Test Suite".
+
+
+BUG FIXES
+
+- Finally changed all references in documentation and source of
+  ftp.gmd.de to ftp.ifarchive.org.
+
+- Fixed a problem with command-recording which caused "[999]" to be
+  appended to every line in the file.
+
+- Set some defaults to z_sound_effect for those games that for some
+  wacky reason assume them (sound.c).
+
+- Frotz now correctly sets 0x20 (CONFIG_SOUND) in the header to tell V6
+  games that the interpreter supports sound (frotz.h ux_init.c).
+
+- Correctly fixed the Ctrl-Space bug.  The previous fix broke NetBSD's
+  newly-updated curses library.  See the BUGS file for more detail.
+
+- OSS sound is fixed, thanks to Torbjorn Anderson!  Also applied some
+  error-checking from someone whom I forget.
+
+
+
 Summary of changes between Unix Frotz 2.41 and Unix Frotz 2.42:
 ===============================================================
 

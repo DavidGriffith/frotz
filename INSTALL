@@ -1,20 +1,32 @@
+===========================================================================
 ---------------------------------------------------------------------------
-   READ THIS FILE ALL THE WAY THROUGH BEFORE ATTEMPTING TO INSTALL FROTZ
+|  READ THIS FILE ALL THE WAY THROUGH BEFORE ATTEMPTING TO INSTALL FROTZ  |
 ---------------------------------------------------------------------------
+===========================================================================
 
-The Unix port of Frotz was written mainly with Linux in mind.
-Fortunately, the source is rather generic C code and runs well on pretty
-much all current Unixen.  These are the only two things needed to compile
-and run Frotz:
+Frotz was originally written specifically for MS/PC DOS.  When it was
+ported to Unix, it was done mainly with Linux in mind.  Since then,
+Frotz has been written with an aim to compile and run smoothly on as
+many platforms as possible.
 
+The source is rather generic C code and runs well on pretty much all
+current Unixen.  These are the only three things needed to compile and
+run Frotz:
 	* Some variant of Unix with an ANSI C compiler (gcc works fine)
+	* A POSIX-compliant version of make (GNU make will do)
 	* A reasonably good SYSV derived curses library (ncurses is best)
 
-Linux uses ncurses, so you're safe there.  The old standard *BSD curses
-lack certain features, so you'll need to install ncurses.  You can
-download ncurses from ftp://ftp.gnu/org/gnu/ncurses/.  If you insist on
-using the vendor-supplied curses library, see the platform-specific info
-below.
+Frotz can be compiled without curses, leaving you with a dumb-mode
+interface.  This option is provided for hysterical raisins and for those
+who find it useful for web-based front-ends.  Read the DUMB file for
+more information.
+
+Linux uses ncurses, so you're safe there.  The version of curses that
+comes with NetBSD 1.6.x and later is good too.  Earlier versions lacked
+certain features needed by Frotz.  I don't know about the other *BSD
+curses.  You can download ncurses from ftp://ftp.gnu/org/gnu/ncurses/.
+If you insist on using the vendor-supplied curses library, see the
+platform-specific info below.
 
 It's always a good idea to have the GNU version of make(1) around.
 
@@ -46,10 +58,11 @@ up-to-date information on precompiled Frotz packages
 Editing the Makefile ||
 =======================
 
-You should take a look at the Makefile.  Read the comments.  It's pretty
-self-explanatory.  This is where you define your compiler, where Frotz
-will be installed, where your curses (or ncurses) library is, if you want
-sound support, and so on.
+You should take a look at the Makefile, which is found in the src/
+subdirectory.  Read the comments.  It's pretty self-explanatory.  This
+is where you define your compiler, where Frotz will be installed, where
+your curses (or ncurses) library is, if you want sound support, and so
+on.
 
 If this is too much for you, try installing by NetBSD's pkgsrc, FreeBSD's
 ports, RPM, DEB, or whatever packaging scheme suits you.
@@ -60,27 +73,27 @@ Compiling and installing Frotz ||
 =================================
 
 Make sure you're in the directory that was created when you untarred the
-Frotz tarball.  Type "make" to compile Frotz.  If you get any showstopping
-complaints, it's most likely because you didn't tell make where your
-curses library is, where the curses header is, if you're using plain old
-curses or ncurses, or you're trying to use sound on an unsupported
-platform.
+Frotz tarball.  Type "make" to compile Frotz.  If you get any
+showstopping complaints, it's most likely because you didn't tell make
+where your curses library is, where the curses header is, if you're
+using plain old curses or ncurses, or you're trying to use sound on an
+unsupported platform.
 
-Under Linux, the header file "soundcard.h" is usually found in
-<sys/soundcard.h>.  *BSD has this file in <soundcard.h>.  The Makefile and
-supporting scripts will check either of these places for "soundcard.h" and
-create a local "soundcard.h" file which includes the correct filepath.  I
-haven't had any success getting sound to work on non-Linux machines.  Your
-milage may vary.
-
-If you get any compile errors, check the Makefile.  Make sure you're
-specifying the correct curses library and sound driver (only one right
-now).  Make sure the include and library paths are set correctly.
+If you get any showstopping complaints, it's most likely because the
+curses library on your computer doesn't supply some critical
+functionality and you don't have ncurses to fall back on.
 
 Once the compile is complete, make sure you have the correct permissions
 to write where you want Frotz installed, then type "make install".
 
 To uninstall Frotz, type "make uninstall".
+
+If you don't have permission to install Frotz, you can just put the
+resulting executable somewhere like $HOME/bin and add that directory to
+your $PATH.
+
+For compiling, installing, and uninstalling dumb frotz, use "make dumb",
+"make install_dumb", and "make uninstall_dumb".
 
 
 ========================================
@@ -89,15 +102,21 @@ Installing and playing games on Frotz ||
 
 If you've unfamiliar with Infocom-style text adventures, you should
 probably stop here and read the file HOW_TO_PLAY.  Then come back and
-continute.
+continue.
 
 Now that you have Frotz installed, you'll probably want to play some of
-those ultra-nifty text adventures on it.  These games come in files which
-are compiled programs that run on the Z-machine, which interpreters like
-Frotz emulate.  The best-stocked archive of freeware games for use on
-Z-machine interpreters is at ftp://ftp.gmd.de/if-archive/games/zcode and
-several mirrors of this site.  A good mirror site is at
-http://www.ifarchive.org which also points to similar mirrors worldwide.
+those ultra-nifty text adventures on it.  These games come in files
+which are compiled programs that run on the Z-machine, which
+interpreters like Frotz emulate.  The best-stocked archive of freeware
+games for use on Z-machine interpreters is the Interactive Fiction
+Archive at http://www.ifarchive.org.  There are several mirrors of the
+archive all over the world listed there.
+
+Here are direct URLs to the zcode directories:
+
+http://www.ifarchive.org/indexes/if-archiveXgamesXzcode.html
+ftp://ftp.ifarchive.org/if-archive/games/zcode
+
 
 Here is the scheme I use for organizing my Zcode games:
 
@@ -153,8 +172,8 @@ Platform-specific issues ||
 Linux:  No apparent problems.  This is the only platform on which sound is
 known to work properly.
 
-[Net|Open|Free]BSD:  Install ncurses.  The standard BSD curses library
-won't work.
+[Net|Open|Free]BSD:  If you have NetBSD 1.6.x or later, you can use the
+supplied BSD curses.  Otherwise you must have ncurses.
 
 Digital UNIX:  No apparent problems.
 

@@ -1,0 +1,20 @@
+What are all these files for?
+
+AUTHORS		People who've had a hand in making Frotz what it is.
+BUGS		A list of known bugs and workarounds (if known).
+COPYING		Full text of the GNU General Public License.
+ChangeLog	Summary of changes from one version to another.
+DUMB		Description of the dumb-interface version of Frotz.
+HOW_TO_PLAY	How to play Interactive Fiction.
+INSTALL		How to install Frotz.
+Makefile	The Makefile (the INSTALL file tells you about this).
+PACKAGING	Putting Frotz into a binary package or port tree.
+PORTING		Notes about porting Frotz to new machines and operating systems.
+README		An overview of Frotz.
+README.1st	This file.
+SPEECH		Notes about speech synthesis and voice-recognition in Frotz.
+TODO		Stuff to do in no particular order.
+frotz.lsm	An LSM file for Frotz.
+
+doc/		Manpages and sample config files.
+src/		Source code to Frotz.

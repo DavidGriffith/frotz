@@ -1,14 +1,24 @@
-The adventure games known as "Infocom text adventures", "Infocom games",
-or "Z-code games" are in the "Z-code" format (a machine-independent
-abstract machine code), which was designed by Infocom and used for all
-their adventure games from "Zork I" to "Shogun" (the "Z" in "Z-code"
-stands for "Zork).  Infocom created six versions of this virtual machine.
-Their most popular versions were "Standard" (version 3) and "Advanced"
-(version 5).
+==========================================================
+----------------------------------------------------------
+||	How To Play Interactive Fiction With Frotz	||
+----------------------------------------------------------
+==========================================================
 
-Some time after Infocom's heyday of the 1980s ended, the Z-machine was
-reverse-engineered and a new language called "Inform" was created to allow
-people to once again write programs for the Z-machine.
+In the late 1970s, a group of students at the Massachusetts Institute of
+Technology (MIT) formed a company called Infocom to produce a genre of
+computer games called "Interactive Fiction", that is, a game in which
+you're "playing" a novel or short story.
+
+Infocom wrote their games to run on an imaginary computer of their own
+design called the "Z-Machine" and so the games are said to be written in
+"Z-code".  From their first game ("Zork I") to their last ("Shogun"),
+the Z-machine went through six versions.  The most common versions were
+"Standard" (version 3) and "Advanced" (version 5).
+
+Infocom's heyday lasted through the late 1970s and all of the 1980s.  In
+the early to mid 1990s the Z-machine was reverse-engineered and a new
+language called "Inform" was created to allow people to once again write
+programs for the Z-machine.
 
 The Z-code games written nowadays were written using this Inform
 language.  These games are usually in the form of single files.  The
@@ -17,13 +27,12 @@ version 5.  These files are not compressed, but are ordinary binary files
 and should be downloaded in 'binary' mode.
 
 The canonical repository of freeware games which can be played on Frotz is
-at the Interactive Fiction Archive at ftp://ftp.gmd.de/if-archive/games/zcode.
-They can also be found at assorted mirror sites, such as
-http://www.ifarchive.org.
+at the Interactive Fiction Archive at http://www.ifarchive.org and its
+mirrors.
 
 
-(The following is borrowed from the first few pages of the manual to Lost
-Treasures of Infocom I)
+The following is borrowed from the first few pages of the manual to
+Lost Treasures of Infocom I:
 
 =========================================
 Communicating with Interactive Fiction ||
@@ -67,12 +76,12 @@ Here are some examples:
 > PUT THE RUSTY KEY IN THE CARDBOARD BOX
 > SHOW MY BOW TIE TO THE BOUNCER
 > HIT THE CRAWLING CRAB WITH THE GIANT NUTCRACKER
-> ASK THE COWARDLY KIND ABOUT THE CROWN JEWELS
+> ASK THE COWARDLY KING ABOUT THE CROWN JEWELS
 
 You can use multiple objects with certain verbs if you separate them by
 the word "AND" or by a comma.  Here are some examples:
 
-> TAKE THE BOOX AND THE FROG
+> TAKE THE BOOK AND THE FROG
 > DROP THE JAR OF PEANUT BUTTER, THE SPOON, AND THE LEMMING FOOD
 > PUT THE EGG AND THE PENCIL IN THE CABINET
 
@@ -129,14 +138,14 @@ your words.
 Basic Commands ||
 =================
 
-BRIEF - This command causes Frotz to fully describe a location only the
-first time you enter it.  On subsequent visits, only the name of the
-location and any objects present will be described.  Most adventures will
-begin in "BRIEF" mode and remain in "BRIEF" mode unless you use the
+BRIEF - This command causes the game to fully describe a location only
+the first time you enter it.  On subsequent visits, only the name of the
+location and any objects present will be described.  Most adventures
+will begin in "BRIEF" mode and remain in "BRIEF" mode unless you use the
 "VERBOSE" or "SUPERBRIEF" commands.
 
 DIAGNOSE - This will give you a report of your physical condition.
-Most, but not all games support this command.
+Not all games support this command.
 
 INVENTORY - This will give you a list of what you are carrying and
 wearing.  Usually you can abbreviate "INVENTORY" to "I".
@@ -161,12 +170,12 @@ maps, prepare walkthroughs, make something to brag about, and so on.
 SCORE - This command will show your current score and often a ranking
 based on that score.
 
-SUPERBRIEF - This one causes Frotz to display only the name of a place you
-enter, even if you've never been there before.  In this mode, not even
-objects present are described.  Of course, you can get a full description
-of your location and the object present by typing "LOOK".  In "SUPERBRIEF"
-mode, the blank line between turns is eliminated.  This mode is meant for
-players who are already familiar with the geography.
+SUPERBRIEF - This one causes the game to display only the name of a
+place you enter, even if you've never been there before.  In this mode,
+not even objects present are described.  Of course, you can get a full
+description of your location and the object present by typing "LOOK".
+In "SUPERBRIEF" mode, the blank line between turns is eliminated.  This
+mode is meant for players who are already familiar with the geography.
 
 TIME - This gives your the current time in the story.  Some games don't
 have a concept of time and therefore don't have this command.

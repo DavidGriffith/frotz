@@ -1,10 +1,42 @@
+=============
+Color mode ||
+=============
+
+It seems that it's up to the curses library to decide if a program may
+or may not use color.  For example, ncurses on NetBSD refuses to allow
+Frotz to run in color mode, even when color mode is forced.  Frotz and
+the program it's running think color is being emitted, but ncurses won't
+allow it.  On the other hand, NetBSD's standard curses library (1.6 and
+later) will let colors be seen.
+
+
+=======================================
+Ctrl-Space causing Bogus ZC_TIME_OUT ||
+=======================================
+
+Under ncurses, getch() will return OK (defined to 0 ) when Ctrl-@ or
+Ctrl-Space is pressed.  0 is also the ZSCII character code for
+ZC_TIME_OUT.  This causes a fatal error "Call to non-routine", after
+which Frotz aborts.  This doesn't happen with all games nor is the
+crashing consistent.  Sometimes repeated tests on a single game will
+yield some crashes and some non-crashes.  When linked with ncurses, we
+must make sure that unix_read_char() does not return a bogus
+ZC_TIME_OUT.  This returning of 0 appears to be abnormal behavior
+peculiar to ncurses, so an #ifdef is used to enable the fix only if
+ncurses is being used.  Alembic's fix didn't have this
+#ifdef and so it broke NetBSD's newly-updated curses library.
+
+
+
 =======================
 Bug-testing Programs ||
 =======================
 
-Unix Frotz now comes with crashme, TerpEtude, gntests, and strictz.
-These are intended to excercise the interpreter and verify that it is
-functioning according to spec.  You will find these programs in bugtest/.
+Unix Frotz now comes with crashme, TerpEtude, gntests, strictz, and
+Unicode Test.  These are intended to excercise the interpreter and
+verify that it is functioning according to spec.  You will find these
+programs in the src/test/ directory.
+
 
 
 ==================
@@ -33,16 +65,6 @@ screens rarely, if ever, changed their dimensions and few people were
 assumed to trade saves across platforms.
 
 
-==================================
-OSS sound on non-Linux machines ||
-==================================
-
-The only machines using the OSS drivers I can test sound on are Linux/x86,
-NetBSD/x86, and Sparcs running NetBSD.  The sound from the NetBSD machines
-sounds horrrible (twice as slow, full of static).  I'm not sure what the
-problem is.  So far, I haven't heard of anyone getting sound to work on
-machines other than Linux/x86.
-
 
 =====================
 Arrow Key Handling ||
@@ -54,6 +76,7 @@ use the right-arrow key to move from the "party commands" menu to the
 Frotz's fault.  Instead, use the spacebar to jump from menu to menu.
 I mistakenly attributed this to an unknown bug.  That'll teach
 me to do bugtesting when I'm about to nod off to sleep.
+
 
 
 ===================

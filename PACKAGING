@@ -1,0 +1,19 @@
+I heartily encourage people to create packages to make it easier for less
+computer-savvy people to use Frotz.  However, I do have a few rules on
+this.
+
+1.  Email me if you wish to put Unix Frotz into something like a .deb,
+    .rpm, Slackware package, the NetBSD pkgsrc tree, FreeBSD's ports
+    tree, or anything like that.  When you do so I can note that on the
+    Unix Frotz webpage at http://www.cs.csubak.edu/~dgriffi/proj/frotz.
+
+2.  DO NOT have auto-install programs or scripts grab files from that
+    page.  The Interactive Fiction Archive at http://www.ifarchive.org
+    has mirrors around the world for that sort of thing.
+
+3.  If you distribute a patched version, SEND ME THE PATCHES.  If you
+    don't tell me what bugs you've found and fixed, I can't very well fix
+    those bugs in the main codebase for all the other users of Frotz.
+    Patches that simply change around options in the Makefile obviously
+    don't apply.
+

@@ -40,6 +40,11 @@ extern void split_window (zword);
 extern void script_open (void);
 extern void script_close (void);
 
+extern zword save_quetzal (FILE *, FILE *);
+extern zword restore_quetzal (FILE *, FILE *);
+
+extern void erase_window (zword);
+
 extern void (*op0_opcodes[]) (void);
 extern void (*op1_opcodes[]) (void);
 extern void (*op2_opcodes[]) (void);
@@ -55,9 +60,9 @@ static FILE *story_fp = NULL;
 
 static zbyte far *undo[MAX_UNDO_SLOTS];
 
-static undo_slots = 0;
-static undo_count = 0;
-static undo_valid = 0;
+static int undo_slots = 0;
+static int undo_count = 0;
+static int undo_valid = 0;
 
 /*
  * get_header_extension
@@ -220,8 +225,10 @@ void init_memory (void)
 	    sprintf(tmp, "%s/%s", p, story_name);
 	    if ((story_fp = fopen (tmp, "rb")) == NULL)
 	      p = strtok(NULL, ":");
-	    else
+	    else {
 	      p = NULL;
+              story_name = strdup(tmp);
+            }
 	}
 
 	if (story_fp == NULL)
@@ -483,6 +490,7 @@ void z_restart (void)
     restart_screen ();
 
     sp = fp = stack + STACK_SIZE;
+    frame_count = 0;
 
     if (h_version != V6) {
 
@@ -580,10 +588,12 @@ void z_restore (void)
 
     } else {
 
+#ifndef USE_QUETZAL
 	long pc;
 	zword release;
 	zword addr;
 	int i;
+#endif
 
 	/* Get the file name */
 
@@ -596,6 +606,30 @@ void z_restore (void)
 
 	if ((gfp = fopen (new_name, "rb")) == NULL)
 	    goto finished;
+
+#ifdef USE_QUETZAL
+
+	if ((short) (success = restore_quetzal (gfp, story_fp)) > 0) {
+
+	    /* In V3, reset the upper window. */
+	    if (h_version == V3)
+		split_window (0);
+
+	    /* Reload cached header fields. */
+	    restart_header ();
+
+	    /*
+	     * Since QUETZAL files may be saved on many different machines,
+	     * the screen sizes may vary a lot. Erasing the status window
+	     * seems to cover up most of the resulting badness.
+	     */
+	    if (h_version > V3 && h_version != V6)
+		erase_window (1);
+
+	} else if ((short) success < 0)
+	    os_fatal ("Error reading save file");
+
+#else
 
 	/* Load game file */
 
@@ -655,6 +689,8 @@ void z_restore (void)
 
 	} else print_string ("Invalid save file\n");
 
+#endif	/* !USE_QUETZAL */
+
 	/* Close game file */
 
 	fclose (gfp);
@@ -701,6 +737,7 @@ int restore_undo (void)
 	pc = ((long) stack[0] << 16) | stack[1];
 	sp = stack + stack[2];
 	fp = stack + stack[3];
+	frame_count = stack[4];
 
 	SET_PC (pc)
 
@@ -772,11 +809,13 @@ void z_save (void)
 
     } else {
 
+#ifndef USE_QUETZAL
 	long pc;
 	zword addr;
 	zword nsp, nfp;
 	int skip;
 	int i;
+#endif
 
 	/* Get the file name */
 
@@ -789,6 +828,12 @@ void z_save (void)
 
 	if ((gfp = fopen (new_name, "wb")) == NULL)
 	    goto finished;
+
+#ifdef USE_QUETZAL
+
+	success = save_quetzal (gfp, story_fp);
+
+#else
 
 	/* Write game file */
 
@@ -825,6 +870,8 @@ void z_save (void)
 		skip = 0;
 	    } else skip++;
 
+#endif	/* !USE_QUETZAL */
+
 	/* Close game file and check for errors */
 
 	if (fclose (gfp) == EOF || ferror (story_fp)) {
@@ -858,7 +905,7 @@ int save_undo (void)
 {
     long pc;
 
-    if (undo_slots == 0)	/* undo feature unavailable */
+    if (undo_slots == 0 || sp - stack < 5)	/* undo feature unavailable */
 
 	return -1;
 
@@ -873,6 +920,7 @@ int save_undo (void)
 	stack[1] = (zword) (pc & 0xffff);
 	stack[2] = (zword) (sp - stack);
 	stack[3] = (zword) (fp - stack);
+	stack[4] = frame_count;
 
 	memcpy (undo[undo_count], stack, sizeof (stack));
 	memcpy (undo[undo_count] + sizeof (stack), zmp, h_dynamic_size);

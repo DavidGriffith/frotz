@@ -5,16 +5,10 @@
  *
  */
 
-/* Unfortunately, frotz's bool definition conflicts with that of curses.
-   But since no os_* function uses it, it's safe to let the frotz core see
-   this definition, but have the unix port see the curses version. */
-
-#ifndef __UNIX_PORT_FILE
 typedef int bool;
 
 #define TRUE 1
 #define FALSE 0
-#endif
 
 typedef unsigned char zbyte;
 typedef unsigned short zword;
@@ -396,9 +390,10 @@ extern long story_size;
 extern zword stack[STACK_SIZE];
 extern zword *sp;
 extern zword *fp;
+extern zword frame_count;
 
 extern zword zargs[8];
-extern zargc;
+extern int zargc;
 
 extern bool ostream_screen;
 extern bool ostream_script;
@@ -407,29 +402,29 @@ extern bool ostream_record;
 extern bool istream_replay;
 extern bool message;
 
-extern cwin;
-extern mwin;
+extern int cwin;
+extern int mwin;
 
-extern mouse_x;
-extern mouse_y;
+extern int mouse_x;
+extern int mouse_y;
 
 extern bool enable_wrapping;
 extern bool enable_scripting;
 extern bool enable_scrolling;
 extern bool enable_buffering;
 
-extern option_attribute_assignment;
-extern option_attribute_testing;
-extern option_object_locating;
-extern option_object_movement;
-extern option_context_lines;
-extern option_left_margin;
-extern option_right_margin;
-extern option_ignore_errors;
-extern option_piracy;
-extern option_undo_slots;
-extern option_expand_abbreviations;
-extern option_script_cols;
+extern int option_attribute_assignment;
+extern int option_attribute_testing;
+extern int option_object_locating;
+extern int option_object_movement;
+extern int option_context_lines;
+extern int option_left_margin;
+extern int option_right_margin;
+extern int option_ignore_errors;
+extern int option_piracy;
+extern int option_undo_slots;
+extern int option_expand_abbreviations;
+extern int option_script_cols;
 
 extern long reserve_mem;
 
@@ -545,6 +540,52 @@ void 	z_tokenise (void);
 void 	z_verify (void);
 void 	z_window_size (void);
 void 	z_window_style (void);
+
+#ifdef STRICTZ
+
+/* Definitions for STRICTZ functions and error codes. */
+
+extern int strictz_report_mode;
+
+void	init_strictz (void);
+void	report_strictz_error (int, const char *);
+
+/* Error codes */
+#define STRZERR_NO_ERROR (0)
+#define STRZERR_JIN (1)
+#define STRZERR_GET_CHILD (2)
+#define STRZERR_GET_PARENT (3)
+#define STRZERR_GET_SIBLING (4)
+#define STRZERR_GET_PROP_ADDR (5)
+#define STRZERR_GET_PROP (6)
+#define STRZERR_PUT_PROP (7)
+#define STRZERR_CLEAR_ATTR (8)
+#define STRZERR_SET_ATTR (9)
+#define STRZERR_TEST_ATTR (10)
+#define STRZERR_MOVE_OBJECT (11)
+#define STRZERR_MOVE_OBJECT_2 (12)
+#define STRZERR_REMOVE_OBJECT (13)
+#define STRZERR_GET_NEXT_PROP (14)
+#define STRICTZ_NUM_ERRORS (15)
+
+/* There are four error reporting modes: never report errors;
+  report only the first time a given error type occurs; report
+  every time an error occurs; or treat all errors as fatal
+  errors, killing the interpreter. I strongly recommend
+  "report once" as the default. But you can compile in a
+  different default by changing the definition of
+  STRICTZ_DEFAULT_REPORT_MODE. In any case, the player can
+  specify a report mode on the command line by typing "-Z 0"
+  through "-Z 3". */
+
+#define STRICTZ_REPORT_NEVER (0)
+#define STRICTZ_REPORT_ONCE (1)
+#define STRICTZ_REPORT_ALWAYS (2)
+#define STRICTZ_REPORT_FATAL (3)
+
+#define STRICTZ_DEFAULT_REPORT_MODE STRICTZ_REPORT_ONCE
+
+#endif /* STRICTZ */
 
 /*** Various global functions ***/
 

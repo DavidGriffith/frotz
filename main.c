@@ -77,6 +77,7 @@ zword hx_unicode_table = 0;
 zword stack[STACK_SIZE];
 zword *sp = 0;
 zword *fp = 0;
+zword frame_count = 0;
 
 /* IO streams */
 
@@ -159,6 +160,10 @@ void z_piracy (void)
 
 int cdecl main (int argc, char *argv[])
 {
+
+#ifdef STRICTZ
+    init_strictz ();
+#endif
 
     os_process_arguments (argc, argv);
 

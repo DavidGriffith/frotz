@@ -10,7 +10,7 @@
 zword zargs[8];
 int zargc;
 
-static finished = 0;
+static int finished = 0;
 
 static void __extended__ (void);
 static void __illegal__ (void);
@@ -298,10 +298,10 @@ void call (zword routine, int argc, zword *args, int ct)
 
     GET_PC (pc)
 
-    *--sp = (zword) (pc >> 9);		/* for historical reasons */
-    *--sp = (zword) (pc & 0x1ff);	/* Frotz keeps its stack  */
-    *--sp = (zword) (fp - stack - 1);	/* format compatible with */
-    *--sp = (zword) (argc | (ct << 8));	/* Mark Howell's Zip      */
+    *--sp = (zword) (pc >> 9);		/* The stack format is no longer   */
+    *--sp = (zword) (pc & 0x1ff);	/* entirely Zip-compatible, due to */
+    *--sp = (zword) (fp - stack - 1);	/* the extra information that must */
+    *--sp = (zword) (argc | (ct << 12));/* be stored for Quetzal. Sorry.   */
 
     fp = sp;
 
@@ -329,6 +329,8 @@ void call (zword routine, int argc, zword *args, int ct)
 	runtime_error ("Call to non-routine");
     if (sp - stack < count)
 	runtime_error ("Stack overflow");
+
+    fp[0] |= (zword) count << 8;	/* Save local var count for Quetzal. */
 
     value = 0;
 
@@ -368,7 +370,7 @@ void ret (zword value)
 
     sp = fp;
 
-    ct = *sp++ >> 8;
+    ct = *sp++ >> 12;
     fp = stack + 1 + *sp++;
     pc = *sp++;
     pc = ((long) *sp++ << 9) | pc;
@@ -431,7 +433,7 @@ void branch (bool flag)
     } else offset = off1;		/* it's a short branch */
 
     if (specifier & 0x80)
-
+    {
 	if (offset > 1) {		/* normal branch */
 
 	    GET_PC (pc)
@@ -439,6 +441,7 @@ void branch (bool flag)
 	    SET_PC (pc)
 
 	} else ret (offset);		/* special case, return 0 or 1 */
+    }
 
 }/* branch */
 
@@ -560,7 +563,7 @@ static void __illegal__ (void)
 void z_catch (void)
 {
 
-    store ((zword) (fp - stack));
+    store (frame_count);
 
 }/* z_catch */
 
@@ -575,10 +578,12 @@ void z_catch (void)
 void z_throw (void)
 {
 
-    if (zargs[1] > STACK_SIZE)
+    if (zargs[1] > frame_count)
 	runtime_error ("Bad stack frame");
 
-    fp = stack + zargs[1];
+    /* Unwind the stack a frame at a time. */
+    for (; frame_count > zargs[1]; --frame_count)
+	fp = stack + 1 + fp[1];
 
     ret (zargs[0]);
 

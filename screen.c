@@ -26,15 +26,15 @@ static struct {
     {   UNKNOWN,  0,   0,   0 }
 };
 
-static font_height = 1;
-static font_width = 1;
+static int font_height = 1;
+static int font_width = 1;
 
 static bool input_redraw = FALSE;
 static bool more_prompts = TRUE;
 static bool discarding = FALSE;
 static bool cursor = TRUE;
 
-static input_window = 0;
+static int input_window = 0;
 
 static struct {
     zword y_pos;
@@ -587,7 +587,7 @@ static void set_window (zword win)
  *
  */
 
-static void erase_window (zword win)
+void erase_window (zword win)
 {
     zword y = wp[win].y_pos;
     zword x = wp[win].x_pos;
@@ -1147,7 +1147,7 @@ void z_picture_data (void)
     for (i = 0; mapper[i].story_id != UNKNOWN; i++)
 
 	if (story_id == mapper[i].story_id)
-
+        {
 	    if (pic == mapper[i].pic) {
 
 		int height2, width2;
@@ -1160,6 +1160,7 @@ void z_picture_data (void)
 	    } else if (pic == mapper[i].pic1 || pic == mapper[i].pic2)
 
 		avail = FALSE;
+        }
 
     storew ((zword) (table + 0), (zword) (height));
     storew ((zword) (table + 2), (zword) (width));

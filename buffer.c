@@ -12,7 +12,7 @@ extern void stream_word (const zchar *);
 extern void stream_new_line (void);
 
 static zchar buffer[TEXT_BUFFER_SIZE];
-static bufpos = 0;
+static int bufpos = 0;
 
 static zchar prev_c = 0;
 
@@ -72,7 +72,7 @@ void print_char (zchar c)
 
 	    /* Flush the buffer before a whitespace or after a hyphen */
 
-	    if (c == ' ' || c == ZC_INDENT || c == ZC_GAP || prev_c == '-' && c != '-')
+	    if (c == ' ' || c == ZC_INDENT || c == ZC_GAP || (prev_c == '-' && c != '-'))
 		flush_buffer ();
 
 	    /* Set the flag if this is part one of a style or font change */

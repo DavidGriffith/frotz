@@ -46,7 +46,7 @@ zchar translate_from_zscii (zbyte c)
 	return ZC_SINGLE_CLICK;
 
     if (c >= 0x9b && story_id != BEYOND_ZORK)
-
+    {
 	if (hx_unicode_table != 0) {	/* game has its own Unicode table */
 
 	    zbyte N;
@@ -74,6 +74,7 @@ zchar translate_from_zscii (zbyte c)
 		return zscii_to_latin1[c - 0x9b];
 
 	    } else return '?';
+    }
 
     return c;
 
@@ -98,7 +99,7 @@ zbyte translate_to_zscii (zchar c)
 	return 0xfc;
 
     if (c >= ZC_LATIN1_MIN)
-
+    {
 	if (hx_unicode_table != 0) {	/* game has its own Unicode table */
 
 	    zbyte N;
@@ -129,6 +130,7 @@ zbyte translate_to_zscii (zchar c)
 	    return '?';
 
 	}
+    }
 
     return c;
 

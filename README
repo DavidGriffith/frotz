@@ -1,0 +1,61 @@
+(This Readme file was adapted from the one released with the MS-DOS binary.)
+
+FROTZ V2.32 - an interpreter for all Infocom games. Complies with standard
+1.0 of Graham Nelson's specification. Written by Stefan Jokisch in 1995-7
+
+    This program once started as a re-make of Mark Howell's Zip, but
+    has grown into an utterly new interpreter.
+
+    Frotz is freeware: It may be used and distributed freely provided
+    no commercial profit is involved. (c) 1995-1997 Stefan Jokisch.
+
+    Please report bugs to s.jokisch@avu.de
+    Please report X11 bugs to schepler@math.berkeley.edu
+
+    This is the X11 port of Stefan Jokisch's Z-machine interpreter.
+    It currently uses a raw Xlib interface, and I suspect adding Gtk+
+    support would require a substantial rewrite.  XFrotz supports V6
+    graphics (but unfortunately not Blorb), and sound on systems with
+    OSS available (notably Linux).  The focus is on running V6
+    graphical games; unless you need XFrotz to display graphics or
+    play sound (or for its color support), you will probably get
+    better results with one of the other freely available
+    interpreters, such as nitfol, xzip, jzip, or frotz.
+
+    This distribution comes with X fonts for use with Beyond Zork and
+    Journey.  So far, the best way I have found to run Beyond Zork is
+    to set both the normal and fixed fonts to the same font, one which
+    matches the size of the graphical font.
+
+        xfrotz -fn 8x13 -fn-b 8x13bold -fn-f 8x13 -fn-fb 8x13bold \
+           .../beyondzo.dat
+
+    For more information on command line options, see the included
+    manual page.
+
+Acknowledgements:
+
+    Many thanks to Paul D. Doherty for his continuing support of this
+    project. Thanks to everyone who sent bug reports, contributions or
+    helpful hints (in alphabetical order):
+
+    Thomas Biskup, Ian Carpenter, Graeme Cree, Jason Dyer,
+    Carl Edman, Julian Eggebrecht, Bernhard Fuchs, Joe Hachem,
+    John Kennedy, Kirk Klobe, Marnix Klooster, John Mackin,
+    Paul O'Brian, Magnus Olsson, Barry Prescott, L. Ross Raszewski,
+    Ambat Sasi Nair, Alan Sherrod, Linards Ticmanis and Paolo Vece.
+
+    Last but not least, thanks to the porters:
+
+    David Kinder (Amiga), Rich Lawrence (Windows 95/NT),
+    Andrew Holdsworth (RiscOS), Christos Dimitrakakis (HP-UX),
+    Christopher J. Madsen (OS/2), Galen Hazelwood (Unix curses library),
+    Ian Dean (Windows CE).
+
+    Executables are available from ftp.gmd.de and from
+
+	http://www.geocities.com/SiliconValley/Heights/3222/frotz.html
+
+    which is the Frotz home page maintained by Chris Madsen.
+
+

@@ -1,0 +1,238 @@
+.\" Copyright (c) 2000  Daniel Schepler
+.\" Permission is granted to distribute, copy, and modify this source and
+.\" resulting binaries under the turns of the Artistic License.  This
+.\" should have been included in the COPYING file along with this
+.\" distribution.
+.\"
+.\" xfrotz comes with NO WARRANTY.  See the Artistic License for more
+.\" information.
+.\"
+.TH XFROTZ 6
+.SH NAME
+xfrotz \- Graphical Z-code interpreter.
+.SH SYNOPSIS
+.B xfrotz
+.I "[options] file"
+.SH DESCRIPTION
+The \fIxfrotz\fP program is an Xlib-based interpreter for Z-machine
+code, the byte code used by Infocom games and, more recently, Inform.
+.I xfrotz
+supports versions 1 through 8 of the format.  It uses the standard
+Quetzal format for its saved games.
+
+The author's focus in writing
+.I xfrotz
+was to support Version 6 graphical games.  It currently supports
+color, graphics (in the
+.B .mg1
+format only), and sound on systems with OSS installed.  For games
+which do not need graphics or sound support, one of the other freely
+available interpreters, such as
+.IR nitfol (6),
+.IR frotz (6),
+.IR jzip (6),
+or
+.IR xzip (6),
+will probably produce better results.
+.SH OPTIONS
+In each of the following options which enables some feature, replacing
+.B \-
+with
+.B \+
+explicitly disables that feature, overriding any X resources.  Also,
+each option has a corresponding X resource, which is listed in
+parentheses after the option name.
+.TP
+.B \-aa
+(class \fBWatchAttribute\fP, name \fBwatchAttrAssign\fP)
+Enables watching of attribute assignment.
+.TP
+.B \-at
+(class \fBWatchAttribute\fP, name \fBwatchAttrTest\fP)
+Enables watching of attribute testing.
+.TP
+.BI \-bg " color"
+(class \fBBackground\fP, name \fBbackground\fP)
+Sets the default background color.  In addition to the standard X
+color specification formats,
+.I xfrotz
+supports the format \fBz:\fP\fInum\fP, which refers to a z-machine
+color from 2 to 9.
+.TP
+.BI \-c " number"
+(class \fBContextLines\fP, name \fBcontextLines\fP)
+Specifies the number of context lines used.  When scrolling large
+amounts of text,
+.I xfrotz
+pauses after each screenful with a ``[MORE]'' prompt; this option
+specifies how many lines of a previous screen
+.I xfrotz
+will keep at the top of the next screen.
+.TP
+.BI \-fg " color"
+(class \fBForeground\fP, name \fBforeground\fP)
+Sets the default foreground color.  See \fB\-bg\fP above.
+.TP
+.BI \-fn[\-z|[f][b][i]] " font name"
+(class \fBFont\fP, name \fBfont[Z|[F][B][I]]\fP)
+Sets the fonts to be used for various styles.  For example,
+\fB\-fn\-fbi\fP sets the font for fixed, bold, italic text, and
+\fB\-fn\-z\fP sets the z-machine ``picture font,'' which is used in
+\fIBeyond Zork\fP and \fIJourney\fP.
+.TP
+.B \-i
+(class \fBIgnoreErrors\fP, name \fBignoreErrors\fP)
+Ignore runtime errors.  This can be useful when running
+.I xfrotz
+with buggy story files which cause fatal errors.
+.TP
+.BI \-lm " number"
+(class \fBMargin\fP, name \fBleftMargin\fP)
+Sets the left margin.
+.TP
+.B \-ol
+(class \fBWatchObject\fP, name \fBwatchObjLocating\fP)
+Enables watching of testing the location of objects.
+.TP
+.B \-om
+(class \fBWatchObject\fP, name \fBWatchObjMovement\fP)
+Enables watching of object movement.
+.TP
+.B \-p
+(class \fBPiracy\fP, name \fBpiracy\fP)
+Enable branching on the
+.I @piracy
+opcode.  This opcode is seldom used.
+.TP
+.BI \-rm " number"
+(class \fBMargin\fP, name \fBrightMargin\fP)
+Sets the right margin.
+.TP
+.BI \-rs " number"
+(class \fBRandomSeed\fP, name \fBrandomSeed\fP)
+Set the random seed.  By default, the random number generator is
+initialized based on the system clock; this allows you to make the
+random number generator predictable, for use in recorded scripts or
+debugging.
+.TP
+.BI \-sc " number"
+(class \fBScriptColumns\fP, name \fBscriptColumns\fP)
+Set the transcript width (default 80).  Set to 0 to disable line
+splitting in transcripts.
+.TP
+.B \-t
+(class \fBTandy\fP, name \fBtandy\fP)
+Set the z-machine's Tandy bit, which affects the behavior of certain
+Infocom games.  For example, \fIZork I\fP pretends not to have
+sequels, and \fIWitness\fP has its language censored.
+.TP
+.BI \-u " number"
+(class \fBUndoSlots\fP, name \fBundoSlots\fP)
+Set the number of undo slots available.  The default number is 25.
+Note that many Infocom games do not support an ``undo'' command, and
+most Inform games do not allow more than one ``undo'' at a time.
+Because of this, you may need to use the undo hotkey instead (see
+below).
+.TP
+.B \-x
+(class \fBExpandAbbrevs\fP, name \fBexpandAbbrevs\fP)
+With this option enabled,
+.I xfrotz
+expands ``x'' to ``examine,'' ``o'' to ``oops,'' and ``g'' to
+``again.''  This is convenient when running certain Infocom games
+which do not implement these abbreviations.
+.TP
+.BI \-xrm " resources"
+This allows setting resources on the command line.
+.TP
+.BI \-zs " level"
+(class \fBZStrict\fP, name \fBzStrict\fP)
+Set the reporting level of ``Vile Zero Error From Hell'' bugs.  The
+possible levels are: 0 to print no error messages, 1 to print just one
+error message and ignore subsequent errors (the default), 2 to print
+all error messages, or 3 to exit with a fatal error.  Symbolic values
+of \fBnever\fP, \fBonce\fP, \fBalways\fP, and \fBfatal\fP,
+respectively, are also accepted.
+.SH RESOURCES
+\fIxfrotz\fP's resource class is ``XFrotz'', and its resource name is
+the base name by which it was invoked, usually ``xfrotz''.  In
+addition to the X resources listed above, there is one more set of
+resources: by setting \fBcolor\fP\fInum\fP (class name
+\fBColor\fP\fInum\fP) to the name of a color, you can change the
+meaning of the z-machine colors.  Note that here the \fBz:\fP\fBnum\fP
+syntax is not accepted.
+.SH ENVIRONMENT
+.I xfrotz
+supports the INFOCOM_PATH environment variable.  This is a
+colon-separated list of pathnames in which
+.I xfrotz
+will search for the given story file.  Note that
+.I xfrotz
+will expect the
+.I story.mg1
+file and the
+.I sounds
+directory to be in the same directory as it finds the story file.
+.SH HOTKEYS
+.I xfrotz
+supports several ``hotkeys,'' which interrupt the currently running
+game to set options or perform certain actions.
+.TP
+.B Mod1\+D
+Sets debugging options by prompting the user.  These options are
+equivalent to specifying \fB\-aa\fP, \fB\-at\fP, \fB\-ol\fP, and
+\fB\-om\fP on the command line.
+.TP
+.B Mod1\+H
+Lists available hotkeys.
+.TP
+.B Mod1\+N
+Starts a new game.  Equivalent to the \fIrestart\fP command supported
+by most games.
+.TP
+.B Mod1\+P
+Starts or stops playback from a recorded script.
+.TP
+.B Mod1\+R
+Starts or stops recording player input into a file.
+.TP
+.B Mod1\+S
+Sets the random number generator seed.
+.TP
+.B Mod1\+U
+Undoes one turn.
+.TP
+.B Mod1\+X
+Exits the currently running game.
+.SH SEE ALSO
+.BR inform (1),
+.BR nitfol (6),
+.BR frotz (6),
+.BR jzip (6),
+.BR xzip (6).
+.SH BUGS
+If run on an 8-bit display,
+.I xfrotz
+will most likely leak the entire color palette, especially if
+displaying graphics.
+
+There is no support yet for Blorb archives.
+
+The window size is fixed at 800x600, with pictures scaled to match;
+this scaling is hard coded.  Also,
+.I xfrotz
+depends on backing store instead of saving the screen's state.
+
+If different fonts have different heights, the display might look a
+bit strange, and things might not line up as they should.  This is
+especially apparent in menus.
+
+In order to change the fonts used, you would usually have to specify
+at least 4 fonts (for normal, bold, italic, and bold italic).  This is
+extremely cumbersome.
+.SH AUTHOR
+.I frotz
+was written by Stefan Jokisch in 1995-7.
+.I xfrotz
+is an Xlib port written by Daniel Schepler, based in part on the Unix
+port by Galen Hazelwood and on WinFrotz by Rich Lawrence.

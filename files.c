@@ -28,7 +28,7 @@ char command_name[MAX_FILE_NAME + 1] = DEFAULT_COMMAND_NAME;
 extern char latin1_to_ibm[];
 #endif
 
-static script_width = 0;
+static int script_width = 0;
 
 static FILE *sfp = NULL;
 static FILE *rfp = NULL;
@@ -342,7 +342,7 @@ static void record_char (zchar c)
 {
 
     if (c != ZC_RETURN)
-
+    {
 	if (c < ZC_HKEY_MIN || c > ZC_HKEY_MAX) {
 
 	    record_code (translate_to_zscii (c), FALSE);
@@ -353,6 +353,7 @@ static void record_char (zchar c)
 	    }
 
 	} else record_code (1000 + c - ZC_HKEY_MIN, TRUE);
+    }
 
 }/* record_char */
 
@@ -477,7 +478,7 @@ static zchar replay_char (void)
     if ((c = replay_code ()) != EOF) {
 
 	if (c != '\n')
-
+        {
 	    if (c < 1000) {
 
 		c = translate_from_zscii (c);
@@ -490,6 +491,7 @@ static zchar replay_char (void)
 		return c;
 
 	    } else return ZC_HKEY_MIN + c - 1000;
+        }
 
 	ungetc ('\n', pfp);
 

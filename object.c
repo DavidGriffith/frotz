@@ -149,6 +149,14 @@ static void unlink_object (zword object)
     zword parent_addr;
     zword sibling_addr;
 
+#ifdef STRICTZ
+    if (object == 0) {
+	report_strictz_error (STRZERR_REMOVE_OBJECT,
+	    "@remove_object called with object 0");
+	return;
+    }
+#endif
+
     obj_addr = object_address (object);
 
     if (h_version <= V3) {
@@ -264,6 +272,14 @@ void z_clear_attr (void)
 	stream_mssg_off ();
     }
 
+#ifdef STRICTZ
+    if (zargs[0] == 0) {
+	report_strictz_error (STRZERR_CLEAR_ATTR,
+	    "@clear_attr called with object 0");
+	return;
+    }
+#endif
+
     /* Get attribute address */
 
     obj_addr = object_address (zargs[0]) + zargs[1] / 8;
@@ -298,6 +314,15 @@ void z_jin (void)
 	print_object (zargs[1]);
 	stream_mssg_off ();
     }
+
+#ifdef STRICTZ
+    if (zargs[0] == 0) {
+	report_strictz_error (STRZERR_JIN,
+	    "@jin called with object 0");
+	branch (0 == zargs[1]);
+	return;
+    }
+#endif
 
     obj_addr = object_address (zargs[0]);
 
@@ -351,6 +376,16 @@ void z_get_child (void)
 	stream_mssg_off ();
     }
 
+#ifdef STRICTZ
+    if (zargs[0] == 0) {
+	report_strictz_error (STRZERR_GET_CHILD,
+	    "@get_child called with object 0");
+	store (0);
+	branch (FALSE);
+	return;
+    }
+#endif
+
     obj_addr = object_address (zargs[0]);
 
     if (h_version <= V3) {
@@ -398,6 +433,15 @@ void z_get_next_prop (void)
     zword prop_addr;
     zbyte value;
     zbyte mask;
+
+#ifdef STRICTZ
+    if (zargs[0] == 0) {
+	report_strictz_error (STRZERR_GET_NEXT_PROP,
+	    "@get_next_prop called with object 0");
+	store (0);
+	return;
+    }
+#endif
 
     /* Property id is in bottom five (six) bits */
 
@@ -450,6 +494,15 @@ void z_get_parent (void)
 	stream_mssg_off ();
     }
 
+#ifdef STRICTZ
+    if (zargs[0] == 0) {
+	report_strictz_error (STRZERR_GET_PARENT,
+	    "@get_parent called with object 0");
+	store (0);
+	return;
+    }
+#endif
+
     obj_addr = object_address (zargs[0]);
 
     if (h_version <= V3) {
@@ -498,6 +551,15 @@ void z_get_prop (void)
     zbyte value;
     zbyte mask;
 
+#ifdef STRICTZ
+    if (zargs[0] == 0) {
+	report_strictz_error (STRZERR_GET_PROP,
+	    "@get_prop called with object 0");
+	store (0);
+	return;
+    }
+#endif
+
     /* Property id is in bottom five (six) bits */
 
     mask = (h_version <= V3) ? 0x1f : 0x3f;
@@ -521,7 +583,7 @@ void z_get_prop (void)
 
 	prop_addr++;
 
-	if (h_version <= V3 && !(value & 0xe0) || h_version >= V4 && !(value & 0xc0)) {
+	if ((h_version <= V3 && !(value & 0xe0)) || (h_version >= V4 && !(value & 0xc0))) {
 
 	    LOW_BYTE (prop_addr, bprop_val)
 	    wprop_val = bprop_val;
@@ -556,6 +618,15 @@ void z_get_prop_addr (void)
     zword prop_addr;
     zbyte value;
     zbyte mask;
+
+#ifdef STRICTZ
+    if (zargs[0] == 0) {
+	report_strictz_error (STRZERR_GET_PROP_ADDR,
+	    "@get_prop_addr called with object 0");
+	store (0);
+	return;
+    }
+#endif
 
     if (story_id == BEYOND_ZORK)
 	if (zargs[0] > MAX_OBJECT)
@@ -638,6 +709,16 @@ void z_get_sibling (void)
 {
     zword obj_addr;
 
+#ifdef STRICTZ
+    if (zargs[0] == 0) {
+	report_strictz_error (STRZERR_GET_SIBLING,
+	    "@get_sibling called with object 0");
+	store (0);
+	branch (FALSE);
+	return;
+    }
+#endif
+
     obj_addr = object_address (zargs[0]);
 
     if (h_version <= V3) {
@@ -698,6 +779,20 @@ void z_insert_obj (void)
 	stream_mssg_off ();
     }
 
+#ifdef STRICTZ
+    if (obj1 == 0) {
+	report_strictz_error (STRZERR_MOVE_OBJECT,
+	    "@move_object called moving object 0");
+	return;
+    }
+
+    if (obj2 == 0) {
+	report_strictz_error (STRZERR_MOVE_OBJECT_2,
+	    "@move_object called moving into object 0");
+	return;
+    }
+#endif
+
     /* Get addresses of both objects */
 
     obj1_addr = object_address (obj1);
@@ -752,6 +847,14 @@ void z_put_prop (void)
     zword value;
     zbyte mask;
 
+#ifdef STRICTZ
+    if (zargs[0] == 0) {
+	report_strictz_error (STRZERR_PUT_PROP,
+	    "@put_prop called with object 0");
+	return;
+    }
+#endif
+
     /* Property id is in bottom five or six bits */
 
     mask = (h_version <= V3) ? 0x1f : 0x3f;
@@ -778,7 +881,7 @@ void z_put_prop (void)
 
     prop_addr++;
 
-    if (h_version <= V3 && !(value & 0xe0) || h_version >= V4 && !(value & 0xc0)) {
+    if ((h_version <= V3 && !(value & 0xe0)) || (h_version >= V4 && !(value & 0xc0))) {
 	zbyte v = zargs[2];
 	SET_BYTE (prop_addr, v)
     } else {
@@ -844,6 +947,14 @@ void z_set_attr (void)
 	stream_mssg_off ();
     }
 
+#ifdef STRICTZ
+    if (zargs[0] == 0) {
+	report_strictz_error (STRZERR_SET_ATTR,
+	    "@set_attr called with object 0");
+	return;
+    }
+#endif
+
     /* Get attribute address */
 
     obj_addr = object_address (zargs[0]) + zargs[1] / 8;
@@ -888,6 +999,15 @@ void z_test_attr (void)
 	print_num (zargs[1]);
 	stream_mssg_off ();
     }
+
+#ifdef STRICTZ
+    if (zargs[0] == 0) {
+	report_strictz_error (STRZERR_TEST_ATTR,
+	    "@test_attr called with object 0");
+	branch (FALSE);
+	return;
+    }
+#endif
 
     /* Get attribute address */
 

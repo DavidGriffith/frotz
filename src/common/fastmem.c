@@ -117,7 +117,7 @@ zword get_header_extension (int entry)
 	return 0;
 
     addr = h_extension_table + 2 * entry;
-    LOW_WORD (addr, val)
+    LOW_WORD (addr, val);
 
     return val;
 
@@ -138,7 +138,7 @@ void set_header_extension (int entry, zword val)
 	return;
 
     addr = h_extension_table + 2 * entry;
-    SET_WORD (addr, val)
+    SET_WORD (addr, val);
 
 }/* set_header_extension */
 
@@ -158,14 +158,14 @@ void restart_header (void)
 
     int i;
 
-    SET_BYTE (H_CONFIG, h_config)
-    SET_WORD (H_FLAGS, h_flags)
+    SET_BYTE (H_CONFIG, h_config);
+    SET_WORD (H_FLAGS, h_flags);
 
     if (h_version >= V4) {
-	SET_BYTE (H_INTERPRETER_NUMBER, h_interpreter_number)
-	SET_BYTE (H_INTERPRETER_VERSION, h_interpreter_version)
-	SET_BYTE (H_SCREEN_ROWS, h_screen_rows)
-	SET_BYTE (H_SCREEN_COLS, h_screen_cols)
+	SET_BYTE (H_INTERPRETER_NUMBER, h_interpreter_number);
+	SET_BYTE (H_INTERPRETER_VERSION, h_interpreter_version);
+	SET_BYTE (H_SCREEN_ROWS, h_screen_rows);
+	SET_BYTE (H_SCREEN_COLS, h_screen_cols);
     }
 
     /* It's less trouble to use font size 1x1 for V5 games, especially
@@ -184,20 +184,20 @@ void restart_header (void)
     }
 
     if (h_version >= V5) {
-	SET_WORD (H_SCREEN_WIDTH, screen_x_size)
-	SET_WORD (H_SCREEN_HEIGHT, screen_y_size)
-	SET_BYTE (H_FONT_HEIGHT, font_y_size)
-	SET_BYTE (H_FONT_WIDTH, font_x_size)
-	SET_BYTE (H_DEFAULT_BACKGROUND, h_default_background)
-	SET_BYTE (H_DEFAULT_FOREGROUND, h_default_foreground)
+	SET_WORD (H_SCREEN_WIDTH, screen_x_size);
+	SET_WORD (H_SCREEN_HEIGHT, screen_y_size);
+	SET_BYTE (H_FONT_HEIGHT, font_y_size);
+	SET_BYTE (H_FONT_WIDTH, font_x_size);
+	SET_BYTE (H_DEFAULT_BACKGROUND, h_default_background);
+	SET_BYTE (H_DEFAULT_FOREGROUND, h_default_foreground);
     }
 
     if (h_version == V6)
 	for (i = 0; i < 8; i++)
 	    storeb ((zword) (H_USER_NAME + i), h_user_name[i]);
 
-    SET_BYTE (H_STANDARD_HIGH, h_standard_high)
-    SET_BYTE (H_STANDARD_LOW, h_standard_low)
+    SET_BYTE (H_STANDARD_HIGH, h_standard_high);
+    SET_BYTE (H_STANDARD_LOW, h_standard_low);
 
 }/* restart_header */
 
@@ -264,27 +264,27 @@ void init_memory (void)
 
     /* Copy header fields to global variables */
 
-    LOW_BYTE (H_VERSION, h_version)
+    LOW_BYTE (H_VERSION, h_version);
 
     if (h_version < V1 || h_version > V8)
 	os_fatal ("Unknown Z-code version");
 
-    LOW_BYTE (H_CONFIG, h_config)
+    LOW_BYTE (H_CONFIG, h_config);
 
     if (h_version == V3 && (h_config & CONFIG_BYTE_SWAPPED))
 	os_fatal ("Byte swapped story file");
 
-    LOW_WORD (H_RELEASE, h_release)
-    LOW_WORD (H_RESIDENT_SIZE, h_resident_size)
-    LOW_WORD (H_START_PC, h_start_pc)
-    LOW_WORD (H_DICTIONARY, h_dictionary)
-    LOW_WORD (H_OBJECTS, h_objects)
-    LOW_WORD (H_GLOBALS, h_globals)
-    LOW_WORD (H_DYNAMIC_SIZE, h_dynamic_size)
-    LOW_WORD (H_FLAGS, h_flags)
+    LOW_WORD (H_RELEASE, h_release);
+    LOW_WORD (H_RESIDENT_SIZE, h_resident_size);
+    LOW_WORD (H_START_PC, h_start_pc);
+    LOW_WORD (H_DICTIONARY, h_dictionary);
+    LOW_WORD (H_OBJECTS, h_objects);
+    LOW_WORD (H_GLOBALS, h_globals);
+    LOW_WORD (H_DYNAMIC_SIZE, h_dynamic_size);
+    LOW_WORD (H_FLAGS, h_flags);
 
     for (i = 0, addr = H_SERIAL; i < 6; i++, addr++)
-	LOW_BYTE (addr, h_serial[i])
+	LOW_BYTE (addr, h_serial[i]);
 
     /* Auto-detect buggy story files that need special fixes */
 
@@ -306,8 +306,8 @@ void init_memory (void)
 
     }
 
-    LOW_WORD (H_ABBREVIATIONS, h_abbreviations)
-    LOW_WORD (H_FILE_SIZE, h_file_size)
+    LOW_WORD (H_ABBREVIATIONS, h_abbreviations);
+    LOW_WORD (H_FILE_SIZE, h_file_size);
 
     /* Calculate story file size in bytes */
 
@@ -328,12 +328,12 @@ void init_memory (void)
 
     }
 
-    LOW_WORD (H_CHECKSUM, h_checksum)
-    LOW_WORD (H_ALPHABET, h_alphabet)
-    LOW_WORD (H_FUNCTIONS_OFFSET, h_functions_offset)
-    LOW_WORD (H_STRINGS_OFFSET, h_strings_offset)
-    LOW_WORD (H_TERMINATING_KEYS, h_terminating_keys)
-    LOW_WORD (H_EXTENSION_TABLE, h_extension_table)
+    LOW_WORD (H_CHECKSUM, h_checksum);
+    LOW_WORD (H_ALPHABET, h_alphabet);
+    LOW_WORD (H_FUNCTIONS_OFFSET, h_functions_offset);
+    LOW_WORD (H_STRINGS_OFFSET, h_strings_offset);
+    LOW_WORD (H_TERMINATING_KEYS, h_terminating_keys);
+    LOW_WORD (H_EXTENSION_TABLE, h_extension_table);
 
     /* Zork Zero Macintosh doesn't have the graphics flag set */
 
@@ -364,7 +364,7 @@ void init_memory (void)
 	if (story_size - size < 0x8000)
 	    n = (unsigned) (story_size - size);
 
-	SET_PC (size)
+	SET_PC (size);
 
 	if (fread (pcp, 1, n, story_fp) != n)
 	    os_fatal ("Story file read error");
@@ -496,7 +496,7 @@ void storeb (zword addr, zbyte value)
 
     }
 
-    SET_BYTE (addr, value)
+    SET_BYTE (addr, value);
 
 }/* storeb */
 
@@ -550,7 +550,7 @@ void z_restart (void)
     if (h_version != V6) {
 
 	long pc = (long) h_start_pc;
-	SET_PC (pc)
+	SET_PC (pc);
 
     } else call (h_start_pc, 0, NULL, 0);
 
@@ -574,14 +574,14 @@ static void get_default_name (char *default_name, zword addr)
 	zbyte len;
 	int i;
 
-	LOW_BYTE (addr, len)
+	LOW_BYTE (addr, len);
 	addr++;
 
 	for (i = 0; i < len; i++) {
 
 	    zbyte c;
 
-	    LOW_BYTE (addr, c)
+	    LOW_BYTE (addr, c);
 	    addr++;
 
 	    if (c >= 'A' && c <= 'Z')
@@ -680,7 +680,7 @@ void z_restore (void)
 		pc |= (unsigned) fgetc (gfp) << 8;
 		pc |= fgetc (gfp);
 
-		SET_PC (pc)
+		SET_PC (pc);
 
 		sp = stack + (fgetc (gfp) << 8);
 		sp += fgetc (gfp);
@@ -848,6 +848,7 @@ static void mem_undiff (zbyte *diff, long diff_length, zbyte *dest)
 
 int restore_undo (void)
 {
+    long pc = curr_undo->pc;
 
     if (f_setup.undo_slots == 0)	/* undo feature unavailable */
 
@@ -860,7 +861,7 @@ int restore_undo (void)
     /* undo possible */
 
     memcpy (zmp, prev_zmp, h_dynamic_size);
-    SET_PC (curr_undo->pc)
+    SET_PC (pc);
     sp = stack + STACK_SIZE - curr_undo->stack_size;
     fp = stack + curr_undo->frame_offset;
     frame_count = curr_undo->frame_count;
@@ -961,7 +962,7 @@ void z_save (void)
 	    fputc ((int) hi (h_checksum), gfp);
 	    fputc ((int) lo (h_checksum), gfp);
 
-	    GET_PC (pc)
+	    GET_PC (pc);
 
 	    fputc ((int) (pc >> 16) & 0xff, gfp);
 	    fputc ((int) (pc >> 8) & 0xff, gfp);
@@ -1024,6 +1025,7 @@ int save_undo (void)
     long diff_size;
     zword stack_size;
     undo_t *p;
+    long pc = p->pc;
 
     if (f_setup.undo_slots == 0)	/* undo feature unavailable */
 	return -1;
@@ -1053,7 +1055,8 @@ int save_undo (void)
     } while (!p && undo_count);
     if (p == NULL)
 	return -1;
-    GET_PC (p->pc)
+    GET_PC (pc);	/* Turbo C doesn't like seeing p->pc here */
+    p->pc = pc;
     p->frame_count = frame_count;
     p->diff_size = diff_size;
     p->stack_size = stack_size;

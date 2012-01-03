@@ -52,7 +52,7 @@ bool is_terminator (zchar key)
 	    zbyte c;
 
 	    do {
-		LOW_BYTE (addr, c)
+		LOW_BYTE (addr, c);
 		if (c == 255 || key == translate_from_zscii (c))
 		    return TRUE;
 		addr++;
@@ -181,7 +181,7 @@ void z_read (void)
 
     addr = zargs[0];
 
-    LOW_BYTE (addr, max)
+    LOW_BYTE (addr, max);
 
     if (h_version <= V4)
 	max--;
@@ -193,14 +193,14 @@ void z_read (void)
 
     if (h_version >= V5) {
 	addr++;
-	LOW_BYTE (addr, size)
+	LOW_BYTE (addr, size);
     } else size = 0;
 
     /* Copy initial input to local buffer */
 
     for (i = 0; i < size; i++) {
 	addr++;
-	LOW_BYTE (addr, c)
+	LOW_BYTE (addr, c);
 	buffer[i] = translate_from_zscii (c);
     }
 
@@ -309,12 +309,15 @@ void z_read_mouse (void)
 {
     zword btn;
 
-    /* Read the mouse position and which buttons are down */
+    btn = 1;
 
+    /** I don't remember what was going on here */
+    /* Read the mouse position and which buttons are down */
+/*
     btn = os_read_mouse ();
     hx_mouse_y = mouse_y;
     hx_mouse_x = mouse_x;
-
+*/
     storew ((zword) (zargs[0] + 0), hx_mouse_y);
     storew ((zword) (zargs[0] + 2), hx_mouse_x);
     storew ((zword) (zargs[0] + 4), btn);	/* mouse button bits */

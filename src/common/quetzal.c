@@ -61,7 +61,7 @@ static zword frames[STACK_SIZE/4+1];
  * ID types.
  */
 
-#define makeid(a,b,c,d) ((zlong) (((a)<<24) | ((b)<<16) | ((c)<<8) | (d)))
+#define makeid(a,b,c,d) ((zlong) (((zlong)(a)<<24) | ((zlong)(b)<<16) | ((zlong)(c)<<8) | (zlong)(d)))
 
 #define ID_FORM makeid ('F','O','R','M')
 #define ID_IFZS makeid ('I','F','Z','S')
@@ -175,8 +175,8 @@ zword restore_quetzal (FILE *svf, FILE *stf)
 		    return fatal;
 		}
 		progress |= GOT_HEADER;
-		if (currlen < 13
-		    || !read_word (svf, &tmpw))			return fatal;
+		if (currlen < 13 || !read_word (svf, &tmpw))
+		    return fatal;
 		if (tmpw != h_release)
 		    progress = GOT_ERROR;
 

@@ -276,7 +276,79 @@ extern zbyte *zmp;
 
 #endif
 
-/* A bunch of x86 assembly code previously appeared here. */
+#if defined (MSDOS_16BIT)
+extern zbyte *pcp;
+extern zbyte *zmp;
+
+#define lo(v)   ((zbyte *)&v)[0]
+#define hi(v)   ((zbyte *)&v)[1]
+
+#define SET_WORD(addr,v) asm {\
+    les bx,zmp;\
+    add bx,addr;\
+    mov ax,v;\
+    xchg al,ah;\
+    mov es:[bx],ax }
+
+#define LOW_WORD(addr,v) asm {\
+    les bx,zmp;\
+    add bx,addr;\
+    mov ax,es:[bx];\
+    xchg al,ah;\
+    mov v,ax }
+
+#define HIGH_WORD(addr,v) asm {\
+    mov bx,word ptr zmp;\
+    add bx,word ptr addr;\
+    mov al,bh;\
+    mov bh,0;\
+    mov ah,0;\
+    adc ah,byte ptr addr+2;\
+    mov cl,4;\
+    shl ax,cl;\
+    add ax,word ptr zmp+2;\
+    mov es,ax;\
+    mov ax,es:[bx];\
+    xchg al,ah;\
+    mov v,ax }
+
+#define CODE_WORD(v) asm {\
+    les bx,pcp;\
+    mov ax,es:[bx];\
+    xchg al,ah;\
+    mov v,ax;\
+    add word ptr pcp,2 }
+
+#define GET_PC(v) asm {\
+    mov bx,word ptr pcp+2;\
+    sub bx,word ptr zmp+2;\
+    mov ax,bx;\
+    mov cl,4;\
+    shl bx,cl;\
+    mov cl,12;\
+    shr ax,cl;\
+    add bx,word ptr pcp;\
+    adc al,0;\
+    sub bx,word ptr zmp;\
+    sbb al,0;\
+    mov word ptr v,bx;\
+    mov word ptr v+2,ax }
+
+#define SET_PC(v) asm {\
+    mov bx,word ptr zmp;\
+    add bx,word ptr v;\
+    mov al,bh;\
+    mov bh,0;\
+    mov ah,0;\
+    adc ah,byte ptr v+2;\
+    mov cl,4;\
+    shl ax,cl;\
+    add ax,word ptr zmp+2;\
+    mov word ptr pcp,bx;\
+    mov word ptr pcp+2,ax }
+
+#endif /* MSDOS_16BIT */
+
 
 #if !defined (AMIGA) && !defined (MSDOS_16BIT)
 
@@ -501,7 +573,7 @@ void 	z_window_style (void);
 
 void	init_err (void);
 void	runtime_error (int);
-
+ 
 /* Error codes */
 #define ERR_TEXT_BUF_OVF 1	/* Text buffer overflow */
 #define ERR_STORE_RANGE 2	/* Store out of dynamic memory */
@@ -539,7 +611,7 @@ void	runtime_error (int);
 #define ERR_REMOVE_OBJECT_0 31	/* @remove_object called with object 0 */
 #define ERR_GET_NEXT_PROP_0 32	/* @get_next_prop called with object 0 */
 #define ERR_NUM_ERRORS (32)
-
+ 
 /* There are four error reporting modes: never report errors;
   report only the first time a given error type occurs; report
   every time an error occurs; or treat all errors as fatal
@@ -589,7 +661,7 @@ void 	os_display_string (const zchar *);
 void 	os_draw_picture (int, int, int);
 void 	os_erase_area (int, int, int, int);
 void 	os_fatal (const char *);
-void 	os_finish_with_sample (int);
+void 	os_finish_with_sample ();
 int  	os_font_data (int, int *, int *);
 void 	os_init_screen (void);
 void 	os_more_prompt (void);
@@ -609,7 +681,7 @@ void 	os_set_cursor (int, int);
 void 	os_set_font (int);
 void 	os_set_text_style (int);
 void 	os_start_sample (int, int, int, zword);
-void 	os_stop_sample (int);
+void 	os_stop_sample ();
 int  	os_string_width (const zchar *);
 void	os_init_setup (void);
 int	os_speech_output(const zchar *);

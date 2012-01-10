@@ -1,0 +1,376 @@
+<html>
+<head>
+</head>
+<body>
+Sfrotz manual (sort of...)
+Copyright &copy; 2011 Aldo Cumani<br>
+Comments and bug reports to &lt;sfrotz .at. writeme .dot. com&gt; (apologies for the anti-spam-munging.)<br><br>
+
+This is just a preliminary draft of a manual. It refers to sfrotz v0.02<br>
+This document is relased under the terms of the GNU Free Documentation License.
+
+
+<h1>1. Introduction</h1>
+Sfrotz is a Linux (though potentially cross-platform) port of the well-known z-code interpreter Frotz 2.40. Sfrotz uses SDL for video rendering and either SDL-mixer or MikMod for audio. While in principle Sfrotz should run on any platform supporting SDL, in practice it has only been extensively tested on Linux (Debian 5 lenny x86 and Debian 6 squeeze x64).
+
+<h2>1.1 Installation</h2>
+Sfrotz is distributed in source form. Compiling the sources requires gcc (Mingw32 on Windows also works, more or less) and GNU make. The distribution does not currently include any configuration script, so the Makefile must be adapted by hand to the target system.
+
+
+<h1>2. Features</h1>
+
+
+<h2>2.1 Blorb resources</h2>
+Sfrotz can render graphics (for V6 games) and sound effects packaged in a Blorb file (but see also the next section). As concerns pictures, Sfrotz supports both PNG and JPEG images. Regarding sound, AIFF sound effects, MOD songs and OGG music are currently supported, while SONG songs won't probably be ever supported.
+
+
+<h2>2.2 <a name="nonblorb">Non-Blorb resources</a></h2>
+Besides Blorb-packaged resources, Sfrotz can also render graphics and sound from individual files, provided the latter are either suitably named (e.g a common root with a numeric field specifying the resource number), or listed in a suitably formatted text file.<br>
+
+Note that this feature is not automatic, but must be enabled by the -L or -@ command line options. When the feature is enabled, resources found this way override those in the Blorb file, if present.<br>
+
+This feature can be useful to game designers, as it eases changing and adding resources without having to re-compile the Blorb file each time. The format of the list file used with the -@ option (see the <a href="#appendix2">Appendix</a>) is identical to that of the BLC control file used by L. Ross Raszewski's <a href="http://www.trenchcoatsoft.com/">iblorb</a> package, so one can use the same list for compiling the final Blorb file for distribution.
+
+
+<h2>2.3 Truetype fonts</h2>
+Sfrotz can display text with Truetype or Type1 <a href="#fontdir">fonts</a>,
+using the FreeType2 rendering library. 
+The location of the
+necessary font files must be specified in the setup file. Also,
+<a href="#antialias">antialiased</a> rendering of Truetype fonts can be 
+specified.
+Please note that this feature in Sfrotz is still <b>experimental</b>, 
+so don't expect
+too much (e.g., kerning is not supported).
+
+
+<h2>2.4 Default fonts</h2>
+Sfrotz needs not Truetype fonts for working; in fact it has a default 
+monospaced font, based on an 8x16 VGA font, which can be used for both
+the TEXT_FONT and the FIXED_FONT of the z-machine, with suitable
+(though not very nice) modifications for the various styles. Even if
+Truetype fonts are specified in the setup file, Sfrotz can be
+forced to use the VGA font by the <a href="#-V"><tt>-V</tt></a> command
+line switch.
+
+<h1>3. Command line options</h1>
+
+<h2>3.1 Standard Frotz options</h2>
+<table width=100%><tbody><tr><td width=120 valign=top><tt>-a<em></em></tt></td>
+<td valign=top>For game debugging: watch attribute setting.</td></tr></tbody></table>
+
+<table width=100%><tbody><tr><td width=120 valign=top><tt>-A<em></em></tt></td>
+<td valign=top>For game debugging: watch attribute testing.</td></tr></tbody></table>
+
+<table width=100%><tbody><tr><td width=120 valign=top><tt>-b <em>colour</em></tt></td>
+<td valign=top>Set the background colour. The <em>colour</em> argument 
+is the number of a z-machine colour, in the range 2..9:</td></tr></tbody></table>
+
+
+<table width=100%><tbody><tr><td width=120 valign=top><tt>-c <em>lines</em></tt></td>
+<td valign=top>Set the number of context lines.</td></tr></tbody></table>
+
+<table width=100%><tbody><tr><td width=120 valign=top><tt>-f <em>colour</em></tt></td>
+<td valign=top>Set the foreground colour.</td></tr></tbody></table>
+
+<table width=100%><tbody><tr><td width=120 valign=top><tt>-h <em>size</em></tt></td>
+<td valign=top>Set the z-machine screen height (see the <a href="#sNOTE">NOTE</a>).</td></tr></tbody></table>
+
+<table width=100%><tbody><tr><td width=120 valign=top><tt>-i<em></em></tt></td>
+<td valign=top>Ignore non-fatal runtime errors.</td></tr></tbody></table>
+
+<table width=100%><tbody><tr><td width=120 valign=top><tt>-l <em>margin</em></tt></td>
+<td valign=top>Set the left margin.</td></tr></tbody></table>
+
+<table width=100%><tbody><tr><td width=120 valign=top><tt>-o<em></em></tt></td>
+<td valign=top>For game debugging: watch object movement.</td></tr></tbody></table>
+
+<table width=100%><tbody><tr><td width=120 valign=top><tt>-O<em></em></tt></td>
+<td valign=top>For game debugging: watch object locating.</td></tr></tbody></table>
+
+<table width=100%><tbody><tr><td width=120 valign=top><tt>-p<em></em></tt></td>
+<td valign=top>Alter the piracy opcode.</td></tr></tbody></table>
+
+<table width=100%><tbody><tr><td width=120 valign=top><tt>-r <em>margin</em></tt></td>
+<td valign=top>Set the right margin.</td></tr></tbody></table>
+
+<table width=100%><tbody><tr><td width=120 valign=top><tt>-R<em></em></tt></td>
+<td valign=top>Save/restore in the old Frotz format.</td></tr></tbody></table>
+
+<table width=100%><tbody><tr><td width=120 valign=top><tt>-s <em>seed</em></tt></td>
+<td valign=top>Set the random number seed value.</td></tr></tbody></table>
+
+<table width=100%><tbody><tr><td width=120 valign=top><tt>-S <em>width</em></tt></td>
+<td valign=top>Set the transcript width (in columns, default = 80).</td></tr></tbody></table>
+
+<table width=100%><tbody><tr><td width=120 valign=top><tt>-t<em></em></tt></td>
+<td valign=top>Set the Tandy bit.</td></tr></tbody></table>
+
+<table width=100%><tbody><tr><td width=120 valign=top><tt>-u <em>number</em></tt></td>
+<td valign=top>Set the number of slots for multiple undo (default: 500).</td></tr></tbody></table>
+
+<table width=100%><tbody><tr><td width=120 valign=top><tt>-w <em>size</em></tt></td>
+<td valign=top>Set the width of the z-machine screen to <em>size</em> (see the <a href="#sNOTE">NOTE</a>).</td></tr></tbody></table>
+
+<table width=100%><tbody><tr><td width=120 valign=top><tt>-x<em></em></tt></td>
+<td valign=top>Expand abbreviations (g/x/z).</td></tr></tbody></table>
+
+<table width=100%><tbody><tr><td width=120 valign=top><tt>-Z <em>level</em></tt></td>
+<td valign=top>Set the z-code error reporting level. Level can be:
+<table><tbody>
+<tr><td width=50 valign=top>0</td><td valign=top>don't report errors</td></tr>
+<tr><td width=50 valign=top>1</td><td valign=top>report only the first error</td></tr>
+<tr><td width=50 valign=top>2</td><td valign=top>report all errors</td></tr>
+<tr><td width=50 valign=top>3</td><td valign=top>exit after any error</td></tr>
+</tbody></table>
+</td></tr></tbody></table>
+
+
+
+<h2>3.2 Extended options</h2>
+<table width=100%><tbody><tr><td width=120 valign=top><tt>-@<em>listfile</em></tt></td>
+<td valign=top>Use <a href="#nonblorb">resource files</a> listed in <i>listfile</i>.</td></tr></tbody></table>
+
+<table width=100%><tbody><tr><td width=120 valign=top><tt>-F<em></em></tt></td>
+<td valign=top>Run in fullscreen mode (see <a href="#sNOTE">NOTE</a>).</td></tr></tbody></table>
+
+<table width=100%><tbody><tr><td width=120 valign=top><tt>-L<em></em></tt></td>
+<td valign=top>Use local <a href="#nonblorb">resource files</a>.</td></tr></tbody></table>
+
+<table width=100%><tbody><tr><td width=120 valign=top><tt>-m <em>msecs</em></tt></td>
+<td valign=top>Set the timer interrupt cycle to <em>msecs</em> milliseconds,
+instead of the default 100 (1/10 sec).</td></tr></tbody></table>
+
+<table width=100%><tbody><tr><td width=120 valign=top><tt>-N <em>mode</em></tt></td>
+<td valign=top>Set the mode for creating default file names for save/script etc.</td></tr></tbody></table>
+
+<table width=100%><tbody><tr><td width=120 valign=top><tt>-T<em></em></tt></td>
+<td valign=top>Use traditional in-game requests for file names, intead of on-screen
+dialogs.</td></tr></tbody></table>
+
+<table width=100%><tbody><tr><td width=120 valign=top><tt><a name="-V">-V</a><em></em></tt></td>
+<td valign=top>Force the use of default monospaced VGA font.</td></tr></tbody></table>
+
+
+
+<h1>4. Hot keys</h1>
+Sfrotz supports the same hot keys as standard Frotz, plus the Ctl-Alt-X combination for immediate
+exit, which may be used in case of emergency.<br>
+Note that these hot keys are enabled only when the z-machine is waiting for <i>line input</i> (for z-machine experts: @read opcode), whith the exception of Ctl-Alt-X which also works in <i>single character</i> input mode (@read_char opcode).<br>
+
+<table width=100%><tbody><tr><td width=120 valign=top><tt>Alt-D<em></em></tt></td>
+<td valign=top>set debugging options</td></tr></tbody></table>
+
+<table width=100%><tbody><tr><td width=120 valign=top><tt>Alt-H<em></em></tt></td>
+<td valign=top>help (print the list of hot keys)</td></tr></tbody></table>
+
+<table width=100%><tbody><tr><td width=120 valign=top><tt>Alt-N<em></em></tt></td>
+<td valign=top>new game (restart)</td></tr></tbody></table>
+
+<table width=100%><tbody><tr><td width=120 valign=top><tt>Alt-P<em></em></tt></td>
+<td valign=top>playback on</td></tr></tbody></table>
+
+<table width=100%><tbody><tr><td width=120 valign=top><tt>Alt-R<em></em></tt></td>
+<td valign=top>recording on/off</td></tr></tbody></table>
+
+<table width=100%><tbody><tr><td width=120 valign=top><tt>Alt-S<em></em></tt></td>
+<td valign=top>set random number seed</td></tr></tbody></table>
+
+<table width=100%><tbody><tr><td width=120 valign=top><tt>Alt-U<em></em></tt></td>
+<td valign=top>undo one turn</td></tr></tbody></table>
+
+<table width=100%><tbody><tr><td width=120 valign=top><tt>Alt-X<em></em></tt></td>
+<td valign=top>exit game (after confirmation)</td></tr></tbody></table>
+
+
+<table width=100%><tbody><tr><td width=120 valign=top><tt>Ctl-Alt-X<em></em></tt></td>
+<td valign=top>exit game immediately (no confirmation)</td></tr></tbody></table>
+
+
+
+<h1>5. The setup file</h1>
+
+<h2>5.1 Section <tt>[Interpreter]</tt></h2>
+<table width=100%><tbody><tr><td width=250 valign=top><tt>Number = <em>number</em></tt></td>
+<td valign=top>Set the interpreter number (default is 4, i.e. Amiga Interpreter)</td></tr></tbody></table>
+
+<table width=100%><tbody><tr><td width=250 valign=top><tt>Error Reporting = <em>level</em></tt></td>
+<td valign=top>Set the error reporting level (same as the -Z option)</td></tr></tbody></table>
+
+<table width=100%><tbody><tr><td width=250 valign=top><tt>Ignore Errors = <em>0/1</em></tt></td>
+<td valign=top>Ignore (1) or not (0) non-fatal runtime errors.</td></tr></tbody></table>
+
+<table width=100%><tbody><tr><td width=250 valign=top><tt>Expand Abbreviations = <em>0/1</em></tt></td>
+<td valign=top>Set/reset expansion of g/x/z abbreviations. Expansion is useful for old v1
+games which do not understand such abbreviations. Default: 0 (the -x option can set this switch.)</td></tr></tbody></table>
+
+<table width=100%><tbody><tr><td width=250 valign=top><tt>Tandy Bit = <em>0/1</em></tt></td>
+<td valign=top>Set/reset the Tandy bit. Default: 0 (the -t option can set this switch.)</td></tr></tbody></table>
+
+<table width=100%><tbody><tr><td width=250 valign=top><tt>Quetzal Format = <em>0/1</em></tt></td>
+<td valign=top>Save/restore in Quetzal format when set, in old Frotz format when reset.
+Default: 1 (the -R option can only reset this switch.)</td></tr></tbody></table>
+
+<table width=100%><tbody><tr><td width=250 valign=top><tt>Wrap Script Lines = <em>nc</em></tt></td>
+<td valign=top>Set the width (number of columns) of the transcript to <i>nc</i>. Same
+as -S option.</td></tr></tbody></table>
+
+<table width=100%><tbody><tr><td width=250 valign=top><tt>SaveNames = <em>mode</em></tt></td>
+<td valign=top></td></tr></tbody></table>
+
+
+<h2>5.2 Section <tt>[Window]</tt></h2>
+<a name="sNOTE"></a>
+Sfrotz has a hardwired default screen size of 640x400. The screen size can be changed by the values in this section, by the values found in the Reso chunck of a Blorb file, and finally by the -w and -h command line options (in that order). Note however that Sfrotz shall refuse to set a screen width less than 640 and/or a height less than 400.<br>
+<b>NOTE</b>: for normal (windowed) usage, the screen size should obviously be less than the PC screen resolution (taking into account also window decorations, taskbars etc.) For fullscreen usage, the size should preferably be one of those supported by the PC video driver; otherwise, SDL shall try to use the next higher available resolution, with black borders around the z-machine screen. In fullscreen mode, however, it may happen that for some strange resolutions SDL accepts the request, but the screen goes blank... In such a case, you may shut down the program by pressing Ctrl-Alt-X.<br><br>
+<table width=100%><tbody><tr><td width=250 valign=top><tt>AcWidth = <em>width</em></tt></td>
+<td valign=top>Set the screen width (default: 640)</td></tr></tbody></table>
+
+<table width=100%><tbody><tr><td width=250 valign=top><tt>AcHeight = <em>height</em></tt></td>
+<td valign=top>Set the screen height (default: 400)</td></tr></tbody></table>
+
+
+<h2>5.3 Section <tt>[Display]</tt></h2>
+This section is for future developments.
+
+<h2>5.4 Section <tt>[Fonts]</tt></h2>
+<table width=100%><tbody><tr><td width=250 valign=top><tt><a name="antialias">antialias</a> = <em>0/1</em></tt></td>
+<td valign=top>Set antialiased rendering
+of Truetype fonts off (0) or on (nonzero). Note that this option cannot
+be overridden by a command line switch.</td></tr></tbody></table>
+
+<table width=100%><tbody><tr><td width=250 valign=top><tt><a name="fontdir">fontdir</a> = <em>folder</em></tt></td>
+<td valign=top>Specify the directory containing the Truetype fonts.</td></tr></tbody></table>
+
+<p>The following eight statements specify the eight font faces used by the z-machine (not counting the
+so-called graphics font used in Beyond Zork, which is hardwired in the program), that is the normal TEXT_FONT and the monospaced FIXED_FONT, each in four styles (roman, bold, italic and bold+italic). A single face is specified by the file name (with its suffix!), optionally followed by an @ sign and a number, indicating the font size in pixels (default is 14). Multiple face files can be specified, separated by pipe (|) characters; Sfrotz shall use the first one it finds (see the example in the Appendix). This feature allows e.g. to use the same setup file on different systems.<br><br>
+<table width=100%><tbody><tr><td width=250 valign=top><tt><a name="font">textroman</a> = <em>fontspec</em></tt></td>
+<td valign=top>Set the font file for TEXT_FONT, 
+roman style</td></tr></tbody></table>
+
+<table width=100%><tbody><tr><td width=250 valign=top><tt>textbold = <em>fontspec</em></tt></td>
+<td valign=top>Set the font file for TEXT_FONT, bold style</td></tr></tbody></table>
+
+<table width=100%><tbody><tr><td width=250 valign=top><tt>textitalic = <em>fontspec</em></tt></td>
+<td valign=top>Set the font file for TEXT_FONT, italic style</td></tr></tbody></table>
+
+<table width=100%><tbody><tr><td width=250 valign=top><tt>textbolditalic = <em>fontspec</em></tt></td>
+<td valign=top>Set the font file for TEXT_FONT, bold and italic
+style</td></tr></tbody></table>
+
+<table width=100%><tbody><tr><td width=250 valign=top><tt>fixedroman = <em>fontspec</em></tt></td>
+<td valign=top>Set the font file for FIXED_FONT, roman style</td></tr></tbody></table>
+
+<table width=100%><tbody><tr><td width=250 valign=top><tt>fixedbold = <em>fontspec</em></tt></td>
+<td valign=top>Set the font file for FIXED_FONT, bold style</td></tr></tbody></table>
+
+<table width=100%><tbody><tr><td width=250 valign=top><tt>fixeditalic = <em>fontspec</em></tt></td>
+<td valign=top>Set the font file for FIXED_FONT, italic style</td></tr></tbody></table>
+
+<table width=100%><tbody><tr><td width=250 valign=top><tt>fixedbolditalic = <em>fontspec</em></tt></td>
+<td valign=top>Set the font file for FIXED_FONT, bold and
+italic style</td></tr></tbody></table>
+
+
+<h2>5.5 Section <tt>[Resources]</tt></h2>
+<table width=100%><tbody><tr><td width=250 valign=top><tt>Dir = <em>folder</em></tt></td>
+<td valign=top>Specify the folder for individual graphics/sound resource files.</td></tr></tbody></table>
+
+<p>
+The following two statements specify the templates for the names of individual picture/sound files.
+Each template must contain exactly one C-style decimal format specifier (e.g. Pict%d) to be substituted by the resource number.
+<br><br>
+<table width=100%><tbody><tr><td width=250 valign=top><tt>Pict = <em>template</em></tt></td>
+<td valign=top>Template for picture resource files.</td></tr></tbody></table>
+
+<table width=100%><tbody><tr><td width=250 valign=top><tt>Snd = <em>template</em></tt></td>
+<td valign=top>Template for sound resource files.</td></tr></tbody></table>
+
+
+
+<h1>6. Credits</h1>
+The original <a href="http://frotz.sourceforge.net/">Frotz</a> code was designed by Stefan Jokisch.<br>
+This port is heavily based on the <a href="http://www.davidkinder.co.uk/frotz.html">Windows port</a> by David Kinder.<br>
+The <a href="http://www.eblong.com/zarf/blorb/">Blorb</a> resource format and related software are by Andrew Plotkin.<br>
+The <a href="http://www.libsdl.org/">Simple DirectMedia Layer</a> library is the work of Sam Lantinga.<br>
+TrueType font rendering relies on the <a href="http://www.freetype.org/">freetype2</a> library.<br>
+Sound and music are rendered by the <a href="http://mikmod.raphnet.net/">MikMod</a> library.<br>
+PNG format images are decoded using <a href="http://www.libpng.org/">libpng</a> and <a href="http://www.zlib.net/">zlib</a>.<br>
+JPEG format images are decoded using the <a href="http://www.ijg.org/">IJG</a> software, whose authors kindly request us to state that<br>
+<em>"This software is based in part on the work of the Independent JPEG Group."</em>
+
+<br><br>Apologies to all those people and/or organisations who should have been mentioned, and were not :(
+<br>
+
+
+<h1>7. Appendix</h1>
+
+<h2>7.1 <a name="appendix1">Example setup file</a></h2>
+<pre><tt>
+# The # denotes the start of a comment
+# Everything after the # is ignored, up to the end of the line
+
+[Interpreter]
+SaveNames=date
+
+[Window]
+# The following entries are commented out
+# but they are the same as the hardwired defaults, anyway
+#AcWidth = 640
+#AcHeight = 400
+
+[Display]
+
+[Fonts]
+antialias=1
+fontdir=/usr/share/fonts/truetype/freefont
+textroman=arial.ttf@16|FreeSans.ttf@16
+textbold=arialbd.ttf@16|FreeSansBold.ttf@16
+textitalic=ariali.ttf@16|FreeSansOblique.ttf@16
+textbolditalic=arialbi.ttf@16|FreeSansBoldOblique.ttf@16
+fixedroman=cour.ttf@16|FreeMono.ttf@16
+fixedbold=courbd.ttf@16|FreeMonoBold.ttf@16
+fixeditalic=couri.ttf@16|FreeMonoOblique.ttf@16
+fixedbolditalic=courbi.ttf@16|FreeMonoBoldOblique.ttf@16
+
+[Resources]
+Dir=./        # the current dir
+Pict=PIC%d    # i.e. PIC1, PIC2, ...
+Snd=SND%d     # i.e. SND3, SND4, ...
+
+</tt></pre>
+
+<h2>7.2 <a name="appendix2">Example BLC file</a></h2>
+<pre><tt>
+Exec 0 ZCOD ani.z6
+
+Snd 13 FORM busyalone.au.aiff
+Snd 12 FORM s0020.au.aiff
+Snd 11 FORM s0154.au.aiff
+Snd 10 FORM s1484.au.aiff
+
+Pict 10 PNG edleft.png0.png
+Pict 11 PNG edleft.png1.png
+Pict 12 PNG edleft.png2.png
+Pict 13 PNG edleft.png3.png
+Pict 14 PNG edleft.png4.png
+Pict 15 PNG edleft.png5.png
+
+Pict 16 PNG lauhoh.png0.png
+Pict 17 PNG lauhoh.png1.png
+Pict 18 PNG lauhoh.png2.png
+
+Pict 19 PNG edfront.png0.png
+Pict 20 PNG edfront.png1.png
+Pict 21 PNG edfront.png2.png
+Pict 22 PNG edfront.png3.png
+Pict 23 PNG edfront.png4.png
+Pict 24 PNG edfront.png5.png
+
+Pict 25 PNG hoagie.png0.png
+Pict 26 PNG hoagie.png1.png
+
+Pict 30 PNG dott0.png
+</tt></pre>
+</body>
+</html>

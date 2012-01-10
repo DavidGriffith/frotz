@@ -79,7 +79,7 @@ static int xgetchar(void)
 /* Read one line, including the newline, into s.  Safely avoids buffer
  * overruns (but that's kind of pointless because there are several
  * other places where I'm not so careful).  */
-static void getline(char *s)
+static void dumb_getline(char *s)
 {
   int c;
   char *p = s;
@@ -203,7 +203,7 @@ static bool dumb_read_line(char *s, char *prompt, bool show_cursor,
       fputs(prompt, stdout);
     else
       dumb_show_prompt(show_cursor, (timeout ? "tTD" : ")>}")[type]);
-    getline(s);
+    dumb_getline(s);
     if ((s[0] != '\\') || ((s[1] != '\0') && !islower(s[1]))) {
       /* Is not a command line.  */
       translate_special_chars(s);
@@ -265,7 +265,7 @@ static bool dumb_read_line(char *s, char *prompt, bool show_cursor,
 	  if (!*current_page)
 	    break;
 	  printf("HELP: Type <return> for more, or q <return> to stop: ");
-	  getline(s);
+	  dumb_getline(s);
 	  if (!strcmp(s, "q\n"))
 	    break;
 	}

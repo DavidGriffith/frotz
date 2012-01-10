@@ -58,6 +58,7 @@ extern void script_open (void);
 extern void script_close (void);
 
 extern FILE *os_path_open (const char *, const char *);
+extern FILE *os_load_story (void);
 
 extern zword save_quetzal (FILE *, FILE *);
 extern zword restore_quetzal (FILE *, FILE *);

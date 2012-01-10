@@ -294,8 +294,14 @@ void z_read_char (void)
 
     /* Store key */
 
-    store (translate_to_zscii (key));
-
+    /* For timeouts, make sure translate_to_zscii() won't try to convert
+     * 0x00.  We should instead return 0x00 as is.
+     * Thanks to Peter Seebach.
+     */
+    if (key == 0)
+	store(key);
+    else
+	store (translate_to_zscii (key));
 }/* z_read_char */
 
 /*

@@ -30,6 +30,7 @@
 
 #include <unistd.h>
 #include <ctype.h>
+#include <signal.h>
 
 /* We will use our own private getopt functions. */
 #include "getopt.h"
@@ -55,9 +56,9 @@ Syntax: frotz [options] story-file\n\
   -a   watch attribute setting  \t -O   watch object locating\n\
   -A   watch attribute testing  \t -p   plain ASCII output only\n\
   -b # background color         \t -P   alter piracy opcode\n\
-  -c # context lines            \t -r # right margin\n\
-  -d   disable color            \t -q   quiet (disable sound effects)\n\
-  -e   enable sound             \t -Q   use old-style save format\n\
+  -c # context lines            \t -q   quiet (disable sound effects)\n\
+  -d   disable color            \t -Q   use old-style save format\n\
+  -e   enable sound             \t -r # right margin\n\
   -f # foreground color         \t -s # random number seed value\n\
   -F   Force color mode         \t -S # transscript width\n\
   -h # screen height            \t -t   set Tandy bit\n\
@@ -161,8 +162,11 @@ void os_process_arguments (int argc, char *argv[])
 
 /*
     if (signal(SIGWINCH, SIG_IGN) != SIG_IGN)
-	signal(SIGWINCH, sig_winch_handler);
+	signal(SIGWINCH, sigwinch_handler);
 */
+
+    if (signal(SIGINT, SIG_IGN) != SIG_IGN)
+	signal(SIGINT, sigint_handler);
 
     /* First check for a "$HOME/.frotzrc". */
     /* If not found, look for CONFIG_DIR/frotz.conf */
@@ -188,6 +192,8 @@ void os_process_arguments (int argc, char *argv[])
 	  case 'A': f_setup.attribute_testing = 1; break;
 
 	  case 'b': u_setup.background_color = atoi(optarg);
+		u_setup.force_color = 1;
+		u_setup.disable_color = 0;
 		if ((u_setup.background_color < 2) ||
 		    (u_setup.background_color > 9))
 		  u_setup.background_color = -1;
@@ -195,11 +201,15 @@ void os_process_arguments (int argc, char *argv[])
 	  case 'c': f_setup.context_lines = atoi(optarg); break;
 	  case 'd': u_setup.disable_color = 1; break;
 	  case 'e': f_setup.sound = 1; break;
-	  case 'f': u_setup.foreground_color = atoi(optarg);
+	  case 'f': u_setup.foreground_color = getcolor(optarg);
+		    u_setup.force_color = 1;
+		    u_setup.disable_color = 0;
 	            if ((u_setup.foreground_color < 2) ||
 			(u_setup.foreground_color > 9))
-		      u_setup.foreground_color = -1;
+			u_setup.foreground_color = -1;
 		    break;
+
+
 	  case 'F': u_setup.force_color = 1;
 		    u_setup.disable_color = 0;
 		    break;
@@ -530,6 +540,33 @@ FILE *os_path_open(const char *name, const char *mode)
 } /* os_path_open() */
 
 /*
+ * os_load_story
+ *
+ * This is different from os_path_open() because we need to see if the
+ * story file is actually a chunk inside a blorb file.  Right now we're
+ * looking only at the exact path we're given on the command line.
+ *
+ * Open a file in the current directory.  If this fails, then search the
+ * directories in the ZCODE_PATH environmental variable.  If that's not
+ * defined, search INFOCOM_PATH.
+ *
+ */
+FILE *os_load_story(void)
+{
+    FILE *fp;
+
+    /* Did we build a valid blorb map? */
+    if (u_setup.exec_in_blorb) {
+	fp = fopen(u_setup.blorb_file, "rb");
+	fseek(fp, blorb_res.data.startpos, SEEK_SET);
+    } else {
+	fp = fopen(story_name, "rb");
+    }
+    return fp;
+}
+
+
+/*
  * pathopen
  *
  * Given a standard Unix-style path and a filename, search the path for
@@ -826,14 +863,14 @@ int geterrmode(char *value)
 
 
 /*
- * sig_winch_handler
+ * sigwinch_handler
  *
  * Called whenever Frotz recieves a SIGWINCH signal to make curses
  * cleanly resize the window.
  *
  */
 
-void sig_winch_handler(int sig)
+void sigwinch_handler(int sig)
 {
 /*
 There are some significant problems involved in getting resizes to work
@@ -843,13 +880,22 @@ explaination for this.  Because of this trouble, this function currently
 does nothing.
 */
 
+}
+
 /*
-	signal(sig, SIG_DFL);
-	signal(sig, SIG_IGN);
+ * sigint_handler
+ * Sometimes the screen will be left in a weird state if the following
+ * is not done.
+ *
+ */
+void sigint_handler(int dummy)
+{
+    signal(SIGINT, sigint_handler);
 
+    scrollok(stdscr, TRUE); scroll(stdscr);
+    refresh(); endwin();
 
-	signal(SIGWINCH, sig_winch_handler);
-*/
+    exit(1);
 }
 
 void redraw(void)

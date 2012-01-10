@@ -1,8 +1,8 @@
 #ifndef _SF_FROTZ_H
 #define _SF_FROTZ_H
 
-#include "frotz.h"
-#include "blorb.h"
+#include "../common/frotz.h"
+#include "../blorb/blorb.h"
 
 // version info
 #define SFROTZ_MAJOR 0

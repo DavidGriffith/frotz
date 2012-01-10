@@ -198,13 +198,13 @@ bool dos_init_sound (void)
 }/* init_sound */
 
 /*
- * reset_sound
+ * dos_reset_sound
  *
  * Free resources allocated for playing samples.
  *
  */
 
-void reset_sound (void)
+void dos_reset_sound (void)
 {
 
     os_stop_sample ();
@@ -218,7 +218,7 @@ void reset_sound (void)
 	sound_adr = 0;
     }
 
-}/* reset_sound */
+}/* dos_reset_sound */
 
 #endif /* SOUND_SUPPORT */
 

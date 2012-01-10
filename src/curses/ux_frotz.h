@@ -6,6 +6,7 @@
  */
 
 #include "../common/frotz.h"
+#include "../blorb/blorb.h"
 #include "ux_setup.h"
 
 #define MASTER_CONFIG		"frotz.conf"
@@ -78,15 +79,29 @@ extern f_setup_t f_setup;
 extern u_setup_t u_setup;
 
 
+/*** Blorb related stuff ***/
+bb_err_t	blorb_err;
+bb_map_t	*blorb_map;
+bb_result_t	blorb_res;
+
+
 /*** Functions specific to the Unix port of Frotz ***/
 
-bool 	unix_init_pictures(void);       /* ux_pic */
+bool unix_init_pictures(void);		/* ux_pic.c */
+bool unix_init_pictures(void);		/* ux_pic.c */
+void unix_init_scrollback(void);	/* ux_screen.c */
+void unix_save_screen(int);		/* ux_screen.c */
+void unix_do_scrollback(void);		/* ux_screen.c */
+
+
+
 int     getconfig(char *);
 int     geterrmode(char *);
 int     getcolor(char *);
 int     getbool(char *);
 FILE	*pathopen(const char *, const char *, const char *, char *);
-void	sig_winch_handler(int);
+void	sigwinch_handler(int);
+void    sigint_handler(int);
 void	redraw(void);
 
 

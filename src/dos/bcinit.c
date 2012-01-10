@@ -169,7 +169,7 @@ static void cleanup (void)
 {
 
 #ifdef SOUND_SUPPORT
-    reset_sound ();
+    dos_reset_sound ();
 #endif
     reset_pictures ();
 

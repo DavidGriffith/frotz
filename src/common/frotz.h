@@ -65,6 +65,14 @@ typedef unsigned char zchar;
 #define STACK_SIZE 1024
 #endif
 
+/* Assorted filename extensions */
+
+#define EXT_SAVE	".qzl"
+#define EXT_SCRIPT	".scr"
+#define EXT_BLORB	".blb"
+#define EXT_COMMAND	".rec"
+#define EXT_AUX		".aux"
+
 #ifndef DEFAULT_SAVE_NAME
 #define DEFAULT_SAVE_NAME "story.sav"
 #endif
@@ -371,7 +379,6 @@ extern zbyte *zmp;
 
 
 /*** Story file header data ***/
-
 extern zbyte h_version;
 extern zbyte h_config;
 extern zword h_release;
@@ -631,6 +638,10 @@ void	runtime_error (int);
 
 #define ERR_DEFAULT_REPORT_MODE ERR_REPORT_ONCE
 
+/*** Assorted initialization functions ***/
+void   init_buffer (void);
+void   init_process (void);
+void   init_sound (void);
 
 /*** Various global functions ***/
 

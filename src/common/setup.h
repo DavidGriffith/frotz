@@ -24,44 +24,47 @@ typedef struct frotz_setup_struct {
 
 extern f_setup_t f_setup;
 
-
+/*** Story file header data ***/
+/*
 typedef struct zcode_header_struct {
-	zbyte h_version;
-	zbyte h_config;
-	zword h_release;
-	zword h_resident_size;
-	zword h_start_pc;
-	zword h_dictionary;
-	zword h_objects;
-	zword h_globals;
-	zword h_dynamic_size;
-	zword h_flags;
-	zbyte h_serial[6];
-	zword h_abbreviations;
-	zword h_file_size;
-	zword h_checksum;
-	zbyte h_interpreter_number;
-	zbyte h_interpreter_version;
-	zbyte h_screen_rows;
-	zbyte h_screen_cols;
-	zword h_screen_width;
-	zword h_screen_height;
-	zbyte h_font_height;
-	zbyte h_font_width;
-	zword h_functions_offset;
-	zword h_strings_offset;
-	zbyte h_default_background;
-	zbyte h_default_foreground;
-	zword h_terminating_keys;
-	zword h_line_width;
-	zbyte h_standard_high;
-	zbyte h_standard_low;
-	zword h_alphabet;
-	zword h_extension_table;
-	zbyte h_user_name[8];
+	zbyte version;
+	zbyte config;
+	zword release;
+	zword resident_size;
+	zword start_pc;
+	zword dictionary;
+	zword objects;
+	zword globals;
+	zword dynamic_size;
+	zword flags;
+	zbyte serial[6];
+	zword abbreviations;
+	zword file_size;
+	zword checksum;
+	zbyte interpreter_number;
+	zbyte interpreter_version;
+	zbyte screen_rows;
+	zbyte screen_cols;
+	zword screen_width;
+	zword screen_height;
+	zbyte font_height;
+	zbyte font_width;
+	zword functions_offset;
+	zword strings_offset;
+	zbyte default_background;
+	zbyte default_foreground;
+	zword terminating_keys;
+	zword line_width;
+	zbyte standard_high;
+	zbyte standard_low;
+	zword alphabet;
+	zword extension_table;
+	zbyte user_name[8];
 
 	zword hx_table_size;
 	zword hx_mouse_x;
 	zword hx_mouse_y;
 	zword hx_unicode_table;
 } z_header_t;
+extern z_header_t z_header;
+*/

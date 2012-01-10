@@ -150,29 +150,56 @@ DUMB_OBJECT =	$(DUMB_DIR)/dumb_init.o \
 		$(DUMB_DIR)/dumb_output.o \
 		$(DUMB_DIR)/dumb_pic.o
 
-TARGETS = $(COMMON_TARGET) $(CURSES_TARGET)
+SDL_DIR = $(SRCDIR)/sdl
+SDL_TARGET = $(SRCDIR)/frotz_sdl.a
+SDL_OBJECT =	$(SDL_DIR)/sf_aiffwav.o \
+		$(SDL_DIR)/sf_deffont.o \
+		$(SDL_DIR)/sf_font3.o \
+		$(SDL_DIR)/sf_fonts.o \
+		$(SDL_DIR)/sf_ftype.o \
+		$(SDL_DIR)/sf_images.o \
+		$(SDL_DIR)/sf_msg_en.o \
+		$(SDL_DIR)/sf_osfdlg.o \
+		$(SDL_DIR)/sf_resample.o \
+		$(SDL_DIR)/sf_resource.o \
+		$(SDL_DIR)/sf_sig.o \
+		$(SDL_DIR)/sf_sound.o \
+		$(SDL_DIR)/sf_util.o \
+		$(SDL_DIR)/sf_video.o
+
+# Blorb file handling
+#
+BLORB_DIR = $(SRCDIR)/blorb
+BLORB_TARGET =  $(SRCDIR)/blorblib.a
+BLORB_OBJECT =  $(BLORB_DIR)/blorblib.o
+
+
+TARGETS = $(COMMON_TARGET) $(CURSES_TARGET) $(BLORB_TARGET)
 
 OPT_DEFS = -DCONFIG_DIR="\"$(CONFIG_DIR)\"" $(CURSES_DEF) \
-	-DVERSION="\"$(VERSION)\"" -DSOUND_DEV="\"$(SOUND_DEV)\""
+	-DVERSION="\"$(VERSION)\""
 
-COMP_DEFS = $(OPT_DEFS) $(COLOR_DEFS) $(SOUND_DEFS) $(SOUNDCARD) \
+CURSES_DEFS = $(OPT_DEFS) $(COLOR_DEFS) $(SOUND_DEFS) $(SOUNDCARD) \
 	$(MEMMOVE_DEF)
 
-FLAGS = $(OPTS) $(COMP_DEFS) $(INCL)
+FLAGS = $(OPTS) $(CURSES_DEFS) $(INCL)
 
 $(NAME): $(NAME)-curses
-
-$(NAME)-curses:		soundcard.h  $(COMMON_TARGET) $(CURSES_TARGET)
-	$(CC) -o $(BINNAME)$(EXTENSION) $(TARGETS) $(LIB) $(CURSES) \
-		$(SOUND_LIB)
+curses:  $(NAME)-curses
+$(NAME)-curses:		soundcard.h  $(COMMON_TARGET) $(CURSES_TARGET) $(BLORB_TARGET)
+	$(CC) -o $(BINNAME)$(EXTENSION) $(TARGETS) $(LIB) $(CURSES) $(SOUND_LIB)
 
 all:	$(NAME) d$(NAME)
 
 dumb:		$(NAME)-dumb
 d$(NAME):	$(NAME)-dumb
 $(NAME)-dumb:		$(COMMON_TARGET) $(DUMB_TARGET)
-	$(CC) -o d$(BINNAME)$(EXTENSION) $(COMMON_TARGET) \
-		$(DUMB_TARGET) $(LIB)
+	$(CC) -o d$(BINNAME)$(EXTENSION) $(COMMON_TARGET) $(DUMB_TARGET) $(LIB)
+
+sdl:		$(NAME)-sdl
+s$(NAME):	$(NAME)-sdl
+$(NAME)-sdl:	$(COMMON_TARGET) $(SDL_TARGET)
+	$(CC) -o s$(BINNAME) $(COMMON_TARGET) $(SDL_TARGET) $(SDL_LIBS)
 
 .SUFFIXES:
 .SUFFIXES: .c .o .h
@@ -206,6 +233,23 @@ $(DUMB_TARGET): $(DUMB_OBJECT)
 	ar rc $(DUMB_TARGET) $(DUMB_OBJECT)
 	ranlib $(DUMB_TARGET)
 	@echo
+
+sdl_lib:	$(SDL_TARGET)
+$(SDL_TARGET): $(SDL_OBJECT)
+	@echo
+	@echo "Archiving SDL interface code..."
+	ar rc $(SDL_TARGET) $(SDL_OBJECT)
+	ranlib $(SDL_TARGET)
+	@echo
+
+blorb_lib:	$(BLORB_TARGET)
+$(BLORB_TARGET): $(BLORB_OBJECT)
+	@echo
+	@echo "Archiving Blorb file handling code..."
+	ar rc $(BLORB_TARGET) $(BLORB_OBJECT)
+	ranlib $(BLORB_TARGET)
+	@echo
+
 
 soundcard.h:
 	@if [ ! -f $(SRCDIR)/soundcard.h ] ; then \
@@ -257,10 +301,10 @@ dist: distclean
 
 clean:
 	rm -f $(SRCDIR)/*.h $(SRCDIR)/*.a
-	rm -f $(COMMON_DIR)/*.o $(CURSES_DIR)/*.o $(DUMB_DIR)/*.o
+	rm -f $(COMMON_DIR)/*.o $(CURSES_DIR)/*.o $(DUMB_DIR)/*.o $(BLORB_DIR)/*.o $(SDL_DIR)/*.o
 
 distclean: clean
-	rm -f $(BINNAME)$(EXTENSION) d$(BINNAME)$(EXTENSION)
+	rm -f $(BINNAME)$(EXTENSION) d$(BINNAME)$(EXTENSION) s$(BINNAME)
 	rm -f $(BINNAME).exe $(BINNAME).bak $(BINNAME).lib
 	rm -f *core $(SRCDIR)/*core
 	-rm -rf $(distdir)

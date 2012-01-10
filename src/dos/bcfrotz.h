@@ -92,8 +92,8 @@ extern volatile int end_of_sound_flag;
 /* BCpic   */	void 	reset_pictures (void);
 
 #ifdef SOUND_SUPPORT
-/* BCsmpl  */	bool 	init_sound (void);
-/* BCsmpl  */	void 	reset_sound (void);
+/* BCsmpl  */	bool 	dos_init_sound (void);
+/* BCsmpl  */	void 	dos_reset_sound (void);
 #endif
 /* BCtext  */	void	switch_scrn_attr (bool);
 /* BCtext  */	void 	load_fonts (void);

@@ -13,6 +13,11 @@ typedef struct unix_setup_struct {
 	int current_color;		/* ux_text.c ux_screen.c */
 	bool color_enabled;		/* ux_init.c ux_pic.c ux_text.c */
 
+	char *blorb_name;
+	char *blorb_file;
+	bool use_blorb;
+	bool exec_in_blorb;
+
 	int interpreter;		/* see frotz.h */
 } u_setup_t;
 

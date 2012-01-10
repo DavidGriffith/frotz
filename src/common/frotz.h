@@ -9,7 +9,9 @@
    But since no os_* function uses it, it's safe to let the frotz core see
    this definition, but have the unix port see the curses version. */
 
-/* #include "../config.h" */
+#ifndef VERSION
+#define VERSION "2.44pre"
+#endif
 
 #ifndef __UNIX_PORT_FILE
 #include <signal.h>

@@ -16,8 +16,8 @@
 f_setup_t f_setup;
 
 static char information[] =
-"FROTZ V2.43 - interpreter for all Infocom games. Complies with standard\n"
-"1.0 of Graham Nelson's specification. Written by Stefan Jokisch in 1995-7\n"
+"An interpreter for all Infocom and other Z-Machine games.\n"
+"Complies with standard 1.0 of Graham Nelson's specification.\n"
 "\n"
 "Syntax: frotz [options] story-file\n"
 "\n"
@@ -340,6 +340,7 @@ void os_process_arguments (int argc, char *argv[])
     parse_options (argc, argv);
 
     if (optind != argc - 1) {
+	printf ("FROTZ V%s\tMSDOS / PCDOS Edition\n", VERSION);
 	puts (information);
 	exit (EXIT_FAILURE);
     }

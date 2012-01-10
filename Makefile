@@ -101,7 +101,7 @@ CURSES = -lcurses
 
 SRCDIR = src
 
-VERSION = 2.43d
+VERSION = 2.44pre
 
 NAME = frotz
 BINNAME = $(NAME)

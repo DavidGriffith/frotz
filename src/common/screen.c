@@ -425,7 +425,7 @@ void screen_erase_input (const zchar *buf)
 	y = cwp->y_pos + cwp->y_cursor - 1;
 	x = cwp->x_pos + cwp->x_cursor - 1;
 
-	os_erase_area (y, x, y + font_height - 1, x + width - 1);
+	os_erase_area (y, x, y + font_height - 1, x + width - 1, -1);
 	os_set_cursor (y, x);
 
     }
@@ -612,7 +612,8 @@ void erase_window (zword win)
     os_erase_area (y,
 		   x,
 		   y + wp[win].y_size - 1,
-		   x + wp[win].x_size - 1);
+		   x + wp[win].x_size - 1,
+		   win);
 
     if (h_version == V6 && win != cwin && h_interpreter_number != INTERP_AMIGA)
 	os_set_colour (lo (cwp->colour), hi (cwp->colour));
@@ -683,7 +684,7 @@ static void erase_screen (zword win)
 {
     int i;
 
-    os_erase_area (1, 1, h_screen_height, h_screen_width);
+    os_erase_area (1, 1, h_screen_height, h_screen_width, -2);
 
     if ((short) win == -1) {
 	split_window (0);
@@ -1002,7 +1003,7 @@ void z_erase_line (void)
     y = cwp->y_pos + cwp->y_cursor - 1;
     x = cwp->x_pos + cwp->x_cursor - 1;
 
-    os_erase_area (y, x, y + font_height - 1, x + pixels - 1);
+    os_erase_area (y, x, y + font_height - 1, x + pixels - 1, -1);
 
 }/* z_erase_line */
 
@@ -1034,7 +1035,7 @@ void z_erase_picture (void)
     y += cwp->y_pos - 1;
     x += cwp->x_pos - 1;
 
-    os_erase_area (y, x, y + height - 1, x + width - 1);
+    os_erase_area (y, x, y + height - 1, x + width - 1, -1);
 
 }/* z_erase_picture */
 

@@ -94,6 +94,12 @@ CURSES = -lcurses
 #
 #EXTENSION = .exe
 
+SDLINC = `sdl-config --cflags`
+FTCFLAGS = `freetype-config --cflags`
+FTLIBS = `freetype-config --libs`
+
+SDL_DEFS = $(SDLINC) $(FTCFLAGS) $(FTLIBS)
+SDL_LIBS = -ljpeg -lpng -lz -lSDL -lSDL_mixer
 
 #####################################################
 # Nothing under this line should need to be changed.
@@ -184,12 +190,11 @@ CURSES_DEFS = $(OPT_DEFS) $(COLOR_DEFS) $(SOUND_DEFS) $(SOUNDCARD) \
 
 FLAGS = $(OPTS) $(CURSES_DEFS) $(INCL)
 
+
 $(NAME): $(NAME)-curses
 curses:  $(NAME)-curses
-$(NAME)-curses:		soundcard.h  $(COMMON_TARGET) $(CURSES_TARGET) $(BLORB_TARGET)
+$(NAME)-curses: $(COMMON_TARGET) $(CURSES_TARGET) $(BLORB_TARGET)
 	$(CC) -o $(BINNAME)$(EXTENSION) $(TARGETS) $(LIB) $(CURSES) $(SOUND_LIB)
-
-all:	$(NAME) d$(NAME)
 
 dumb:		$(NAME)-dumb
 d$(NAME):	$(NAME)-dumb
@@ -198,14 +203,30 @@ $(NAME)-dumb:		$(COMMON_TARGET) $(DUMB_TARGET)
 
 sdl:		$(NAME)-sdl
 s$(NAME):	$(NAME)-sdl
-$(NAME)-sdl:	$(COMMON_TARGET) $(SDL_TARGET)
-	$(CC) -o s$(BINNAME) $(COMMON_TARGET) $(SDL_TARGET) $(SDL_LIBS)
+$(NAME)-sdl:	$(COMMON_TARGET) $(SDL_TARGET) $(BLORB_TARGET)
+	$(CC) -o s$(BINNAME) $(COMMON_TARGET) $(SDL_TARGET) $(BLORB_TARGET) $(SDL_LIBS)
+
+all:	$(NAME) d$(NAME)
+
 
 .SUFFIXES:
 .SUFFIXES: .c .o .h
 
-.c.o:
-	$(CC) $(FLAGS) $(CFLAGS) -o $@ -c $<
+$(COMMON_OBJECT): %.o: %.c
+	$(CC) $(COMMON_DEFS) -o $@ -c $<
+
+$(BLORB_OBJECT): %.o: %.c
+	$(CC) -o $@ -c $<
+
+$(DUMB_OBJECT): %.o: %.c
+	$(CC) -o $@ -c $<
+
+$(CURSES_OBJECT): %.o: %.c
+	$(CC) $(CURSES_DEFS) -o $@ -c $<
+
+$(SDL_OBJECT): %.o: %.c
+	$(CC) $(SDL_DEFS) -o $@ -c $<
+
 
 # If you're going to make this target manually, you'd better know which
 # config target to make first.

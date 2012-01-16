@@ -212,15 +212,15 @@ static void parse_options (int argc, char **argv)
 	    }
 
 	if (c == 'a')
-	    option_attribute_assignment = 1;
+	    f_setup.attribute_assignment = 1;
 	if (c == 'A')
-	    option_attribute_testing = 1;
+	    f_setup.attribute_testing = 1;
 	if (c == 'b')
 	    user_background = num;
 	if (c == 'B')
 	    option_scrollback_buffer = num;
 	if (c == 'c')
-	    option_context_lines = num;
+	    f_setup.context_lines = num;
 	if (c == 'D')
 		{
 		if (copt == 'k') m_reqW = -1;
@@ -242,42 +242,42 @@ static void parse_options (int argc, char **argv)
 	if (c == 'h')
 	    user_screen_height = num;
 	if (c == 'i')
-	    option_ignore_errors = 1;
+	    f_setup.ignore_errors = 1;
 	if (c == 'l')
-	    option_left_margin = num;
+	    f_setup.left_margin = num;
 	if (c == 'L')
 	    m_localfiles = true;
 	if (c == 'q')
 	    m_no_sound = 1;
 	if (c == 'o')
-	    option_object_movement = 1;
+	    f_setup.object_movement = 1;
 	if (c == 'O')
-	    option_object_locating = 1;
+	    f_setup.object_locating = 1;
 	if (c == 'p')
-	    option_piracy = 1;
+	    f_setup.piracy = 1;
 	if (c == 'r')
-	    option_right_margin = num;
+	    f_setup.right_margin = num;
 	if (c == 'R')
-	    option_save_quetzal = 0;
+	    f_setup.save_quetzal = 0;
 	if (c == 's')
 	    m_random_seed = num;
 	if (c == 'S')
-	    option_script_cols = num;
+	    f_setup.script_cols = num;
 	if (c == 't')
 	    user_tandy_bit = 1;
 	if (c == 'T')
 	    sf_osdialog = NULL;
 	if (c == 'u')
-	    option_undo_slots = num;
+	    f_setup.undo_slots = num;
 	if (c == 'V')
 	    m_vga_fonts = 1;
 	if (c == 'w')
 	    user_screen_width = num;
 	if (c == 'x')
-	    option_expand_abbreviations = 1;
+	    f_setup.expand_abbreviations = 1;
 	if (c == 'Z')
 	    if (num >= ERR_REPORT_NEVER && num <= ERR_REPORT_FATAL)
-	      err_report_mode = num;
+	      f_setup.err_report_mode = num;
 	if (c == '?')
 		optind = argc;
 	} while (c != EOF && c != '?');

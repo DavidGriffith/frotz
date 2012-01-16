@@ -45,6 +45,8 @@ enum story {
     UNKNOWN
 };
 
+#include "setup.h"
+
 typedef unsigned char zchar;
 
 /*** Constants that may be set at compile time ***/
@@ -168,6 +170,8 @@ typedef unsigned char zchar;
 #define COLOUR_FLAG	  0x0040 /* Game wants to use colours          - V5+ */
 #define SOUND_FLAG	  0x0080 /* Game wants to use sound effects    - V5+ */
 #define MENU_FLAG	  0x0100 /* Game wants to use menus            - V6  */
+
+#define TRANSPARENT_FLAG  0x0001 /* Game wants to use transparency     - V6  */
 
 #define INTERP_DEFAULT 0
 #define INTERP_DEC_20 1
@@ -417,6 +421,9 @@ extern zword hx_table_size;
 extern zword hx_mouse_x;
 extern zword hx_mouse_y;
 extern zword hx_unicode_table;
+extern zword hx_flags;
+extern zword hx_fore_colour;
+extern zword hx_back_colour;
 
 /*** Various data ***/
 
@@ -445,6 +452,8 @@ extern int mwin;
 
 extern int mouse_x;
 extern int mouse_y;
+extern int menu_selected;
+extern int mouse_button;
 
 extern bool enable_wrapping;
 extern bool enable_scripting;
@@ -672,8 +681,8 @@ int  	os_char_width (zchar);
 void 	os_display_char (zchar);
 void 	os_display_string (const zchar *);
 void 	os_draw_picture (int, int, int);
-void 	os_erase_area (int, int, int, int);
-void 	os_fatal (const char *);
+void 	os_erase_area (int, int, int, int, int);
+void 	os_fatal (const char *, ...);
 void 	os_finish_with_sample ();
 int  	os_font_data (int, int *, int *);
 void 	os_init_screen (void);
@@ -699,4 +708,3 @@ int  	os_string_width (const zchar *);
 void	os_init_setup (void);
 int	os_speech_output(const zchar *);
 
-#include "setup.h"

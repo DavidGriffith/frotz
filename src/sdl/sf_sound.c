@@ -5,7 +5,7 @@
 #include <string.h>
 
 #include "sf_frotz.h"
-#include "blorblow.h"
+#include "../blorb/blorblow.h"
 
 #include <SDL.h>
 #include <SDL_thread.h>

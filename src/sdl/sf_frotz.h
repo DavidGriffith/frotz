@@ -245,3 +245,29 @@ struct CONVstruct {
 
 
 #endif
+
+
+
+/*** screen window ***/
+
+typedef struct {
+    zword y_pos;
+    zword x_pos;
+    zword y_size;
+    zword x_size;
+    zword y_cursor;
+    zword x_cursor;
+    zword left;
+    zword right;
+    zword nl_routine;
+    zword nl_countdown;
+    zword style;
+    zword colour;
+    zword font;
+    zword font_size;
+    zword attribute;
+    zword line_count;
+    zword true_fore;
+    zword true_back;
+} Zwindow;
+

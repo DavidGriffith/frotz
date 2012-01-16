@@ -5,10 +5,12 @@
 // for access()
 #include <unistd.h>
 
+#include <stdarg.h>
+
 #include "sf_frotz.h"
 
-#include "blorb.h"
-#include "blorblow.h"
+#include "../blorb/blorb.h"
+#include "../blorb/blorblow.h"
 
 // various data
 
@@ -444,12 +446,12 @@ void sf_readsettings(void)
 
 //printf("sf_readsettings\n");
   h_interpreter_number = sf_GetProfileInt("Interpreter","Number",INTERP_AMIGA);
-  err_report_mode = sf_GetProfileInt("Interpreter","Error Reporting",ERR_REPORT_ONCE);
-  option_ignore_errors = sf_GetProfileInt("Interpreter","Ignore Errors",0);
-  option_expand_abbreviations = sf_GetProfileInt("Interpreter","Expand Abbreviations",0);
+  f_setup.err_report_mode = sf_GetProfileInt("Interpreter","Error Reporting",ERR_REPORT_ONCE);
+  f_setup.ignore_errors = sf_GetProfileInt("Interpreter","Ignore Errors",0);
+  f_setup.expand_abbreviations = sf_GetProfileInt("Interpreter","Expand Abbreviations",0);
   m_tandy = sf_GetProfileInt("Interpreter","Tandy Bit",0) ? true : false;
   m_quetzal = sf_GetProfileInt("Interpreter","Quetzal Format",1) ? true : false;
-  option_script_cols = sf_GetProfileInt("Interpreter","Wrap Script Lines",1) ? 80 : 0;
+  f_setup.script_cols = sf_GetProfileInt("Interpreter","Wrap Script Lines",1) ? 80 : 0;
 
   if ((p = sf_GetProfileString("Interpreter","SaveNames",NULL)))
 	m_names_format = p[0];

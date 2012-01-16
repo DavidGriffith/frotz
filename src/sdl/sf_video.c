@@ -707,7 +707,7 @@ zword sf_read_key( int timeout, int cursor, int allowed)
  * return it. Input aborts after timeout/10 seconds.
  *
  */
-zword os_read_key(int timeout, int cursor)
+zchar os_read_key(int timeout, int cursor)
   {
   return sf_read_key(timeout,cursor,0);
   }
@@ -779,7 +779,7 @@ static void addtoHistory( zword *buf)
  * to implement word completion (similar to tcsh under Unix).
  *
  */
-zword os_read_line(int max, zword *buf, int timeout, int width, int continued)
+zchar os_read_line(int max, zchar *buf, int timeout, int width, int continued)
   {
   static int prev_pos = 0;
   static int prev_history = -1;

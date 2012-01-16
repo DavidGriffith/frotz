@@ -157,7 +157,7 @@ void dumb_discard_old_input(int num_chars)
   if (cursor_col < 0)
     cursor_col = 0;
   os_erase_area(cursor_row + 1, cursor_col + 1,
-		cursor_row + 1, cursor_col + num_chars);
+		cursor_row + 1, cursor_col + num_chars, -1);
 }
 
 void os_display_char (zchar c)
@@ -196,7 +196,7 @@ void os_display_string (const zchar *s)
      }
 }
 
-void os_erase_area (int top, int left, int bottom, int right)
+void os_erase_area (int top, int left, int bottom, int right, int win)
 {
   int row, col;
   top--; left--; bottom--; right--;
@@ -213,12 +213,12 @@ void os_scroll_area (int top, int left, int bottom, int right, int units)
     for (row = top; row <= bottom - units; row++)
       for (col = left; col <= right; col++)
 	dumb_copy_cell(row, col, row + units, col);
-    os_erase_area(bottom - units + 2, left + 1, bottom + 1, right + 1);
+    os_erase_area(bottom - units + 2, left + 1, bottom + 1, right + 1, -1 );
   } else if (units < 0) {
     for (row = bottom; row >= top - units; row--)
       for (col = left; col <= right; col++)
 	dumb_copy_cell(row, col, row + units, col);
-    os_erase_area(top + 1, left + 1, top - units, right + 1);
+    os_erase_area(top + 1, left + 1, top - units, right + 1 , -1);
   }
 }
 
@@ -530,6 +530,6 @@ void dumb_init_output(void)
 
   screen_data = malloc(screen_cells * sizeof(cell));
   screen_changes = malloc(screen_cells);
-  os_erase_area(1, 1, h_screen_rows, h_screen_cols);
+  os_erase_area(1, 1, h_screen_rows, h_screen_cols, -2);
   memset(screen_changes, 0, screen_cells);
 }

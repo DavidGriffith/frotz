@@ -461,7 +461,7 @@ static int charwidth( zword c, int *oh)
  * Return the length of the character in screen units.
  *
  */
-int os_char_width(zword c)
+int os_char_width(zchar c)
   {
   int w, oh;
   w = charwidth( c, &oh);
@@ -561,7 +561,7 @@ void os_set_text_style( int new_style)
  *    ZC_NEW_FONT  - next character is a new font
  *
  */
-int os_string_width(const zword *s)
+int os_string_width(const zchar *s)
   {
   int width = 0, wacc = 0, oh = 0; zword c;
 
@@ -594,7 +594,7 @@ int os_string_width(const zword *s)
  * Pass a string of characters to os_display_char.
  *
  */
-void os_display_string(const zword *s)
+void os_display_string(const zchar *s)
   {
   zword c;
   while ((c = *s++) != 0)
@@ -619,7 +619,7 @@ void os_display_string(const zword *s)
  * be scrolled after printing to the bottom right corner.
  *
  */
-void os_display_char(zword c)
+void os_display_char(zchar c)
   {
   if (c == ZC_INDENT)
 	{

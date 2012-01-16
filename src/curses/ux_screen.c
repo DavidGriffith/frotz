@@ -38,9 +38,13 @@
  * Fill a rectangular area of the screen with the current background
  * colour. Top left coordinates are (1,1). The cursor does not move.
  *
+ * The final argument gives the window being changed, -1 if only a
+ * portion of a window is being erased, or -2 if the whole screen is
+ * being erased.  This is not relevant for the curses interface.
+ *
  */
 
-void os_erase_area (int top, int left, int bottom, int right)
+void os_erase_area (int top, int left, int bottom, int right, int win)
 {
     int y, x, i, j;
 
@@ -122,7 +126,7 @@ void os_scroll_area (int top, int left, int bottom, int right, int units)
     move(y, x);
   }
   if (units > 0)
-    os_erase_area(bottom - units + 2, left + 1, bottom + 1, right + 1);
+    os_erase_area(bottom - units + 2, left + 1, bottom + 1, right + 1, 0);
   else if (units < 0)
-    os_erase_area(top + 1, left + 1, top - units, right + 1);
+    os_erase_area(top + 1, left + 1, top - units, right + 1, 0);
 }/* os_scroll_area */

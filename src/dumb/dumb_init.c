@@ -192,7 +192,7 @@ int os_random_seed (void)
 
 void os_restart_game (int stage) {}
 
-void os_fatal (const char *s)
+void os_fatal (const char *s, ...)
 {
   fprintf(stderr, "\nFatal error: %s\n", s);
   exit(1);

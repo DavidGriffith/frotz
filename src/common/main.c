@@ -37,6 +37,7 @@ extern void init_memory (void);
 extern void init_undo (void);
 extern void reset_memory (void);
 
+
 /* Story file name, id number and size */
 
 char *story_name = 0;

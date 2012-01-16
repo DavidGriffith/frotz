@@ -11,7 +11,7 @@
 #include "png.h"
 #include <setjmp.h>
 
-#include "blorblow.h"
+#include "../blorb/blorblow.h"
 
 // static double m_gamma = DEFAULT_GAMMA;
 static byte toLinear[256];

@@ -455,7 +455,7 @@ void os_reset_screen (void)
 
     os_stop_sample(0);
     os_set_text_style(0);
-    os_display_string((zchar *) "[Hit any key to exit.]");
+    print_string("[Hit any key to exit.]\n");
     os_read_key(0, FALSE);
     scrollok(stdscr, TRUE); scroll(stdscr);
     refresh(); endwin();

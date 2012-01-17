@@ -249,7 +249,7 @@ struct CONVstruct {
 
 
 /*** screen window ***/
-
+/*
 typedef struct {
     zword y_pos;
     zword x_pos;
@@ -270,4 +270,4 @@ typedef struct {
     zword true_fore;
     zword true_back;
 } Zwindow;
-
+*/

@@ -49,24 +49,9 @@ static bool cursor = TRUE;
 
 static int input_window = 0;
 
-static struct {
-    zword y_pos;
-    zword x_pos;
-    zword y_size;
-    zword x_size;
-    zword y_cursor;
-    zword x_cursor;
-    zword left;
-    zword right;
-    zword nl_routine;
-    zword nl_countdown;
-    zword style;
-    zword colour;
-    zword font;
-    zword font_size;
-    zword attribute;
-    zword line_count;
-} wp[8], *cwp;
+static Zwindow wp[8], *cwp = wp;
+
+Zwindow * curwinrec() { return cwp;}
 
 
 /*
@@ -1742,3 +1727,91 @@ void z_window_style (void)
 	update_attributes ();
 
 }/* z_window_style */
+
+/*
+ * get_window_colours
+ *
+ * Get the colours for a given window.
+ *
+ */
+
+void get_window_colours (zword win, zbyte* fore, zbyte* back)
+{
+
+    *fore = lo (wp[win].colour);
+    *back = hi (wp[win].colour);
+
+}/* get_window_colours */
+
+/*
+ * get_window_font
+ *
+ * Get the font for a given window.
+ *
+ */
+
+zword get_window_font (zword win)
+{
+    zword font = wp[win].font;
+
+    if (font == TEXT_FONT)
+
+        if (h_version != V6) {
+
+            if (win != 0 || h_flags & FIXED_FONT_FLAG)
+
+                font = FIXED_WIDTH_FONT;
+
+        } else {
+
+            if (wp[win].style & FIXED_WIDTH_STYLE)
+
+                font = FIXED_WIDTH_FONT;
+
+        }
+
+    return font;
+
+}/* get_window_font */
+
+/*
+ * colour_in_use
+ *
+ * Check if a colour is set in any window.
+ *
+ */
+
+int colour_in_use (zword colour)
+{
+    int max = (h_version == V6) ? 8 : 2;
+    int i;
+
+    for (i = 0; i < max; i++) {
+
+        zword bg = hi (wp[i].colour);
+        zword fg = lo (wp[i].colour);
+
+        if (colour == fg || colour == bg)
+            return 1;
+
+
+    }
+
+    return 0;
+
+}/* colour_in_use */
+
+/*
+ * get_current_window
+ *
+ * Get the currently active window.
+ *
+ */
+
+zword get_current_window (void)
+{
+
+    return cwp - wp;
+
+}/* get_current_window */
+

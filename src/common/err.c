@@ -19,6 +19,7 @@
  */
 
 #include "frotz.h"
+f_setup_t f_setup;
 
 /* Define stuff for stricter Z-code error checking, for the generic
    Unix/DOS/etc terminal-window interface. Feel free to change the way

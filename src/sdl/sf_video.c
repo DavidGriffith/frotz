@@ -43,7 +43,7 @@ void sf_getclip( int *x, int *y, int *w, int *h)
   *w = xmax-xmin; *h = ymax-ymin;
   }
 
-static int mywcslen( zword *b)
+static int mywcslen( zchar *b)
   {
   int n=0;
   while (*b++) n++;
@@ -715,7 +715,7 @@ zchar os_read_key(int timeout, int cursor)
 #define MAXHISTORY 8192
 static zword History[MAXHISTORY] = {0};
 static int histptr = 0;
-static void addtoHistory( zword *buf)
+static void addtoHistory( zchar *buf)
   {
   int n = mywcslen(buf)+2;
   int avail = MAXHISTORY - histptr;
@@ -958,7 +958,7 @@ zchar os_read_line(int max, zchar *buf, int timeout, int width, int continued)
   }
 
 // Draw the current input line
-void sf_DrawInput(zword * buffer, int pos, int ptx, int pty, int width, bool cursor)
+void sf_DrawInput(zchar * buffer, int pos, int ptx, int pty, int width, bool cursor)
   {
   int height;
   SF_textsetting * ts = sf_curtextsetting();

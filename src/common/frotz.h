@@ -31,6 +31,7 @@ typedef int bool;
 #include <stdio.h>
 
 
+/* typedef unsigned short zbyte; */
 typedef unsigned char zbyte;
 typedef unsigned short zword;
 

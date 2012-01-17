@@ -1,5 +1,6 @@
 #include <stdio.h>
 #include <signal.h>
+#include <stdlib.h>
 
 #include "sf_frotz.h"
 
@@ -43,8 +44,10 @@ void sf_installhandlers()
 #include <execinfo.h>
 
 /* get REG_EIP from ucontext.h */
+#ifndef __USE_GNU
 #define __USE_GNU
 #include <ucontext.h>
+#endif
 
 // REG_EIP does not exist on 64bit CPU
 #if defined(__amd64__) || defined (__x86_64__)

@@ -201,7 +201,7 @@ void sf_sleep( int millisecs);
 
 unsigned long sf_ticks (void);
 
-void sf_DrawInput(zword * buffer, int pos, int ptx, int pty, int width, bool cursor);
+void sf_DrawInput(zchar * buffer, int pos, int ptx, int pty, int width, bool cursor);
 
 int sf_aiffwav( FILE *f, int foffs, void ** wav, int *size);
 

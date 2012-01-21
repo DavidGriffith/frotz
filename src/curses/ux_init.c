@@ -60,7 +60,7 @@ Syntax: frotz [options] story-file\n\
   -d   disable color            \t -Q   use old-style save format\n\
   -e   enable sound             \t -r # right margin\n\
   -f # foreground color         \t -s # random number seed value\n\
-  -F   Force color mode         \t -S # transscript width\n\
+  -F   Force color mode         \t -S # transcript width\n\
   -h # screen height            \t -t   set Tandy bit\n\
   -i   ignore fatal errors      \t -u # slots for multiple undo\n\
   -l # left margin              \t -w # screen width\n\

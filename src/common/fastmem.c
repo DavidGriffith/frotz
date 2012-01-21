@@ -1026,7 +1026,7 @@ int save_undo (void)
     long diff_size;
     zword stack_size;
     undo_t *p;
-    long pc = p->pc;
+    long pc;
 
     if (f_setup.undo_slots == 0)	/* undo feature unavailable */
 	return -1;
@@ -1056,6 +1056,7 @@ int save_undo (void)
     } while (!p && undo_count);
     if (p == NULL)
 	return -1;
+    pc = p->pc;
     GET_PC (pc);	/* Turbo C doesn't like seeing p->pc here */
     p->pc = pc;
     p->frame_count = frame_count;

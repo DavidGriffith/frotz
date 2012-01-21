@@ -185,7 +185,7 @@ typedef unsigned char zchar;
 
 #define CONFIG_TIMEDINPUT   0x80 /* Interpr supports timed input       - V4+ */
 
-#define SCRIPTING_FLAG	  0x0001 /* Outputting to transscription file  - V1+ */
+#define SCRIPTING_FLAG	  0x0001 /* Outputting to transcription file  - V1+ */
 #define FIXED_FONT_FLAG   0x0002 /* Use fixed width font               - V3+ */
 #define REFRESH_FLAG 	  0x0004 /* Refresh the screen                 - V6  */
 #define GRAPHICS_FLAG	  0x0008 /* Game wants to use graphics         - V5+ */

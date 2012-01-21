@@ -587,7 +587,7 @@ zchar os_read_key (int timeout, int cursor)
  *
  *    FILE_SAVE     - Save game file
  *    FILE_RESTORE  - Restore game file
- *    FILE_SCRIPT   - Transscript file
+ *    FILE_SCRIPT   - Transcript file
  *    FILE_RECORD   - Command file for recording
  *    FILE_PLAYBACK - Command file for playback
  *    FILE_SAVE_AUX - Save auxilary ("preferred settings") file

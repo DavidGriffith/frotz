@@ -18,7 +18,7 @@ Syntax: dfrotz [options] story-file\n\
   -A   watch attribute testing \t -R xxx  do runtime setting \\xxx\n\
   -h # screen height           \t    before starting (can be used repeatedly)\n\
   -i   ignore fatal errors     \t -s # random number seed value\n\
-  -I # interpreter number      \t -S # transscript width\n\
+  -I # interpreter number      \t -S # transcript width\n\
   -o   watch object movement   \t -t   set Tandy bit\n\
   -O   watch object locating   \t -u # slots for multiple undo\n\
   -p   plain ASCII output only \t -w # screen width\n\
@@ -47,7 +47,7 @@ Syntax: frotz [options] story-file [graphics-file]\n\
   -R xxx  do runtime setting \\xxx before starting\n\
             (this option can be used multiple times)\n\
   -s #    random number seed value\n\
-  -S #    transscript width\n\
+  -S #    transcript width\n\
   -t      set Tandy bit\n\
   -u #    slots for multiple undo\n\
   -w #    screen width\n\

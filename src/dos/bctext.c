@@ -793,7 +793,8 @@ void os_more_prompt (void)
     os_erase_area (cursor_y + 1,
 		   saved_x + 1,
 		   cursor_y + h_font_height,
-		   cursor_x + 1);
+		   cursor_x + 1,
+		   -1);
 
     cursor_x = saved_x;
 

@@ -117,9 +117,14 @@ static void clear_line (int y, int left, int right)
  * Fill a rectangular area of the screen with the current background
  * colour. Top left coordinates are (1,1). The cursor does not move.
  *
+ * The final argument gives the window being changed, -1 if only a
+ * portion of a window is being erased, or -2 if the whole screen is
+ * being erased.  This is not relevant for the DOS interface, and so
+ * this function ignores that argument.
+ *
  */
 
-void os_erase_area (int top, int left, int bottom, int right)
+void os_erase_area (int top, int left, int bottom, int right, int win)
 {
     int y;
 

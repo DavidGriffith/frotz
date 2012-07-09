@@ -146,6 +146,7 @@ CURSES_OBJECT = $(CURSES_DIR)/ux_init.o \
 		$(CURSES_DIR)/ux_pic.o \
 		$(CURSES_DIR)/ux_screen.o \
 		$(CURSES_DIR)/ux_text.o \
+		$(CURSES_DIR)/ux_blorb.o \
 		$(CURSES_DIR)/ux_audio_none.o \
 		$(CURSES_DIR)/ux_audio_oss.o
 

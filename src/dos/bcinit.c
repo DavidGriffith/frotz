@@ -20,7 +20,6 @@ static char information[] =
 "Complies with standard 1.0 of Graham Nelson's specification.\n"
 "\n"
 "Syntax: frotz [options] story-file\n"
-"\n"
 "  -a   watch attribute setting  \t -o   watch object movement\n"
 "  -A   watch attribute testing  \t -O   watch object locating\n"
 "  -b # background colour        \t -p   alter piracy opcode\n"
@@ -202,7 +201,7 @@ static void interrupt fast_exit ()
  *
  */
 
-void os_fatal (const char *s)
+void os_fatal (const char *s, ...)
 {
 
     if (h_interpreter_number)

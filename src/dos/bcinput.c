@@ -463,7 +463,8 @@ static void input_move (zchar newc, zchar oldc)
 	    cursor_y + 1,
 	    cursor_x + 1,
 	    cursor_y + h_font_height,
-	    cursor_x + oldwidth - newwidth);
+	    cursor_x + oldwidth - newwidth,
+	    -1);
 
     switch_scrn_attr (FALSE);
 

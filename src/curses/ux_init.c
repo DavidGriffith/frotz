@@ -41,9 +41,12 @@
 #include <curses.h>
 #endif
 
+#ifndef WIN32
 #include <termios.h>
+#endif
 
 #include "ux_frotz.h"
+#include "ux_blorb.h"
 
 f_setup_t f_setup;
 u_setup_t u_setup;
@@ -140,12 +143,20 @@ void os_process_arguments (int argc, char *argv[])
     char *home;
     char configfile[FILENAME_MAX + 1];
 
+#ifndef WIN32
     if ((getuid() == 0) || (geteuid() == 0)) {
         printf("I won't run as root!\n");
         exit(1);
     }
+#endif
 
-    if ((home = getenv("HOME")) == NULL) {
+#ifdef WIN32
+#define HOMEDIR "USERPROFILE"
+#else
+#define HOMEDIR "HOME"
+#endif
+
+    if ((home = getenv(HOMEDIR)) == NULL) {
         printf("Hard drive on fire!\n");
         exit(1);
     }

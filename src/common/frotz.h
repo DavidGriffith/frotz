@@ -35,6 +35,12 @@ typedef int bool;
 typedef unsigned char zbyte;
 typedef unsigned short zword;
 
+#ifdef MSDOS_16BIT
+typedef unsigned char zchar;
+#else
+typedef unsigned short zchar;
+#endif
+
 enum story {
     BEYOND_ZORK,
     SHERLOCK,
@@ -71,8 +77,6 @@ typedef struct {
 
 
 #include "setup.h"
-
-typedef unsigned char zchar;
 
 /*** Constants that may be set at compile time ***/
 

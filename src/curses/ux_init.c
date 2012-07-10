@@ -69,9 +69,10 @@ Syntax: frotz [options] story-file\n\
   -l # left margin              \t -w # screen width\n\
   -o   watch object movement    \t -x   expand abbreviations g/x/z"
 
-
+/*
 char stripped_story_name[FILENAME_MAX+1];
 char semi_stripped_story_name[FILENAME_MAX+1];
+*/
 
 /*
  * os_fatal

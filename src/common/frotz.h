@@ -456,8 +456,6 @@ extern zword hx_back_colour;
 
 /*** Various data ***/
 
-extern char *story_name;
-
 extern enum story story_id;
 extern long story_size;
 

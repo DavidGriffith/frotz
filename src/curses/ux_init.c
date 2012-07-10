@@ -105,10 +105,10 @@ void os_fatal (const char *s, ...)
 
 }/* os_fatal */
 
-extern char script_name[];
-extern char command_name[];
-extern char save_name[];
-extern char auxilary_name[];
+/* extern char script_name[]; */
+/* extern char command_name[]; */
+/* extern char save_name[];*/
+/*extern char auxilary_name[];*/
 
 /*
  * os_process_arguments
@@ -278,38 +278,60 @@ void os_process_arguments (int argc, char *argv[])
 
     /* Save the story file name */
 
-    story_name = malloc(FILENAME_MAX + 1);
-    strcpy(story_name, argv[optind]);
+    f_setup.story_file = strdup(argv[optind]);
+    f_setup.story_name = strdup((char *)basename(argv[optind]));
 
-    /* Strip path off the story file name */
+    /* Now strip off the extension. */
+    p = rindex(f_setup.story_name, '.');
 
-    p = (char *)story_name;
+    /* Get rid of extensions with 1 to 6 character extensions. */
+    /* This will take care of an extension like ".zblorb". */
+    /* More than that, there might be something weird going on */
+    /* which is not our concern. */
+    if (p != NULL) {
+        if (strlen(p) >= 2 && strlen(p) <= 7) {
+                *p = '\0';      /* extension removed */
+        }
+    }
 
-    for (i = 0; story_name[i] != 0; i++)
-        if (story_name[i] == '/')
-          p = (char *)story_name + i + 1;
-
-    for (i = 0; p[i] != '\0'; i++)
-	semi_stripped_story_name[i] = p[i];
-    semi_stripped_story_name[i] = '\0';
-
-    for (i = 0; p[i] != '\0' && p[i] != '.'; i++)
-        stripped_story_name[i] = p[i];
-    stripped_story_name[i] = '\0';
+    f_setup.story_path = strdup((char *)dirname(argv[optind]));
 
     /* Create nice default file names */
 
-    strcpy (script_name, stripped_story_name);
-    strcpy (command_name, stripped_story_name);
-    strcpy (save_name, stripped_story_name);
-    strcpy (auxilary_name, stripped_story_name);
+    u_setup.blorb_name = malloc(strlen(f_setup.story_name) * sizeof(char) + 5);
+    strncpy(u_setup.blorb_name, f_setup.story_name,
+	strlen(f_setup.story_name) +1);
+    strncat(u_setup.blorb_name, EXT_BLORB, strlen(EXT_BLORB));
 
-    /* Don't forget the extensions */
+    u_setup.blorb_file = malloc(strlen(f_setup.story_path) *
+                sizeof(char) + strlen(u_setup.blorb_name) * sizeof(char) + 4);
+    strncpy(u_setup.blorb_file, f_setup.story_path,
+	strlen(f_setup.story_path));
+    strncat(u_setup.blorb_file, "/", 1);
+    strncat(u_setup.blorb_file, u_setup.blorb_name,
+	strlen(u_setup.blorb_name) + 1);
 
-    strcat (script_name, ".scr");
-    strcat (command_name, ".rec");
-    strcat (save_name, ".sav");
-    strcat (auxilary_name, ".aux");
+    f_setup.script_name = malloc(strlen(f_setup.story_name) * sizeof(char) + 5);
+    strncpy(f_setup.script_name, f_setup.story_name, strlen(f_setup.story_name));
+    strncat(f_setup.script_name, EXT_SCRIPT, strlen(EXT_SCRIPT));
+
+    f_setup.command_name = malloc(strlen(f_setup.story_name) * sizeof(char) + 5);
+    strncpy(f_setup.command_name, f_setup.story_name, strlen(f_setup.story_name));
+    strncat(f_setup.command_name, EXT_COMMAND, strlen(EXT_COMMAND));
+
+    f_setup.save_name = malloc(strlen(f_setup.story_name) * sizeof(char) + 5);
+    strncpy(f_setup.save_name, f_setup.story_name, strlen(f_setup.story_name));
+    strncat(f_setup.save_name, EXT_SAVE, strlen(EXT_SAVE));
+
+    f_setup.aux_name = malloc(strlen(f_setup.story_name) * sizeof(char) + 5);
+    strncpy(f_setup.aux_name, f_setup.story_name, strlen(f_setup.story_name));
+    strncat(f_setup.aux_name, EXT_AUX, strlen(EXT_AUX));
+
+    switch (ux_init_blorb()) {
+        case bb_err_Format:
+	  printf("Blorb file loaded, but unable to build map.\n\n");
+	  break;
+    }
 
 }/* os_process_arguments */
 
@@ -346,8 +368,12 @@ void os_init_screen (void)
 {
 
     /*trace(TRACE_CALLS);*/
+
+    if (initscr() == NULL) {    /* Set up curses */
+	os_fatal("Unable to initialize curses. Maybe your $TERM setting is bad.");
+	exit(1);
+    }
     u_setup.curses_active = 1;	/* Let os_fatal know curses is running */
-    initscr();			/* Set up curses */
     cbreak();			/* Raw input mode, no line processing */
     noecho();			/* No input echo */
     nonl();			/* No newline translation */
@@ -443,7 +469,7 @@ void os_init_screen (void)
 	  (u_setup.background_color ==-1)
 		? BACKGROUND_DEF : u_setup.background_color;
     } else
-#endif
+#endif /* COLOR_SUPPORT */
     {
 	/* Set these per spec 8.3.2. */
 	h_default_foreground = WHITE_COLOUR;
@@ -532,9 +558,9 @@ FILE *os_path_open(const char *name, const char *mode)
 	/* If zcodepath is defined in a config file, check that path. */
 	/* If we find the file a match in that path, great. */
 	/* Otherwise, check some environmental variables. */
-	if (option_zcode_path != NULL) {
-		if ((fp = pathopen(name, option_zcode_path, mode, buf)) != NULL) {
-			strncpy(story_name, buf, FILENAME_MAX);
+	if (f_setup.zcode_path != NULL) {
+		if ((fp = pathopen(name, f_setup.zcode_path, mode, buf)) != NULL) {
+			strncpy(f_setup.story_name, buf, FILENAME_MAX);
 			return fp;
 		}
 	}
@@ -544,7 +570,7 @@ FILE *os_path_open(const char *name, const char *mode)
 
 	if (p != NULL) {
 		fp = pathopen(name, p, mode, buf);
-		strncpy(story_name, buf, FILENAME_MAX);
+		strncpy(f_setup.story_name, buf, FILENAME_MAX);
 		return fp;
 	}
 	return NULL;	/* give up */
@@ -571,7 +597,7 @@ FILE *os_load_story(void)
 	fp = fopen(u_setup.blorb_file, "rb");
 	fseek(fp, blorb_res.data.startpos, SEEK_SET);
     } else {
-	fp = fopen(story_name, "rb");
+	fp = fopen(f_setup.story_name, "rb");
     }
     return fp;
 }
@@ -760,8 +786,8 @@ int getconfig(char *configfile)
 		/* now for really stringtype variable */
 
 		else if (strcmp(varname, "zcode_path") == 0) {
-			option_zcode_path = malloc(strlen(value) * sizeof(char) + 1);
-			strncpy(option_zcode_path, value, strlen(value) * sizeof(char));
+			f_setup.zcode_path = malloc(strlen(value) * sizeof(char) + 1);
+			strncpy(f_setup.zcode_path, value, strlen(value) * sizeof(char));
 		}
 
 		/* The big nasty if-else thingy is finished */
@@ -934,6 +960,9 @@ void os_init_setup(void)
 	f_setup.sound = 1;
 	f_setup.err_report_mode = ERR_DEFAULT_REPORT_MODE;
 
+	u_setup.use_blorb = 0;
+	u_setup.exec_in_blorb = 0;
+
 	u_setup.disable_color = 0;
 	u_setup.force_color = 0;
 	u_setup.foreground_color = -1;
@@ -957,3 +986,33 @@ void os_init_setup(void)
 
 }
 
+int ux_init_blorb(void)
+{
+    FILE *blorbfile;
+
+    /* If the filename given on the command line is the same as our
+     * computed blorb filename, then we will assume the executable
+     * is contained in the blorb file.
+     */
+
+    if (strncmp((char *)basename(f_setup.story_file),
+     (char *)basename(u_setup.blorb_file), 55) == 0) {
+	if ((blorbfile = fopen(u_setup.blorb_file, "rb")) == NULL)
+	    return bb_err_Read;
+	blorb_err = bb_create_map(blorbfile, &blorb_map);
+	if (blorb_err != bb_err_None)
+	    return bb_err_Format;
+
+    /* Now we need to locate the EXEC chunk within the blorb file
+     * and present it to the rest of the program as a file stream.
+     */
+
+	blorb_err = bb_load_chunk_by_type(blorb_map, bb_method_FilePos, 
+			&blorb_res, bb_make_id('Z','C','O','D'), 0);
+
+	if (blorb_err == bb_err_None) {
+	    u_setup.exec_in_blorb = 1;
+	    u_setup.use_blorb = 1;
+        }
+    }
+}

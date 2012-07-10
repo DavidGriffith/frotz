@@ -209,18 +209,18 @@ void os_prepare_sample (int number)
   free(sound_buffer);
   sound_buffer = NULL;
 
-  filename = malloc(strlen(story_name) + 10);
+  filename = malloc(strlen(f_setup.story_name) + 10);
 
   if (! filename)
     return;
 
-  basename = strrchr(story_name, '/');
-  if (basename) basename++; else basename = story_name;
+  basename = strrchr(f_setup.story_name, '/');
+  if (basename) basename++; else basename = f_setup.story_name;
   dotpos = strrchr(basename, '.');
   namelen = (dotpos ? dotpos - basename : strlen(basename));
   if (namelen > 6) namelen = 6;
   sprintf(filename, "%.*ssound/%.*s%02d.snd",
-          basename - story_name, story_name,
+          basename - f_setup.story_name, f_setup.story_name,
           namelen, basename, number);
 
 

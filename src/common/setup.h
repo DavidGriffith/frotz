@@ -20,6 +20,16 @@ typedef struct frotz_setup_struct {
 	int save_quetzal;		/* done */
 	int sound;			/* done */
 	int err_report_mode;		/* done */
+
+	char *story_file;
+        char *story_name;
+        char *story_base;
+        char *script_name;
+        char *command_name;
+        char *save_name;
+        char *aux_name;
+        char *story_path;
+        char *zcode_path;
 } f_setup_t;
 
 extern f_setup_t f_setup;

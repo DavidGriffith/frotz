@@ -89,15 +89,15 @@ bool unix_init_pictures (void)
   const char *basename, *dotpos;
   int namelen;
 
-  if ((filename = malloc(2 * strlen(story_name) + 10)) == NULL)
+  if ((filename = malloc(2 * strlen(f_setup.story_name) + 10)) == NULL)
     return FALSE;
 
-  basename = strrchr(story_name, '/');
-  if (basename) basename++; else basename = story_name;
+  basename = strrchr(f_setup.story_name, '/');
+  if (basename) basename++; else basename = f_setup.story_name;
   dotpos = strrchr(basename, '.');
   namelen = (dotpos ? dotpos - basename : strlen(basename));
   sprintf(filename, "%.*sgraphics/%.*s.mg1",
-          basename - story_name, story_name, namelen, basename);
+          basename - f_setup.story_name, f_setup.story_name, namelen, basename);
 
   do {
     int i, entry_size, flags, x_scale, y_scale;

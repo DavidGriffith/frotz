@@ -70,7 +70,7 @@ extern void (*op1_opcodes[]) (void);
 extern void (*op2_opcodes[]) (void);
 extern void (*var_opcodes[]) (void);
 
-char save_name[MAX_FILE_NAME + 1] = DEFAULT_SAVE_NAME;
+/* char save_name[MAX_FILE_NAME + 1] = DEFAULT_SAVE_NAME; */
 char auxilary_name[MAX_FILE_NAME + 1] = DEFAULT_AUXILARY_NAME;
 
 zbyte far *zmp = NULL;
@@ -250,7 +250,7 @@ void init_memory (void)
 
     /* Open story file */
 
-    if ((story_fp = os_path_open(story_name, "rb")) == NULL)
+    if ((story_fp = os_path_open(f_setup.story_file, "rb")) == NULL)
 	os_fatal ("Cannot open story file");
 
     /* Allocate memory for story header */
@@ -597,7 +597,7 @@ static void get_default_name (char *default_name, zword addr)
 	if (strchr (default_name, '.') == NULL)
 	    strcpy (default_name + i, ".AUX");
 
-    } else strcpy (default_name, auxilary_name);
+    } else strcpy (default_name, f_setup.aux_name);
 
 }/* get_default_name */
 
@@ -627,7 +627,7 @@ void z_restore (void)
 	if (os_read_file_name (new_name, default_name, FILE_LOAD_AUX) == 0)
 	    goto finished;
 
-	strcpy (auxilary_name, default_name);
+	strcpy (f_setup.aux_name, default_name);
 
 	/* Open auxilary file */
 
@@ -651,10 +651,10 @@ void z_restore (void)
 
 	/* Get the file name */
 
-	if (os_read_file_name (new_name, save_name, FILE_RESTORE) == 0)
+	if (os_read_file_name (new_name, f_setup.save_name, FILE_RESTORE) == 0)
 	    goto finished;
 
-	strcpy (save_name, new_name);
+	strcpy (f_setup.save_name, new_name);
 
 	/* Open game file */
 
@@ -918,7 +918,7 @@ void z_save (void)
 	if (os_read_file_name (new_name, default_name, FILE_SAVE_AUX) == 0)
 	    goto finished;
 
-	strcpy (auxilary_name, default_name);
+	strcpy (f_setup.aux_name, default_name);
 
 	/* Open auxilary file */
 
@@ -943,10 +943,10 @@ void z_save (void)
 
 	/* Get the file name */
 
-	if (os_read_file_name (new_name, save_name, FILE_SAVE) == 0)
+	if (os_read_file_name (new_name, f_setup.save_name, FILE_SAVE) == 0)
 	    goto finished;
 
-	strcpy (save_name, new_name);
+	strcpy (f_setup.save_name, new_name);
 
 	/* Open game file */
 

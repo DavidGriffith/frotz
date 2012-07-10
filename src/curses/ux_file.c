@@ -61,9 +61,9 @@ FILE *os_path_open(const char *name, const char *mode)
 	/* If zcodepath is defined in a config file, check that path. */
 	/* If we find the file a match in that path, great. */
 	/* Otherwise, check some environmental variables. */
-	if (option_zcode_path != NULL) {
-		if ((fp = pathopen(name, option_zcode_path, mode, buf)) != NULL) {
-			strncpy(story_name, buf, FILENAME_MAX);
+	if (f_setup.zcode_path != NULL) {
+		if ((fp = pathopen(name, f_setup.zcode_path, mode, buf)) != NULL) {
+			strncpy(f_setup.story_name, buf, FILENAME_MAX);
 			return fp;
 		}
 	}
@@ -73,7 +73,7 @@ FILE *os_path_open(const char *name, const char *mode)
 
 	if (p != NULL) {
 		fp = pathopen(name, p, mode, buf);
-		strncpy(story_name, buf, FILENAME_MAX);
+		strncpy(f_setup.story_name, buf, FILENAME_MAX);
 		return fp;
 	}
 	return NULL;	/* give up */

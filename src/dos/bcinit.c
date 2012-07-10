@@ -57,8 +57,6 @@ extern char command_name[];
 extern char save_name[];
 extern char auxilary_name[];
 
-char stripped_story_name[10];
-
 int display = -1;
 
 int user_background = -1;
@@ -333,6 +331,7 @@ void os_process_arguments (int argc, char *argv[])
 {
     const char *p;
     int i;
+    char stripped_story_name[10];
 
     /* Parse command line options */
 
@@ -346,33 +345,33 @@ void os_process_arguments (int argc, char *argv[])
 
     /* Set the story file name */
 
-    story_name = argv[optind];
+    f_setup.story_file = strdup(argv[optind]);
 
     /* Strip path and extension off the story file name */
 
-    p = story_name;
+    p = strdup(f_setup.story_file);
 
-    for (i = 0; story_name[i] != 0; i++)
-	if (story_name[i] == '\\' || story_name[i] == '/'
-	    || story_name[i] == ':')
-	    p = story_name + i + 1;
+    for (i = 0; f_setup.story_file[i] != 0; i++)
+	if (f_setup.story_file[i] == '\\' || f_setup.story_file[i] == '/'
+	    || f_setup.story_file[i] == ':')
+	    p = f_setup.story_file + i + 1;
 
     for (i = 0; p[i] != 0 && p[i] != '.'; i++)
 	stripped_story_name[i] = p[i];
-
     stripped_story_name[i] = 0;
+    f_setup.story_name = strdup(stripped_story_name);
 
     /* Create nice default file names */
 
-    strcpy (script_name, stripped_story_name);
-    strcpy (command_name, stripped_story_name);
-    strcpy (save_name, stripped_story_name);
-    strcpy (auxilary_name, stripped_story_name);
+    f_setup.script_name = strdup(f_setup.story_name);
+    f_setup.command_name = strdup(f_setup.story_name);
+    f_setup.save_name = strdup(f_setup.story_name);
+    f_setup.aux_name = strdup(f_setup.story_name);
 
-    strcat (script_name, ".scr");
-    strcat (command_name, ".rec");
-    strcat (save_name, ".sav");
-    strcat (auxilary_name, ".aux");
+    strcat (f_setup.script_name, ".scr");
+    strcat (f_setup.command_name, ".rec");
+    strcat (f_setup.save_name, ".sav");
+    strcat (f_setup.aux_name, ".aux");
 
     /* Save the executable file name */
 

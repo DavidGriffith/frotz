@@ -280,7 +280,7 @@ void os_prepare_sample (int number)
 	numstr[0] = '0' + number / 10;
 	numstr[1] = '0' + number % 10;
 
-	strncat (sample_name, stripped_story_name, 6);
+	strncat (sample_name, f_setup.story_name, 6);
 	strncat (sample_name, numstr, 2);
 	strncat (sample_name, ".snd", 4);
 

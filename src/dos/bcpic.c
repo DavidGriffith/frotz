@@ -78,7 +78,7 @@ static bool open_graphics_file (int number)
 
     /* Why does DOS not like "graphics\\" anymore? */
     strcpy (fname, "graphics/");
-    strcat (fname, stripped_story_name);
+    strcat (fname, f_setup.story_name);
     strcat (fname, extension);
 
     /* Open file, load header, allocate memory, load picture directory */

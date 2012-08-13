@@ -15,7 +15,6 @@ Reference code and Unix port currently maintained by David Griffith.
   format at Quetzal such that converting from old-style and Quetzal is
   difficult if not impossible.  This also means you can't restore an
   old-style save and then save your game in Quetzal.
-- Optional speech synthesis and recognition through FLITE and Sphinx.
 - Distributed under the GNU Public License.
 
 
@@ -24,15 +23,12 @@ file "HOW_TO_PLAY".
 
 For installation information, see the file "INSTALL".
 
-For information on the speech synthesis and recognition capabilities of
-Frotz, see the file "SPEECH".
-
 For update history, see the file "Changelog".
 
 For information on known bugs in Frotz, see the file "BUGS".
 
 For bug reports, check the Unix Frotz website to see if there's a new
-release.  If not, send your bug report to me at dgriffi@cs.csubak.edu.
+release.  If not, send your bug report to me at dave@661.org.
 
 For information on porting Frotz to new platforms, see the file "PORTING".
 
@@ -40,8 +36,10 @@ For those who are involved in creating and distributing binary packages
 containing Frotz and including Frotz in BSD-style ports/pkgsrc trees,
 see the file "PACKAGING".
 
-The latest information on Unix Frotz is available at the Unix Frotz
-homepage at http://www.cs.csubak.edu/~dgriffi/proj/frotz/.
+The latest information on Unix Frotz is available at 
+https://github.com/DavidGriffith/frotz
+and
+http://sourceforge.net/projects/frotz/
 
 The latest release of Unix Frotz is available from the Interactive
 Fiction Archive at:
@@ -51,15 +49,29 @@ and
 ftp://ftp.ifarchive.org/if-archive/infocom/interpreters/
 	frotz/frotz-<version>.tar.gz
 
+
 The Interactive Fiction Archive has several mirrors which may be better
 choices depending on where you live.  Here is a partial list.
 
-http://www.ifarchive.org/				(USA, Pittsburgh, PA)
-http://mirror.ifarchive.org/				(USA)
-ftp://ftp.ifarchive.com/if-archive/			(USA, Los Angeles, CA)
-ftp://ftp.guetech.org/if-archive/			(USA, Bremerton, WA)
-ftp://ftp.plover.net/if-archive/			(USA, Chicago, IL)
-ftp://ftp.funet.fi/pub/misc/if-archive/			(Finland)
-http://www.planetmirror.com/pub/if-archive/		(Australia)
-ftp://ftp.planetmirror.com/pub/if-archive/		(Australia)
+in the USA:         http://mirror.ifarchive.org/
+                    http://ifarchive.jmac.org/
+                    http://ifmirror.russotto.net/
+                    http://ifarchive.flavorplex.com/
+                    http://ifarchive.smallwhitehouse.org/
+                    http://ifarchive.wurb.com/
+                    http://ifarchive.plover.net/
+                    http://www.ifarchive.info/
+                    http://ifarchive.ifreviews.org/
+                    http://mirrors.ibiblio.org/interactive-fiction/
+in Ireland:         http://ifarchive.heanet.ie/
+in Austria:         http://ifarchive.giga.or.at/
 
+FTP based mirrors are also available:
+
+in the USA:         ftp://ifarchive.ifreviews.org/if-archive/
+in Austria:         ftp://ftp.giga.or.at/pub/ifarchive/
+in Finland:         ftp://ftp.funet.fi/pub/mirrors/ftp.ifarchive.org/if-archive/
+
+And via Gopher:
+
+in the USA:         gopher://gopher.feedle.net/1/if-archive/

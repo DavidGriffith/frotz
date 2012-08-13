@@ -250,8 +250,12 @@ void init_memory (void)
 
     /* Open story file */
 
+/*
     if ((story_fp = os_path_open(f_setup.story_file, "rb")) == NULL)
 	os_fatal ("Cannot open story file");
+*/
+    if ((story_fp = os_load_story()) == NULL)
+        os_fatal ("Cannot open story file");
 
     /* Allocate memory for story header */
 

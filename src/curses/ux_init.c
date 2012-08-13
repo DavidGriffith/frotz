@@ -333,7 +333,6 @@ void os_process_arguments (int argc, char *argv[])
 	  printf("Blorb file loaded, but unable to build map.\n\n");
 	  break;
     }
-
 }/* os_process_arguments */
 
 /*
@@ -598,7 +597,7 @@ FILE *os_load_story(void)
 	fp = fopen(u_setup.blorb_file, "rb");
 	fseek(fp, blorb_res.data.startpos, SEEK_SET);
     } else {
-	fp = fopen(f_setup.story_name, "rb");
+	fp = fopen(f_setup.story_file, "rb");
     }
     return fp;
 }

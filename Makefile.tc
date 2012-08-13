@@ -18,7 +18,7 @@ DOS_DEF = -DMSDOS_16BIT
 DEFS = $(SOUND_DEF) $(DOS_DEF)
 
 DOS_DIR = src\dos
-DOS_OBJECTS = $(DOS_DIR)\bcinit.o \
+DOS_OBJECTS =   $(DOS_DIR)\bcinit.o \
 		$(DOS_DIR)\bcinput.o \
 		$(DOS_DIR)\bcmouse.o \
 		$(DOS_DIR)\bcpic.o \
@@ -27,7 +27,7 @@ DOS_OBJECTS = $(DOS_DIR)\bcinit.o \
 		$(DOS_DIR)\bctext.o
 
 CORE_DIR = src\common
-CORE_OBJECTS = $(CORE_DIR)\buffer.o \
+CORE_OBJECTS =  $(CORE_DIR)\buffer.o \
 		$(CORE_DIR)\fastmem.o \
 		$(CORE_DIR)\files.o \
 		$(CORE_DIR)\getopt.o \
@@ -48,6 +48,8 @@ CORE_OBJECTS = $(CORE_DIR)\buffer.o \
 		$(CORE_DIR)\quetzal.o \
 		$(CORE_DIR)\err.o
 
+BLORB_DIR = src\blorb
+BLORB_OBJECTS = $(BLORB_DIR)\blorblib.o
 
 .SUFFIXES: .c .o .h
 
@@ -65,9 +67,9 @@ clean:
 	del *.exe
 	del *.bak
 
-#frotz:	$(BLORB_OBJECTS) $(DOS_OBJECTS) $(CORE_OBJECTS)
-#	$(CC) $(CFLAGS) -e$(BINNAME) $(LIBRARY)
-
-frotz:	$(DOS_OBJECTS) $(CORE_OBJECTS)
+frotz:	$(BLORB_OBJECTS) $(DOS_OBJECTS) $(CORE_OBJECTS)
 	$(CC) $(CFLAGS) -e$(BINNAME) $(LIBRARY)
+
+#frotz:	$(DOS_OBJECTS) $(CORE_OBJECTS)
+#	$(CC) $(CFLAGS) -e$(BINNAME) $(LIBRARY)
 

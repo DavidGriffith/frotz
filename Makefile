@@ -324,10 +324,11 @@ dist: distclean
 clean:
 	rm -f $(SRCDIR)/*.h $(SRCDIR)/*.a
 	rm -f $(COMMON_DIR)/*.o $(CURSES_DIR)/*.o $(DUMB_DIR)/*.o $(BLORB_DIR)/*.o $(SDL_DIR)/*.o
+	rm -f $(COMMON_DIR)/*.O $(CURSES_DIR)/*.O $(DUMB_DIR)/*.O $(BLORB_DIR)/*.O $(SDL_DIR)/*.O
 
 distclean: clean
 	rm -f $(BINNAME)$(EXTENSION) d$(BINNAME)$(EXTENSION) s$(BINNAME)
-	rm -f $(BINNAME).exe $(BINNAME).bak $(BINNAME).lib
+	rm -f *.EXE *.BAK *.LIB
 	rm -f *core $(SRCDIR)/*core
 	-rm -rf $(distdir)
 	-rm -f $(distdir).tar $(distdir).tar.gz

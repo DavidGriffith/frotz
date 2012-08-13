@@ -323,8 +323,8 @@ dist: distclean
 
 clean:
 	rm -f $(SRCDIR)/*.h $(SRCDIR)/*.a
-	rm -f $(COMMON_DIR)/*.o $(CURSES_DIR)/*.o $(DUMB_DIR)/*.o $(BLORB_DIR)/*.o $(SDL_DIR)/*.o
-	rm -f $(COMMON_DIR)/*.O $(CURSES_DIR)/*.O $(DUMB_DIR)/*.O $(BLORB_DIR)/*.O $(SDL_DIR)/*.O
+	find . -name *.o -exec rm -f {} \;
+	find . -name *.O -exec rm -f {} \;
 
 distclean: clean
 	rm -f $(BINNAME)$(EXTENSION) d$(BINNAME)$(EXTENSION) s$(BINNAME)

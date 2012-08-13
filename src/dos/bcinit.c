@@ -12,6 +12,7 @@
 #include <string.h>
 #include "frotz.h"
 #include "bcfrotz.h"
+#include "bcblorb.h"
 
 f_setup_t f_setup;
 
@@ -70,6 +71,13 @@ int user_screen_width = -1;
 int user_tandy_bit = -1;
 int user_random_seed = -1;
 int user_font = 1;
+
+
+/* Blorb-related things */
+char *blorb_name;
+char *blorb_file;
+bool use_blorb;
+bool exec_in_blorb;
 
 static byte old_video_mode = 0;
 
@@ -153,6 +161,27 @@ int hextoi (const char *s)
     return n;
 
 }/* hextoi */
+
+/*
+ * basename
+ *
+ * A generic and spartan bit of code to extract the filename from a path.
+ * This one is so trivial that it's okay to steal.
+ */
+char *basename(const char *path)
+{
+    const char *s;
+    const char *p;
+    p = s = path;
+
+    while (*s) {
+        if (*s++ == '\\') {
+            p = s;
+        }
+    }
+    return (char *) p;
+} /* basename */
+
 
 /*
  * cleanup
@@ -377,6 +406,16 @@ void os_process_arguments (int argc, char *argv[])
 
     progname = argv[0];
 
+    blorb_file = strdup(f_setup.story_name);
+    strcat(blorb_file, ".blb");
+
+    switch (dos_init_blorb()) {
+	case bb_err_Format:
+	    printf("Blorb file loaded, but unable to build map.\n\n");
+	    break;
+	default:
+	    printf("Blorb error code %i\n\n");
+    }
 }/* os_process_arguments */
 
 /*
@@ -845,4 +884,68 @@ FILE *os_path_open (const char *name, const char *mode)
     }
     return NULL;
 }/* os_path_open */
+
+/*
+ * os_load_story
+ *
+ * This is different from os_path_open() because we need to see if the
+ * story file is actually a chunk inside a blorb file.  Right now we're
+ * looking only at the exact path we're given on the command line.
+ *
+ * Open a file in the current directory.  If this fails, then search the
+ * directories in the ZCODE_PATH environmental variable.  If that's not
+ * defined, search INFOCOM_PATH.
+ *
+ */
+
+FILE *os_load_story(void)
+{
+    FILE *fp;
+
+    /* Did we build a valid blorb map? */
+    if (exec_in_blorb) {
+        fp = fopen(blorb_file, "rb");
+        fseek(fp, blorb_res.data.startpos, SEEK_SET);
+    } else {
+        fp = fopen(f_setup.story_file, "rb");
+    }
+    return fp;
+}
+
+int dos_init_blorb(void)
+{
+    FILE *blorbfile;
+
+    /* If the filename given on the command line is the same as our
+     * computed blorb filename, then we will assume the executable
+     * is contained in the blorb file.
+     */
+
+    printf("blorb_file %s\n", blorb_file);
+    printf("story_file %s\n", f_setup.story_file);
+
+    if (strncmp((char *)basename(f_setup.story_file),
+     (char *)basename(blorb_file), 55) == 0) {
+	if ((blorbfile = fopen(blorb_file, "rb")) == NULL)
+	    return bb_err_Read;
+	blorb_err = bb_create_map(blorbfile, &blorb_map);
+
+	if (blorb_err != bb_err_None) {
+	    return blorb_err;
+	}
+
+    /* Now we need to locate the EXEC chunk within the blorb file
+     * and present it to the rest of the program as a file stream.
+     */
+
+	blorb_err = bb_load_chunk_by_type(blorb_map, bb_method_FilePos,
+			&blorb_res, bb_make_id('Z','C','O','D'), 0);
+
+	if (blorb_err == bb_err_None) {
+	    exec_in_blorb = 1;
+	    use_blorb = 1;
+	}
+    }
+    return 0;
+}
 

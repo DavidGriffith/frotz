@@ -333,6 +333,10 @@ void os_process_arguments (int argc, char *argv[])
 	  printf("Blorb file loaded, but unable to build map.\n\n");
 	  break;
     }
+
+  printf("u_setup.blorb_file %s\n", u_setup.blorb_file);
+  printf("u_setup.blorb_name %s\n", u_setup.blorb_name);
+
 }/* os_process_arguments */
 
 /*

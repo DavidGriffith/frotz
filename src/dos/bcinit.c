@@ -928,6 +928,7 @@ int dos_init_blorb(void)
      (char *)basename(blorb_file), 55) == 0) {
 	if ((blorbfile = fopen(blorb_file, "rb")) == NULL)
 	    return bb_err_Read;
+/* Under DOS, bb_create_map() returns bb_err_Format */
 	blorb_err = bb_create_map(blorbfile, &blorb_map);
 
 	if (blorb_err != bb_err_None) {

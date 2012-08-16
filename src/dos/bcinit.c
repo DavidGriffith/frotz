@@ -940,7 +940,7 @@ int dos_init_blorb(void)
      */
 
 	blorb_err = bb_load_chunk_by_type(blorb_map, bb_method_FilePos,
-			&blorb_res, bb_make_id('Z','C','O','D'), 0);
+			&blorb_res, bb_ID_ZCOD, 0);
 
 	if (blorb_err == bb_err_None) {
 	    exec_in_blorb = 1;

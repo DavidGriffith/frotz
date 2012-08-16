@@ -26,7 +26,8 @@ DOS_OBJECTS =   $(DOS_DIR)\bcinit.o \
 		$(DOS_DIR)\bcpic.o \
 		$(DOS_DIR)\bcsample.o \
 		$(DOS_DIR)\bcscreen.o \
-		$(DOS_DIR)\bctext.o
+		$(DOS_DIR)\bctext.o \
+		$(DOS_DIR)\bcblorb.o \
 
 CORE_DIR = src\common
 CORE_OBJECTS =  $(CORE_DIR)\buffer.o \
@@ -50,24 +51,20 @@ CORE_OBJECTS =  $(CORE_DIR)\buffer.o \
 		$(CORE_DIR)\quetzal.o \
 		$(CORE_DIR)\err.o
 
-BLORB_DIR = src\blorb
-BLORB_OBJECTS = $(BLORB_DIR)\blorblib.o
-
 .SUFFIXES: .c .o .h
 
 .c.o:
-	$(CC) $(CFLAGS) $(DEFS) -I$(DOS_DIR) -I$(CORE_DIR) -I$(BLORB_DIR) -c -o$@ $<
+	$(CC) $(CFLAGS) $(DEFS) -I$(DOS_DIR) -I$(CORE_DIR) -c -o$@ $<
 	$(TLIB) $(LIBRARY) +-$@
 
 all:	frotz
 
 clean:
-	$(RM) $(BLORB_DIR)\*.o
 	$(RM) $(CORE_DIR)\*.o
 	$(RM) $(DOS_DIR)\*.o
 	$(RM) *.lib
 	$(RM) *.exe
 	$(RM) *.bak
 
-frotz:	$(BLORB_OBJECTS) $(DOS_OBJECTS) $(CORE_OBJECTS)
+frotz:	$(DOS_OBJECTS) $(CORE_OBJECTS)
 	$(CC) $(CFLAGS) -e$(BINNAME) $(LIBRARY)

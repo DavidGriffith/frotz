@@ -493,12 +493,6 @@ extern char *option_zcode_path;	/* dg */
 extern long reserve_mem;
 
 
-/*** Blorb stuff ***/
-/*
-bb_err_t       blorb_err;
-bb_map_t       *blorb_map;
-*/
-
 /*** Z-machine opcodes ***/
 
 void 	z_add (void);

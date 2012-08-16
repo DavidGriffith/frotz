@@ -95,17 +95,9 @@ bb_err_t bb_create_map(FILE *file, bb_map_t **newmap)
     if (err)
         return bb_err_Read;
 
-/* FIXME.  Under 16-bit DOS, this fails.
- * From the following url: "'unsigned long' variables don't work in 
- * 16-bit mode."  How do I get around this?
- * http://www.digitalmars.com/d/archives/c++/dos/16-bits/45.html
- */
     readlen = fread(buffer, sizeof(uint32), 3, file);
     if (readlen != 3)
         return bb_err_Read;
-
-printf("buffer0 %i should be %i\n", bb_native4(buffer[0]), bb_ID_FORM);
-printf("buffer2 %i should be %i\n", bb_native4(buffer[2]), bb_ID_IFRS);
 
     if (bb_native4(buffer[0]) != bb_ID_FORM)
         return bb_err_Format;

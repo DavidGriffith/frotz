@@ -27,7 +27,7 @@ DOS_OBJECTS =   $(DOS_DIR)\bcinit.o \
 		$(DOS_DIR)\bcsample.o \
 		$(DOS_DIR)\bcscreen.o \
 		$(DOS_DIR)\bctext.o \
-		$(DOS_DIR)\bcblorb.o \
+		$(DOS_DIR)\bcblorb.o
 
 CORE_DIR = src\common
 CORE_OBJECTS =  $(CORE_DIR)\buffer.o \

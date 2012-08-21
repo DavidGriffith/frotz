@@ -35,11 +35,24 @@ typedef int bool;
 typedef unsigned char zbyte;
 typedef unsigned short zword;
 
+
+/* This business turns out to interfere with the command history
+ * functions in the curses interface code.  Unicode support for DOS
+ * Frotz probably won't happen.  I'd like to get it working for Unix
+ * Frotz eventually.  The patch I was using was rather old and bugs
+ * might have crept in.  If you know how to implement Unicode for the
+ * Unix side, please let me know and please test it to make sure it
+ * doesn't mess with command history.
+ */
+/*
 #ifdef MSDOS_16BIT
 typedef unsigned char zchar;
 #else
 typedef unsigned short zchar;
 #endif
+*/
+
+typedef unsigned char zchar;
 
 enum story {
     BEYOND_ZORK,

@@ -214,19 +214,19 @@ all:	$(NAME) d$(NAME)
 .SUFFIXES: .c .o .h
 
 $(COMMON_OBJECT): %.o: %.c
-	$(CC) $(COMMON_DEFS) -o $@ -c $<
+	$(CC) $(OPTS) $(COMMON_DEFS) -o $@ -c $<
 
 $(BLORB_OBJECT): %.o: %.c
-	$(CC) -o $@ -c $<
+	$(CC) $(OPTS) -o $@ -c $<
 
 $(DUMB_OBJECT): %.o: %.c
-	$(CC) -o $@ -c $<
+	$(CC) $(OPTS) -o $@ -c $<
 
 $(CURSES_OBJECT): %.o: %.c
-	$(CC) $(CURSES_DEFS) -o $@ -c $<
+	$(CC) $(OPTS) $(CURSES_DEFS) -o $@ -c $<
 
 $(SDL_OBJECT): %.o: %.c
-	$(CC) $(SDL_DEFS) -o $@ -c $<
+	$(CC) $(OPTS) $(SDL_DEFS) -o $@ -c $<
 
 
 # If you're going to make this target manually, you'd better know which

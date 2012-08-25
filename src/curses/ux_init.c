@@ -332,6 +332,9 @@ void os_process_arguments (int argc, char *argv[])
         case bb_err_Format:
 	  printf("Blorb file loaded, but unable to build map.\n\n");
 	  break;
+	case bb_err_NotFound:
+	  printf("Blorb file loaded, but lacks executable chunk.\n\n");
+	  break;
     }
 
   printf("u_setup.blorb_file %s\n", u_setup.blorb_file);
@@ -1018,5 +1021,6 @@ int ux_init_blorb(void)
 	    u_setup.exec_in_blorb = 1;
 	    u_setup.use_blorb = 1;
         }
+	return blorb_err;
     }
 }

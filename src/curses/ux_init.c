@@ -31,6 +31,7 @@
 #include <unistd.h>
 #include <ctype.h>
 #include <signal.h>
+#include <libgen.h>
 
 /* We will use our own private getopt functions. */
 #include "getopt.h"
@@ -280,7 +281,7 @@ void os_process_arguments (int argc, char *argv[])
     /* Save the story file name */
 
     f_setup.story_file = strdup(argv[optind]);
-    f_setup.story_name = strdup((char *)basename(argv[optind]));
+    f_setup.story_name = strdup(basename(argv[optind]));
 
     /* Now strip off the extension. */
     p = rindex(f_setup.story_name, '.');
@@ -295,7 +296,7 @@ void os_process_arguments (int argc, char *argv[])
         }
     }
 
-    f_setup.story_path = strdup((char *)dirname(argv[optind]));
+    f_setup.story_path = strdup(dirname(argv[optind]));
 
     /* Create nice default file names */
 
@@ -1002,8 +1003,8 @@ int ux_init_blorb(void)
      * is contained in the blorb file.
      */
 
-    if (strncmp((char *)basename(f_setup.story_file),
-     (char *)basename(u_setup.blorb_file), 55) == 0) {
+    if (strncmp(basename(f_setup.story_file),
+     basename(u_setup.blorb_file), 55) == 0) {
 	if ((blorbfile = fopen(u_setup.blorb_file, "rb")) == NULL)
 	    return bb_err_Read;
 	blorb_err = bb_create_map(blorbfile, &blorb_map);

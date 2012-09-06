@@ -299,7 +299,7 @@ void os_process_arguments (int argc, char *argv[])
 
     /* Create nice default file names */
 
-    u_setup.blorb_name = malloc(FILENAME_MAX);
+    u_setup.blorb_name = malloc(FILENAME_MAX * sizeof(char));
     strncpy(u_setup.blorb_name, f_setup.story_name,
 	strlen(f_setup.story_name) +1);
     strncat(u_setup.blorb_name, EXT_BLORB, strlen(EXT_BLORB));

@@ -114,6 +114,9 @@ typedef struct {
 #define EXT_SAVE	".qzl"
 #define EXT_SCRIPT	".scr"
 #define EXT_BLORB	".blb"
+#define EXT_BLORB2	".zblb"
+#define EXT_BLORB2	".blorb"
+#define EXT_BLORB3	".zblorb"
 #define EXT_COMMAND	".rec"
 #define EXT_AUX		".aux"
 

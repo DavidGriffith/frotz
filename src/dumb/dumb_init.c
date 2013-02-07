@@ -150,7 +150,7 @@ void os_process_arguments(int argc, char *argv[])
 	exit(1);
     }
 */
-    story_name = argv[zoptind++];
+    f_setup.story_file = argv[zoptind++];
     if (zoptind < argc)
       graphics_filename = argv[zoptind++];
 

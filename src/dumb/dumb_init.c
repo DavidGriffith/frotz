@@ -198,19 +198,9 @@ void os_fatal (const char *s, ...)
   exit(1);
 }
 
-FILE *os_path_open(const char *name, const char *mode)
+FILE *os_load_story(void)
 {
-	FILE *fp;
-	char buf[FILENAME_MAX + 1];
-	char *p;
-
-	/* Let's see if the file is in the currect directory */
-	/* or if the user gave us a full path. */
-	if ((fp = fopen(name, mode))) {
-		return fp;
-	}
-	/* Sorry, but dumb frotz is too dumb to care about searching paths. */
-	return NULL;
+    return fopen(f_setup.story_file, "rb");
 }
 
 void os_init_setup(void)

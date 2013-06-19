@@ -141,6 +141,7 @@ void os_process_arguments (int argc, char *argv[])
     int c, i;
 
     char *p = NULL;
+    char *blorb_ext = NULL;
 
     char *home;
     char configfile[FILENAME_MAX + 1];
@@ -285,6 +286,17 @@ void os_process_arguments (int argc, char *argv[])
 
     /* Now strip off the extension. */
     p = rindex(f_setup.story_name, '.');
+    if ((p != NULL) &&
+        ((strcmp(p,EXT_BLORB2) == 0) ||
+         (strcmp(p,EXT_BLORB3) == 0) ||
+         (strcmp(p,EXT_BLORB4) == 0) ) )
+    {
+        blorb_ext = strdup(p);
+    }
+    else
+    {
+        blorb_ext = strdup(EXT_BLORB);
+    }
 
     /* Get rid of extensions with 1 to 6 character extensions. */
     /* This will take care of an extension like ".zblorb". */
@@ -303,7 +315,7 @@ void os_process_arguments (int argc, char *argv[])
     u_setup.blorb_name = malloc(FILENAME_MAX * sizeof(char));
     strncpy(u_setup.blorb_name, f_setup.story_name,
 	strlen(f_setup.story_name) +1);
-    strncat(u_setup.blorb_name, EXT_BLORB, strlen(EXT_BLORB));
+    strncat(u_setup.blorb_name, blorb_ext, strlen(blorb_ext));
 
     u_setup.blorb_file = malloc(strlen(f_setup.story_path) *
                 sizeof(char) + strlen(u_setup.blorb_name) * sizeof(char) + 4);

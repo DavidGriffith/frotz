@@ -35,25 +35,6 @@ machines and some *BSD machines).  Support for other drivers is in the
 works.
 
 
-====================
-Precompiled Frotz ||
-====================
-
-NetBSD:  It's in the pkgsrc tree!
-
-FreeBSD:  It's in the ports tree!
-
-MacOS X:  It's at
-http://www.ifarchive.org/indexes/if-archiveXinfocomXinterpretersXfrotz.html
-
-Debian:  Debian isn't so good at keeping an up-to-date version of Frotz
-around, so check http://packages.debian.org/testing/games/frotz.html to
-make sure before you use apt-get or whatever.
-
-See http://www.cs.csubak.edu/~dgriffi/proj/frotz/prepackaged.html for
-up-to-date information on precompiled Frotz packages
-
-
 =======================
 Editing the Makefile ||
 =======================

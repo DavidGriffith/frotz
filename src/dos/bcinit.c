@@ -414,7 +414,9 @@ void os_process_arguments (int argc, char *argv[])
 	    printf("Blorb file loaded, but unable to build map.\n\n");
 	    break;
 	default:
-	    printf("Blorb error code %i\n\n");
+	    break;
+/* No problem.  Don't say anything. */
+/*	    printf("Blorb error code %i\n\n"); */
     }
 }/* os_process_arguments */
 
@@ -920,9 +922,6 @@ int dos_init_blorb(void)
      * computed blorb filename, then we will assume the executable
      * is contained in the blorb file.
      */
-
-    printf("blorb_file %s\n", blorb_file);
-    printf("story_file %s\n", f_setup.story_file);
 
     if (strncmp((char *)basename(f_setup.story_file),
      (char *)basename(blorb_file), 55) == 0) {

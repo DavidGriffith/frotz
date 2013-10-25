@@ -57,23 +57,23 @@ static float speed = 1;
 static bool do_more_prompts = TRUE;
 
 enum input_type {
-  INPUT_CHAR,
-  INPUT_LINE,
-  INPUT_LINE_CONTINUED,
+    INPUT_CHAR,
+    INPUT_LINE,
+    INPUT_LINE_CONTINUED,
 };
 
 /* get a character.  Exit with no fuss on EOF.  */
 static int xgetchar(void)
 {
-  int c = getchar();
-  if (c == EOF) {
-    if (feof(stdin)) {
-      fprintf(stderr, "\nEOT\n");
-      exit(0);
+    int c = getchar();
+    if (c == EOF) {
+	if (feof(stdin)) {
+	    fprintf(stderr, "\nEOT\n");
+	    exit(0);
+	}
+	os_fatal(strerror(errno));
     }
-    os_fatal(strerror(errno));
-  }
-  return c;
+    return c;
 }
 
 /* Read one line, including the newline, into s.  Safely avoids buffer
@@ -81,18 +81,20 @@ static int xgetchar(void)
  * other places where I'm not so careful).  */
 static void dumb_getline(char *s)
 {
-  int c;
-  char *p = s;
-  while (p < s + INPUT_BUFFER_SIZE - 1)
-    if ((*p++ = xgetchar()) == '\n') {
-      *p = '\0';
-      return;
+    int c;
+    char *p = s;
+    while (p < s + INPUT_BUFFER_SIZE - 1) {
+	if ((*p++ = xgetchar()) == '\n') {
+	    *p = '\0';
+	    return;
+	}
     }
-  p[-1] = '\n';
-  p[0] = '\0';
-  while ((c = xgetchar()) != '\n')
-    ;
-  printf("Line too long, truncated to %s\n", s - INPUT_BUFFER_SIZE);
+
+    p[-1] = '\n';
+    p[0] = '\0';
+    while ((c = xgetchar()) != '\n')
+ 	;
+    printf("Line too long, truncated to %s\n", s - INPUT_BUFFER_SIZE);
 }
 
 /* Translate in place all the escape characters in s.  */
@@ -144,36 +146,36 @@ static int time_ahead = 0;
  * (because the user is further ahead than the timeout).  */
 static bool check_timeout(int timeout)
 {
-  if ((timeout == 0) || (timeout > time_ahead))
-    time_ahead = 0;
-  else
-    time_ahead -= timeout;
-  return time_ahead != 0;
+    if ((timeout == 0) || (timeout > time_ahead))
+	time_ahead = 0;
+    else
+	time_ahead -= timeout;
+    return time_ahead != 0;
 }
 
 /* If val is '0' or '1', set *var accordingly, otherwise toggle it.  */
 static void toggle(bool *var, char val)
 {
-  *var = val == '1' || (val != '0' && !*var);
+    *var = val == '1' || (val != '0' && !*var);
 }
 
 /* Handle input-related user settings and call dumb_output_handle_setting.  */
 bool dumb_handle_setting(const char *setting, bool show_cursor, bool startup)
 {
-  if (!strncmp(setting, "sf", 2)) {
-    speed = atof(&setting[2]);
-    printf("Speed Factor %g\n", speed);
-  } else if (!strncmp(setting, "mp", 2)) {
-    toggle(&do_more_prompts, setting[2]);
-    printf("More prompts %s\n", do_more_prompts ? "ON" : "OFF");
-  } else {
-    if (!strcmp(setting, "set")) {
-      printf("Speed Factor %g\n", speed);
-      printf("More Prompts %s\n", do_more_prompts ? "ON" : "OFF");
+    if (!strncmp(setting, "sf", 2)) {
+	speed = atof(&setting[2]);
+	printf("Speed Factor %g\n", speed);
+    } else if (!strncmp(setting, "mp", 2)) {
+	toggle(&do_more_prompts, setting[2]);
+	printf("More prompts %s\n", do_more_prompts ? "ON" : "OFF");
+    } else {
+	if (!strcmp(setting, "set")) {
+	    printf("Speed Factor %g\n", speed);
+	    printf("More Prompts %s\n", do_more_prompts ? "ON" : "OFF");
+	}
+	return dumb_output_handle_setting(setting, show_cursor, startup);
     }
-    return dumb_output_handle_setting(setting, show_cursor, startup);
-  }
-  return TRUE;
+    return TRUE;
 }
 
 /* Read a line, processing commands (lines that start with a backslash
@@ -260,6 +262,7 @@ static bool dumb_read_line(char *s, char *prompt, bool show_cursor,
 	  int i;
 	  for (i = 0; (i < h_screen_rows - 2) && *next_page; i++)
 	    next_page = strchr(next_page, '\n') + 1;
+	  /* next_page - current_page is width */
 	  printf("%.*s", next_page - current_page, current_page);
 	  current_page = next_page;
 	  if (!*current_page)
@@ -425,4 +428,5 @@ void dumb_init_input(void)
 zword os_read_mouse(void)
 {
 	/* NOT IMPLEMENTED */
+    return 0;
 }

@@ -24,39 +24,6 @@ Syntax: dfrotz [options] story-file\n\
   -p   plain ASCII output only \t -w # screen width\n\
   -P   alter piracy opcode     \t -x   expand abbreviations g/x/z"
 
-/*
-static char usage[] = "\
-\n\
-FROTZ V2.32 - interpreter for all Infocom games. Complies with standard\n\
-1.0 of Graham Nelson's specification. Written by Stefan Jokisch in 1995-7.\n\
-\n\
-DUMB-FROTZ V2.32R1 - port for all platforms.  Somewhat complies with standard\n\
-9899 of ISO's specification.  Written by Alembic Petrofsky in 1997-8.\n\
-\n\
-Syntax: frotz [options] story-file [graphics-file]\n\
-\n\
-  -a      watch attribute setting\n\
-  -A      watch attribute testing\n\
-  -h #    screen height\n\
-  -i      ignore runtime errors\n\
-  -I #    interpreter number to report to game\n\
-  -o      watch object movement\n\
-  -O      watch object locating\n\
-  -p      alter piracy opcode\n\
-  -P      transliterate latin1 to plain ASCII\n\
-  -R xxx  do runtime setting \\xxx before starting\n\
-            (this option can be used multiple times)\n\
-  -s #    random number seed value\n\
-  -S #    transcript width\n\
-  -t      set Tandy bit\n\
-  -u #    slots for multiple undo\n\
-  -w #    screen width\n\
-  -x      expand abbreviations g/x/z\n\
-\n\
-While running, enter \"\\help\" to list the runtime escape sequences.\n\
-";
-*/
-
 
 /* A unix-like getopt, but with the names changed to avoid any problems.  */
 static int zoptind = 1;
@@ -64,7 +31,7 @@ static int zoptopt = 0;
 static char *zoptarg = NULL;
 static int zgetopt (int argc, char *argv[], const char *options)
 {
-    static pos = 1;
+    static int pos = 1;
     const char *p;
     if (zoptind >= argc || argv[zoptind][0] != '-' || argv[zoptind][1] == 0)
 	return EOF;
@@ -76,7 +43,7 @@ static int zgetopt (int argc, char *argv[], const char *options)
     if (zoptopt == ':' || p == NULL) {
 	fputs ("illegal option -- ", stderr);
 	goto error;
-    } else if (p[1] == ':')
+    } else if (p[1] == ':') {
 	if (zoptind >= argc) {
 	    fputs ("option requires an argument -- ", stderr);
 	    goto error;
@@ -86,6 +53,7 @@ static int zgetopt (int argc, char *argv[], const char *options)
 		zoptarg += pos;
 	    pos = 1; zoptind++;
 	}
+    }
     return zoptopt;
 error:
     fputc (zoptopt, stderr);
@@ -142,6 +110,7 @@ void os_process_arguments(int argc, char *argv[])
 	    "\t     %d = report all errors     %d = exit after any error\n\n",
 	    ERR_DEFAULT_REPORT_MODE, ERR_REPORT_NEVER,
 	    ERR_REPORT_ONCE, ERR_REPORT_ALWAYS, ERR_REPORT_FATAL);
+	printf("While running, enter \"\\help\" to list the runtime escape sequences\n\n");
 	exit(1);
     }
 /*
@@ -152,50 +121,50 @@ void os_process_arguments(int argc, char *argv[])
 */
     f_setup.story_file = argv[zoptind++];
     if (zoptind < argc)
-      graphics_filename = argv[zoptind++];
+	graphics_filename = argv[zoptind++];
 
 }
 
 void os_init_screen(void)
 {
-  if (h_version == V3 && user_tandy_bit)
-      h_config |= CONFIG_TANDY;
+    if (h_version == V3 && user_tandy_bit)
+	h_config |= CONFIG_TANDY;
 
-  if (h_version >= V5 && f_setup.undo_slots == 0)
-      h_flags &= ~UNDO_FLAG;
+    if (h_version >= V5 && f_setup.undo_slots == 0)
+	h_flags &= ~UNDO_FLAG;
 
-  h_screen_rows = user_screen_height;
-  h_screen_cols = user_screen_width;
+    h_screen_rows = user_screen_height;
+    h_screen_cols = user_screen_width;
 
-  if (user_interpreter_number > 0)
-    h_interpreter_number = user_interpreter_number;
-  else {
-    /* Use ms-dos for v6 (because that's what most people have the
-     * graphics files for), but don't use it for v5 (or Beyond Zork
-     * will try to use funky characters).  */
-    h_interpreter_number = h_version == 6 ? INTERP_MSDOS : INTERP_DEC_20;
-  }
-  h_interpreter_version = 'F';
+    if (user_interpreter_number > 0)
+	h_interpreter_number = user_interpreter_number;
+    else {
+	/* Use ms-dos for v6 (because that's what most people have the
+	* graphics files for), but don't use it for v5 (or Beyond Zork
+	* will try to use funky characters).  */
+	h_interpreter_number = h_version == 6 ? INTERP_MSDOS : INTERP_DEC_20;
+    }
+    h_interpreter_version = 'F';
 
-  dumb_init_input();
-  dumb_init_output();
-  dumb_init_pictures(graphics_filename);
+    dumb_init_input();
+    dumb_init_output();
+    dumb_init_pictures(graphics_filename);
 }
 
 int os_random_seed (void)
 {
-  if (user_random_seed == -1)
-    /* Use the epoch as seed value */
-    return (time(0) & 0x7fff);
-  else return user_random_seed;
+    if (user_random_seed == -1)
+	/* Use the epoch as seed value */
+	return (time(0) & 0x7fff);
+    else return user_random_seed;
 }
 
 void os_restart_game (int stage) {}
 
 void os_fatal (const char *s, ...)
 {
-  fprintf(stderr, "\nFatal error: %s\n", s);
-  exit(1);
+    fprintf(stderr, "\nFatal error: %s\n", s);
+    exit(1);
 }
 
 FILE *os_load_story(void)

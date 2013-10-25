@@ -329,6 +329,7 @@ clean:
 distclean: clean
 	rm -f $(BINNAME)$(EXTENSION) d$(BINNAME)$(EXTENSION) s$(BINNAME)
 	rm -f *.EXE *.BAK *.LIB
+	rm -f *.exe *.bak *.lib
 	rm -f *core $(SRCDIR)/*core
 	-rm -rf $(distdir)
 	-rm -f $(distdir).tar $(distdir).tar.gz

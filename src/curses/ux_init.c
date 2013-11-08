@@ -258,6 +258,10 @@ void os_process_arguments (int argc, char *argv[])
 	printf("oss sound driver, ");
 #endif
 
+#ifdef SDL_SOUND
+	printf("SDL sound driver, ");
+#endif
+
 #ifdef USE_NCURSES
 	printf("ncurses interface.");
 #else
@@ -420,8 +424,11 @@ void os_init_screen (void)
     if (h_version == V3)
       h_flags &= ~OLD_SOUND_FLAG;
 #else
-    if ((h_version >= 5) && (h_flags & SOUND_FLAG))
+    if ((h_version >= 5) && (h_flags & SOUND_FLAG)) {
 	h_flags |= SOUND_FLAG;
+        ux_initsound();
+	printf("Using sound\n");
+    }
 
     if ((h_version == 3) && (h_flags & OLD_SOUND_FLAG))
 	h_flags |= OLD_SOUND_FLAG;

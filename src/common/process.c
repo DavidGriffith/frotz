@@ -306,6 +306,7 @@ void interpret (void)
     if (end_of_sound_flag)
 	end_of_sound ();
 #endif
+	os_tick();
 
     } while (finished == 0);
 

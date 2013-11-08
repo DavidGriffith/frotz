@@ -747,6 +747,7 @@ void 	os_set_text_style (int);
 void 	os_start_sample (int, int, int, zword);
 void 	os_stop_sample ();
 int  	os_string_width (const zchar *);
+void	os_tick (void);
 void	os_init_setup (void);
 int	os_speech_output(const zchar *);
 

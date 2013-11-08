@@ -58,10 +58,12 @@
 #define	PATH1		"ZCODE_PATH"
 #define PATH2		"INFOCOM_PATH"
 
+/*
 #define NO_SOUND
 #ifdef OSS_SOUND
 # undef NO_SOUND
 #endif
+*/
 
 /* Some regular curses (not ncurses) libraries don't do this correctly. */
 #ifndef getmaxyx
@@ -93,7 +95,8 @@ void unix_init_scrollback(void);	/* ux_screen.c */
 void unix_save_screen(int);		/* ux_screen.c */
 void unix_do_scrollback(void);		/* ux_screen.c */
 
-
+extern int m_frequency;
+extern int m_localfiles;
 
 int     getconfig(char *);
 int     geterrmode(char *);
@@ -103,7 +106,6 @@ FILE	*pathopen(const char *, const char *, const char *, char *);
 void	sigwinch_handler(int);
 void    sigint_handler(int);
 void	redraw(void);
-
 
 #ifdef NO_MEMMOVE
 void *memmove(void *, void *);

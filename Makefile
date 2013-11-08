@@ -38,6 +38,7 @@ COLOR_DEFS = -DCOLOR_SUPPORT
 # Infocom sound support.
 #
 #SOUND_DEFS = -DOSS_SOUND
+SOUND_DEFS = -DSDL_SOUND
 
 # Uncomment this too if you're running BSD of some sort and are using
 # the OSS sound driver.
@@ -147,8 +148,12 @@ CURSES_OBJECT = $(CURSES_DIR)/ux_init.o \
 		$(CURSES_DIR)/ux_screen.o \
 		$(CURSES_DIR)/ux_text.o \
 		$(CURSES_DIR)/ux_blorb.o \
-		$(CURSES_DIR)/ux_audio_none.o \
-		$(CURSES_DIR)/ux_audio_oss.o
+		$(CURSES_DIR)/ux_util.o \
+		$(CURSES_DIR)/ux_audio_sdl.o \
+		$(CURSES_DIR)/ux_aiffwav.o
+
+#		$(CURSES_DIR)/ux_audio_none.o \
+#		$(CURSES_DIR)/ux_audio_oss.o \
 
 DUMB_DIR = $(SRCDIR)/dumb
 DUMB_TARGET = $(SRCDIR)/frotz_dumb.a
@@ -187,15 +192,18 @@ OPT_DEFS = -DCONFIG_DIR="\"$(CONFIG_DIR)\"" $(CURSES_DEF) \
 	-DVERSION="\"$(VERSION)\""
 
 CURSES_DEFS = $(OPT_DEFS) $(COLOR_DEFS) $(SOUND_DEFS) $(SOUNDCARD) \
-	$(MEMMOVE_DEF)
+	$(MEMMOVE_DEF) `sdl-config --cflags` -DDEBUG
 
-FLAGS = $(OPTS) $(CURSES_DEFS) $(INCL)
+FLAGS = $(OPTS) $(CURSES_DEFS) $(INCL) `sdl-config --cflags`
 
+#LIB = `sdl-config --libs` -lSDL_mixer
+LIB = -lSDL_mixer -lz
 
 $(NAME): $(NAME)-curses
-curses:  $(NAME)-curses
+vcurses:  $(NAME)-curses
 $(NAME)-curses: $(COMMON_TARGET) $(CURSES_TARGET) $(BLORB_TARGET)
 	$(CC) -o $(BINNAME)$(EXTENSION) $(TARGETS) $(LIB) $(CURSES) $(SOUND_LIB)
+
 
 dumb:		$(NAME)-dumb
 d$(NAME):	$(NAME)-dumb

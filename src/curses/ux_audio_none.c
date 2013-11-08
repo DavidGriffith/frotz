@@ -120,4 +120,20 @@ void os_wait_sample (void)
 
 }/* os_wait_sample */
 
+
+/*
+ * os_tick
+ *
+ * Called at the end of the main interpreter loop.  Mainly useful for
+ * graphical user interfaces.
+ *
+ */
+
+void os_tick(void)
+{
+
+    /* Not implemented */
+
+}/* os_tick */
+
 #endif /* NO_SOUND */

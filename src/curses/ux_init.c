@@ -139,10 +139,7 @@ void os_fatal (const char *s, ...)
 void os_process_arguments (int argc, char *argv[])
 {
     int c, i;
-
     char *p = NULL;
-    char *blorb_ext = NULL;
-
     char *home;
     char configfile[FILENAME_MAX + 1];
 
@@ -286,62 +283,33 @@ void os_process_arguments (int argc, char *argv[])
 
     /* Now strip off the extension. */
     p = rindex(f_setup.story_name, '.');
-    if ((p != NULL) &&
-        ((strcmp(p,EXT_BLORB2) == 0) ||
-         (strcmp(p,EXT_BLORB3) == 0) ||
-         (strcmp(p,EXT_BLORB4) == 0) ) )
-    {
-        blorb_ext = strdup(p);
-    }
-    else
-    {
-        blorb_ext = strdup(EXT_BLORB);
-    }
-
-    /* Get rid of extensions with 1 to 6 character extensions. */
-    /* This will take care of an extension like ".zblorb". */
-    /* More than that, there might be something weird going on */
-    /* which is not our concern. */
-    if (p != NULL) {
-        if (strlen(p) >= 2 && strlen(p) <= 7) {
-                *p = '\0';      /* extension removed */
-        }
-    }
+    *p = 0;
 
     f_setup.story_path = strdup(dirname(argv[optind]));
 
-    /* Create nice default file names */
-
-    u_setup.blorb_name = malloc(FILENAME_MAX * sizeof(char));
-    strncpy(u_setup.blorb_name, f_setup.story_name,
-	strlen(f_setup.story_name) +1);
-    strncat(u_setup.blorb_name, blorb_ext, strlen(blorb_ext));
-
-    u_setup.blorb_file = malloc(strlen(f_setup.story_path) *
-                sizeof(char) + strlen(u_setup.blorb_name) * sizeof(char) + 4);
-    strncpy(u_setup.blorb_file, f_setup.story_path,
-	strlen(f_setup.story_path));
-    strncat(u_setup.blorb_file, "/", 1);
-    strncat(u_setup.blorb_file, u_setup.blorb_name,
-	strlen(u_setup.blorb_name) + 1);
-
-    f_setup.script_name = malloc(strlen(f_setup.story_name) * sizeof(char) + 5);
-    strncpy(f_setup.script_name, f_setup.story_name, strlen(f_setup.story_name));
+    f_setup.script_name = malloc((strlen(f_setup.story_name) + strlen(EXT_SCRIPT)) * sizeof(char) + 1);
+    strncpy(f_setup.script_name, f_setup.story_name, strlen(f_setup.story_name) + 1);
     strncat(f_setup.script_name, EXT_SCRIPT, strlen(EXT_SCRIPT));
 
-    f_setup.command_name = malloc(strlen(f_setup.story_name) * sizeof(char) + 5);
-    strncpy(f_setup.command_name, f_setup.story_name, strlen(f_setup.story_name));
+    f_setup.command_name = malloc((strlen(f_setup.story_name) + strlen(EXT_COMMAND)) * sizeof(char) + 1);
+    strncpy(f_setup.command_name, f_setup.story_name, strlen(f_setup.story_name) + 1);
     strncat(f_setup.command_name, EXT_COMMAND, strlen(EXT_COMMAND));
 
-    f_setup.save_name = malloc(strlen(f_setup.story_name) * sizeof(char) + 5);
-    strncpy(f_setup.save_name, f_setup.story_name, strlen(f_setup.story_name));
+    f_setup.save_name = malloc((strlen(f_setup.story_name) + strlen(EXT_SAVE)) * sizeof(char) + 1);
+    strncpy(f_setup.save_name, f_setup.story_name, strlen(f_setup.story_name) + 1);
     strncat(f_setup.save_name, EXT_SAVE, strlen(EXT_SAVE));
 
-    f_setup.aux_name = malloc(strlen(f_setup.story_name) * sizeof(char) + 5);
-    strncpy(f_setup.aux_name, f_setup.story_name, strlen(f_setup.story_name));
+    f_setup.aux_name = malloc((strlen(f_setup.story_name) + strlen(EXT_AUX)) * sizeof(char) + 1);
+    strncpy(f_setup.aux_name, f_setup.story_name, strlen(f_setup.story_name) + 1);
     strncat(f_setup.aux_name, EXT_AUX, strlen(EXT_AUX));
 
-    switch (ux_init_blorb()) {
+/*
+    printf("f_setup.story_file %s\n", f_setup.story_file);
+    printf("f_setup.story_name %s\n", f_setup.story_name);
+    printf("f_setup.story_path %s\n", f_setup.story_path);
+*/
+
+    switch (c = ux_init_blorb(f_setup.story_file)) {
         case bb_err_Format:
 	  printf("Blorb file loaded, but unable to build map.\n\n");
 	  break;
@@ -350,8 +318,6 @@ void os_process_arguments (int argc, char *argv[])
 	  break;
     }
 
-  printf("u_setup.blorb_file %s\n", u_setup.blorb_file);
-  printf("u_setup.blorb_name %s\n", u_setup.blorb_name);
 
 }/* os_process_arguments */
 
@@ -555,48 +521,6 @@ int os_random_seed (void)
 
 
 /*
- * os_path_open
- *
- * Open a file in the current directory.  If this fails, then search the
- * directories in the ZCODE_PATH environmental variable.  If that's not
- * defined, search INFOCOM_PATH.
- *
- */
-
-FILE *os_path_open(const char *name, const char *mode)
-{
-	FILE *fp;
-	char buf[FILENAME_MAX + 1];
-	char *p;
-
-	/* Let's see if the file is in the currect directory */
-	/* or if the user gave us a full path. */
-	if ((fp = fopen(name, mode))) {
-		return fp;
-	}
-
-	/* If zcodepath is defined in a config file, check that path. */
-	/* If we find the file a match in that path, great. */
-	/* Otherwise, check some environmental variables. */
-	if (f_setup.zcode_path != NULL) {
-		if ((fp = pathopen(name, f_setup.zcode_path, mode, buf)) != NULL) {
-			strncpy(f_setup.story_name, buf, FILENAME_MAX);
-			return fp;
-		}
-	}
-
-	if ( (p = getenv(PATH1) ) == NULL)
-		p = getenv(PATH2);
-
-	if (p != NULL) {
-		fp = pathopen(name, p, mode, buf);
-		strncpy(f_setup.story_name, buf, FILENAME_MAX);
-		return fp;
-	}
-	return NULL;	/* give up */
-} /* os_path_open() */
-
-/*
  * os_load_story
  *
  * This is different from os_path_open() because we need to see if the
@@ -612,13 +536,15 @@ FILE *os_load_story(void)
 {
     FILE *fp;
 
+printf("Loading %s\n", f_setup.story_file);
+
+    fp = fopen(f_setup.story_file, "rb");
+
+
     /* Did we build a valid blorb map? */
-    if (u_setup.exec_in_blorb) {
-	fp = fopen(u_setup.blorb_file, "rb");
+    if (u_setup.exec_in_blorb)
 	fseek(fp, blorb_res.data.startpos, SEEK_SET);
-    } else {
-	fp = fopen(f_setup.story_file, "rb");
-    }
+
     return fp;
 }
 
@@ -1006,34 +932,3 @@ void os_init_setup(void)
 
 }
 
-int ux_init_blorb(void)
-{
-    FILE *blorbfile;
-
-    /* If the filename given on the command line is the same as our
-     * computed blorb filename, then we will assume the executable
-     * is contained in the blorb file.
-     */
-
-    if (strncmp(basename(f_setup.story_file),
-     basename(u_setup.blorb_file), 55) == 0) {
-	if ((blorbfile = fopen(u_setup.blorb_file, "rb")) == NULL)
-	    return bb_err_Read;
-	blorb_err = bb_create_map(blorbfile, &blorb_map);
-	if (blorb_err != bb_err_None)
-	    return bb_err_Format;
-
-    /* Now we need to locate the EXEC chunk within the blorb file
-     * and present it to the rest of the program as a file stream.
-     */
-
-	blorb_err = bb_load_chunk_by_type(blorb_map, bb_method_FilePos, 
-			&blorb_res, bb_make_id('Z','C','O','D'), 0);
-
-	if (blorb_err == bb_err_None) {
-	    u_setup.exec_in_blorb = 1;
-	    u_setup.use_blorb = 1;
-        }
-	return blorb_err;
-    }
-}

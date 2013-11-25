@@ -46,6 +46,7 @@ typedef int bb_err_t;
 #define bb_err_NotAMap (4)
 #define bb_err_Format (5)
 #define bb_err_NotFound (6)
+#define bb_err_NoBlorb (7)
 
 /* Methods for loading a chunk */
 #define bb_method_DontLoad (0)

@@ -17,7 +17,13 @@ typedef struct blorb_data_struct {
 } blorb_data_t;
 */
 
-bb_err_t	blorb_err;
+typedef struct {
+    bb_result_t bbres;
+    ulong type;
+    FILE *file;
+} myresource;
+
+//bb_err_t	blorb_err;
 bb_map_t	*blorb_map;
 bb_result_t	blorb_res;
 

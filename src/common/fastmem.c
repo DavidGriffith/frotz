@@ -57,7 +57,6 @@ extern void split_window (zword);
 extern void script_open (void);
 extern void script_close (void);
 
-extern FILE *os_path_open (const char *, const char *);
 extern FILE *os_load_story (void);
 
 extern zword save_quetzal (FILE *, FILE *);
@@ -250,10 +249,6 @@ void init_memory (void)
 
     /* Open story file */
 
-/*
-    if ((story_fp = os_path_open(f_setup.story_file, "rb")) == NULL)
-	os_fatal ("Cannot open story file");
-*/
     if ((story_fp = os_load_story()) == NULL)
         os_fatal ("Cannot open story file");
 

@@ -147,8 +147,9 @@ CURSES_OBJECT = $(CURSES_DIR)/ux_init.o \
 		$(CURSES_DIR)/ux_screen.o \
 		$(CURSES_DIR)/ux_text.o \
 		$(CURSES_DIR)/ux_blorb.o \
-		$(CURSES_DIR)/ux_audio_none.o \
-		$(CURSES_DIR)/ux_audio_oss.o
+		$(CURSES_DIR)/ux_audio.o
+#		$(CURSES_DIR)/ux_audio_none.o \
+#		$(CURSES_DIR)/ux_audio_oss.o
 
 DUMB_DIR = $(SRCDIR)/dumb
 DUMB_TARGET = $(SRCDIR)/frotz_dumb.a
@@ -190,7 +191,6 @@ CURSES_DEFS = $(OPT_DEFS) $(COLOR_DEFS) $(SOUND_DEFS) $(SOUNDCARD) \
 	$(MEMMOVE_DEF)
 
 FLAGS = $(OPTS) $(CURSES_DEFS) $(INCL)
-
 
 $(NAME): $(NAME)-curses
 curses:  $(NAME)-curses

@@ -449,7 +449,7 @@ static void free_undo (int count)
 
 void reset_memory (void)
 {
-    if (story_fp)
+    if (story_fp != NULL)
 	fclose (story_fp);
     story_fp = NULL;
 

@@ -71,7 +71,7 @@ static int isblorb(FILE *fp)
 
 
 /*
- * ux_init_blorb
+ * ux_blorb_init
  *
  * Check if we're opening a Blorb file directly.  If not, check
  * to see if there's a seperate Blorb file that looks like it goes
@@ -79,9 +79,9 @@ static int isblorb(FILE *fp)
  * other, make a Blorb map.  If we opened a Blorb file directly, that
  * means that our executable is in that file and therefore we will look
  * for a ZCOD chunk and record its location so os_load_story() can find it.
- *
+ * Make sure the Blorb file is opened and with the file pointer blorb_fp.
  */
-bb_err_t ux_init_blorb(char *filename)
+bb_err_t ux_blorb_init(char *filename)
 {
     FILE *fp;
     char *p;
@@ -91,16 +91,20 @@ bb_err_t ux_init_blorb(char *filename)
 
     bb_err_t blorb_err;
 
+/*
+    blorb_map = NULL;
+    blorb_res = NULL;
+*/
+
     if ((fp = fopen(filename, "rb")) == NULL)
 	return bb_err_Read;
-
-    printf("filename: %s\n", filename);
 
     /* Is this really a Blorb file?  If not, maybe we're loading a naked
      * zcode file and our resources are in a seperate blorb file.
      */
     if (isblorb(fp)) {			/* Now we know to look */
 	u_setup.exec_in_blorb = 1;	/* for zcode in the blorb */
+        blorb_fp = fopen(filename, "rb");
     } else {
 	len1 = strlen(filename) + strlen(EXT_BLORB);
 	len2 = strlen(filename) + strlen(EXT_BLORBLONG);
@@ -112,18 +116,27 @@ bb_err_t ux_init_blorb(char *filename)
 
         strncat(mystring, EXT_BLORB, len1 * sizeof(char));
 
+	/* Done monkeying with the initial file. */
+	fclose(fp);
+	fp = NULL;
+
+
 	/* Check if foo.blb is there. */
-        if ((fp = fopen(mystring, "rb")) == NULL) {
+        if ((blorb_fp = fopen(mystring, "rb")) == NULL) {
 	    p = rindex(mystring, '.');
 	    *p = '\0';
             strncat(mystring, EXT_BLORBLONG, len2 * sizeof(char));
-	    fp = fopen(mystring, "rb");
+	    blorb_fp = fopen(mystring, "rb");
+	    printf("Got a blorb_fp\n");
 	}
-	if (fp == NULL || !isblorb(fp))	/* No matching blorbs found. */
+
+	if (blorb_fp == NULL || !isblorb(fp))	/* No matching blorbs found. */
 	    return bb_err_NoBlorb;
 
-	u_setup.exec_in_blorb = 0;	/* Using naked zcode with */
-    }					/* resources in seperate blorb. */
+	/* At this point we know that we're using a naked zcode file */
+	/* with resources in a seperate Blorb file. */
+	u_setup.use_blorb = 1;
+    }
 
     /* Create a Blorb map from this file.
      * This will fail if the file is not a valid Blorb file.
@@ -139,17 +152,25 @@ bb_err_t ux_init_blorb(char *filename)
     if (u_setup.exec_in_blorb) {
 	blorb_err = bb_load_chunk_by_type(blorb_map, bb_method_FilePos,
 		&blorb_res, bb_make_id('Z','C','O','D'), 0);
-    }
-
-    if (blorb_err == bb_err_None) {
 	u_setup.exec_in_blorb = 1;
-	u_setup.use_blorb = 1;
     }
 
     fclose(fp);
     return blorb_err;
 }
 
+/*
+ * ux_stop_blorb
+ *
+ * Basically just close the Blorb file.
+ *
+ */
+void ux_stop_blorb(void)
+{
+    if (blorb_fp != NULL)
+	fclose(blorb_fp);
+    blorb_fp = NULL;
+}
 
 char *findchunk(char *data, char *string, int length)
 {

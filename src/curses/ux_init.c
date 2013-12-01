@@ -86,17 +86,18 @@ void os_fatal (const char *s, ...)
 {
 
     if (u_setup.curses_active) {
-      /* Solaris 2.6's cc complains if the below cast is missing */
-      os_display_string((zchar *)"\n\n");
-      os_beep(BEEP_HIGH);
-      os_set_text_style(BOLDFACE_STYLE);
-      os_display_string((zchar *)"Fatal error: ");
-      os_set_text_style(0);
-      os_display_string((zchar *)s);
-      os_display_string((zchar *)"\n");
-      new_line();
-      os_reset_screen();
-      exit(1);
+	/* Solaris 2.6's cc complains if the below cast is missing */
+	os_display_string((zchar *)"\n\n");
+	os_beep(BEEP_HIGH);
+	os_set_text_style(BOLDFACE_STYLE);
+	os_display_string((zchar *)"Fatal error: ");
+	os_set_text_style(0);
+	os_display_string((zchar *)s);
+	os_display_string((zchar *)"\n");
+	new_line();
+	os_reset_screen();
+	ux_stop_blorb();
+	exit(1);
     }
 
     fputs ("\nFatal error: ", stderr);
@@ -145,8 +146,8 @@ void os_process_arguments (int argc, char *argv[])
 
 #ifndef WIN32
     if ((getuid() == 0) || (geteuid() == 0)) {
-        printf("I won't run as root!\n");
-        exit(1);
+	printf("I won't run as root!\n");
+	exit(1);
     }
 #endif
 
@@ -157,8 +158,8 @@ void os_process_arguments (int argc, char *argv[])
 #endif
 
     if ((home = getenv(HOMEDIR)) == NULL) {
-        printf("Hard drive on fire!\n");
-        exit(1);
+	printf("Hard drive on fire!\n");
+	exit(1);
     }
 
 /*
@@ -308,15 +309,6 @@ void os_process_arguments (int argc, char *argv[])
     printf("f_setup.story_name %s\n", f_setup.story_name);
     printf("f_setup.story_path %s\n", f_setup.story_path);
 */
-
-    switch (c = ux_init_blorb(f_setup.story_file)) {
-        case bb_err_Format:
-	  printf("Blorb file loaded, but unable to build map.\n\n");
-	  break;
-	case bb_err_NotFound:
-	  printf("Blorb file loaded, but lacks executable chunk.\n\n");
-	  break;
-    }
 
 
 }/* os_process_arguments */
@@ -536,12 +528,30 @@ FILE *os_load_story(void)
 {
     FILE *fp;
 
-printf("Loading %s\n", f_setup.story_file);
+    switch (ux_blorb_init(f_setup.story_file)) {
+	case bb_err_NoBlorb:
+	  printf("No blorb file found.\n\n");
+	  break;
+        case bb_err_Format:
+	  printf("Blorb file loaded, but unable to build map.\n\n");
+	  break;
+	case bb_err_NotFound:
+	  printf("Blorb file loaded, but lacks executable chunk.\n\n");
+	  break;
+	case bb_err_None:
+	  printf("No blorb errors.\n\n");
+	  break;
+    }
+
+    ux_initsound();
+//    os_start_sample(3, 8, 1, 0);
+//    exit(1);
+
+    printf("Loading %s\n", f_setup.story_file);
 
     fp = fopen(f_setup.story_file, "rb");
 
-
-    /* Did we build a valid blorb map? */
+    /* Is this a Blorb file containing Zcode? */
     if (u_setup.exec_in_blorb)
 	fseek(fp, blorb_res.data.startpos, SEEK_SET);
 

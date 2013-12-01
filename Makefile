@@ -7,7 +7,7 @@ CC = gcc
 # Define your optimization flags.  Most compilers understand -O and -O2,
 # Standard (note: Solaris on UltraSparc using gcc 2.8.x might not like this.)
 #
-OPTS = -O2
+OPTS = -O2 -g
 
 # Pentium with gcc 2.7.0 or better
 #OPTS = -O2 -fomit-frame-pointer -malign-functions=2 -malign-loops=2 \
@@ -147,7 +147,8 @@ CURSES_OBJECT = $(CURSES_DIR)/ux_init.o \
 		$(CURSES_DIR)/ux_screen.o \
 		$(CURSES_DIR)/ux_text.o \
 		$(CURSES_DIR)/ux_blorb.o \
-		$(CURSES_DIR)/ux_audio.o
+		$(CURSES_DIR)/ux_audio.o \
+		$(CURSES_DIR)/ux_resource.o
 #		$(CURSES_DIR)/ux_audio_none.o \
 #		$(CURSES_DIR)/ux_audio_oss.o
 
@@ -191,6 +192,8 @@ CURSES_DEFS = $(OPT_DEFS) $(COLOR_DEFS) $(SOUND_DEFS) $(SOUNDCARD) \
 	$(MEMMOVE_DEF)
 
 FLAGS = $(OPTS) $(CURSES_DEFS) $(INCL)
+
+SOUND_LIB = -lao -ldl -lm
 
 $(NAME): $(NAME)-curses
 curses:  $(NAME)-curses

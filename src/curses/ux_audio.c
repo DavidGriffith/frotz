@@ -161,25 +161,22 @@ static EFFECT *getaiff(FILE *f, size_t pos, int len, int num)
     int size;
     int count;
 
-/*
-printf("start position: %d\n", pos);
-printf("length: %d\n", len);
-printf("num: %d\n", num);
-*/
-
     sample = new_effect(SFX_TYPE, num);
     if (sample == NULL || sample == 0)
 	return sample;
+
+    if (fseek(f, pos, SEEK_SET) != 0)
+       return NULL;
 
     count = 0;
     sample->buffer = malloc(sizeof(int) * len);
 
     while (count <= len) {
-	fread(sample->buffer, 1, 1, f);
+	fread(sample->buffer + count, 1, 1, f);
 	count++;
     }
 
-//ao_play(device, sample->buffer, len);
+    sample->buflen = count;
 
     return sample;
 }
@@ -188,7 +185,6 @@ static void startsample()
 {
     if (e_sfx == NULL) return;
     ao_play(device, e_sfx->buffer, e_sfx->buflen);
-    printf(" Boop\n");
 }
 
 static void stopsample()

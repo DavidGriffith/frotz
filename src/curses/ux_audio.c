@@ -26,8 +26,10 @@
 #include <curses.h>
 #endif
 
+#include <stdio.h>
 #include <string.h>
 #include <ao/ao.h>
+#include <sndfile.h>
 #include <math.h>
 
 #include "ux_frotz.h"
@@ -41,7 +43,7 @@ typedef struct EFFECT {
     int type;
     int active;
     int voice;
-    char *buffer;
+    int *buffer;
     int buflen;
     int repeats;
     int volume;
@@ -64,7 +66,7 @@ static EFFECT *getaiff(FILE *, size_t, int, int);
 static EFFECT *geteffect(int);
 static EFFECT *new_effect(int, int);
 
-
+/*
 int ux_initsound(void)
 {
     ao_sample_format format;
@@ -100,6 +102,7 @@ void ux_stopsound(void)
     ao_close(device);
     ao_shutdown();
 }
+*/
 
 static EFFECT *geteffect(int num)
 {
@@ -154,37 +157,77 @@ static EFFECT *new_effect(int type, int num)
 }
 
 
-static EFFECT *getaiff(FILE *f, size_t pos, int len, int num)
+static EFFECT *getaiff(FILE *fp, size_t pos, int len, int num)
 {
+    ao_device *device;
+    ao_sample_format format;
+    int default_driver;
+    SNDFILE     *sndfile;
+    SF_INFO     sf_info;
+
     EFFECT *sample;
     void *data;
     int size;
     int count;
 
+    int frames_read;
+
+    int *buffer;
+
+
     sample = new_effect(SFX_TYPE, num);
     if (sample == NULL || sample == 0)
 	return sample;
 
-    if (fseek(f, pos, SEEK_SET) != 0)
+    if (fseek(fp, pos, SEEK_SET) != 0)
        return NULL;
 
-    count = 0;
-    sample->buffer = malloc(sizeof(int) * len);
+    ao_initialize();
+    default_driver = ao_default_driver_id();
 
+    sf_info.format = 0;
+    sndfile = sf_open_fd(fileno(fp), SFM_READ, &sf_info, 1);
+
+    memset(&format, 0, sizeof(ao_sample_format));
+
+    format.byte_format = AO_FMT_NATIVE;
+    format.bits = 32;
+    format.channels = sf_info.channels;
+    format.rate = sf_info.samplerate;
+
+    device = ao_open_live(default_driver, &format, NULL /* no options */);
+    if (device == NULL) {
+        printf("Error opening sound device.\n");
+        exit(1);
+    }
+
+    buffer = malloc(sizeof(int) * sf_info.frames * sf_info.channels);
+
+    sf_read_int(sndfile, buffer, sf_info.frames);
+
+    ao_play(device, (char *)buffer, sf_info.frames * sizeof(int));
+    ao_close(device);
+    ao_shutdown();
+
+    sf_close(sndfile);
+
+/*
     while (count <= len) {
 	fread(sample->buffer + count, 1, 1, f);
 	count++;
     }
 
     sample->buflen = count;
-
+*/
     return sample;
 }
 
 static void startsample()
 {
+/*
     if (e_sfx == NULL) return;
     ao_play(device, e_sfx->buffer, e_sfx->buflen);
+*/
 }
 
 static void stopsample()
@@ -266,7 +309,7 @@ void os_start_sample (int number, int volume, int repeats, zword eos)
 {
     EFFECT *e;
 
-    if (!audiorunning) return;
+//    if (!audiorunning) return;
     e = geteffect(number);
     if (e == NULL) return;
 //    if (e->type == SFX_TYPE) stopsample();

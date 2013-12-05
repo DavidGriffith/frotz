@@ -543,7 +543,7 @@ FILE *os_load_story(void)
 	  break;
     }
 
-    ux_initsound();
+//    ux_initsound();
 //    os_start_sample(3, 8, 1, 0);
 //    exit(1);
 

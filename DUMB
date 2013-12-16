@@ -12,9 +12,7 @@ experience what it's like to play Adventure on a teletype.
 
 A much cooler use for compiling Frotz with the dumb interface is that it
 can be wrapped in CGI scripting, PHP, and the like to allow people to
-play games on webpages.  I don't know how this is done, so don't ask me
-how.  If you do know how, send me your code and documentation and I'll
-include it in the next release of Frotz.
+play games on webpages.  It can also be made into a chat bot.
 
 Games that move the write little windows of text over the main body of
 text are hard to read because with the dumb interface, Frotz doesn't
@@ -23,9 +21,6 @@ can be played, but you must manually increment the timer (see the dfrotz
 manpage).  Games that move the cursor around a lot are probably
 unplayable.  These include games like Andrew Plotkin's "Freefall" and
 Torbjorn Andersson's "Robots".
-
-Games that make move the cursor around or write inverse banners in the
-middle of the text are likely to
 
 The dumb interface code was created by Alembic Petrofsky
 <alembic@petrofsky.berkeley.ca.us> in 1997 for Frotz 2.32.

@@ -31,12 +31,6 @@ typedef struct {
     FILE *fp;
 } myresource;
 
-//bb_err_t	blorb_err;
-bb_map_t	*blorb_map;
-bb_result_t	blorb_res;
-
-FILE *blorb_fp;
-
 
 int sf_getresource( int num, int ispic, int method, myresource * res);
 void sf_freeresource( myresource *res);

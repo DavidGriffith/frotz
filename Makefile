@@ -193,7 +193,7 @@ CURSES_DEFS = $(OPT_DEFS) $(COLOR_DEFS) $(SOUND_DEFS) $(SOUNDCARD) \
 
 FLAGS = $(OPTS) $(CURSES_DEFS) $(INCL)
 
-SOUND_LIB = -lao -ldl -lm -lsndfile
+SOUND_LIB = -lao -ldl -lm -lsndfile -lvorbisfile -lmodplug
 
 $(NAME): $(NAME)-curses
 curses:  $(NAME)-curses

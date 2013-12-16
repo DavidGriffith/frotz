@@ -544,6 +544,8 @@ FILE *os_load_story(void)
     }
 
 //    ux_initsound();
+//    os_start_sample(5, 8, 1, 0);
+//    os_start_sample(4, 8, 1, 0);
 //    os_start_sample(3, 8, 1, 0);
 //    exit(1);
 

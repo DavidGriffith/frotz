@@ -7,6 +7,7 @@
 
 #include "../common/frotz.h"
 #include "../blorb/blorb.h"
+#include "../blorb/blorblow.h"
 #include "ux_setup.h"
 
 #define MASTER_CONFIG		"frotz.conf"
@@ -80,10 +81,10 @@ extern u_setup_t u_setup;
 
 
 /*** Blorb related stuff ***/
-bb_err_t	blorb_err;
-bb_map_t	*blorb_map;
-bb_result_t	blorb_res;
-
+extern bb_err_t		blorb_err;
+extern bb_map_t		*blorb_map;
+extern bb_result_t	blorb_res;
+extern FILE *blorb_fp;
 
 /*** Functions specific to the Unix port of Frotz ***/
 

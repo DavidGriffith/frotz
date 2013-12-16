@@ -41,6 +41,9 @@
 f_setup_t f_setup;
 u_setup_t u_setup;
 
+FILE *blorb_fp;
+bb_result_t blorb_res;
+bb_map_t *blorb_map;
 
 /*
  * isblorb

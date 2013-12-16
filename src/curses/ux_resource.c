@@ -6,6 +6,8 @@
 #include "ux_frotz.h"
 #include "ux_blorb.h"
 
+bb_map_t *blorb_map;
+
 /*
  * ux_getresource
  *

@@ -20,220 +20,38 @@
 
 #define __UNIX_PORT_FILE
 
+#include <stdio.h>
+#include <stdlib.h>
+#include <string.h>
+#include <unistd.h>
+#include <sys/wait.h>
+
 #ifdef USE_NCURSES_H
 #include <ncurses.h>
 #else
 #include <curses.h>
 #endif
 
-#include <stdio.h>
-#include <string.h>
 #include <ao/ao.h>
 #include <sndfile.h>
-#include <math.h>
+#include <vorbis/codec.h>
+#include <vorbis/vorbisfile.h>
+#include <libmodplug/modplug.h>
 
 #include "ux_frotz.h"
-#include "ux_blorb.h"
 
-enum {SFX_TYPE, MOD_TYPE};
+#define BUFFSIZE 4096
 
-typedef struct EFFECT {
-    void (*destroy)(struct EFFECT *);
-    int number;
-    int type;
-    int active;
-    int voice;
-    int *buffer;
-    int buflen;
-    int repeats;
-    int volume;
-    int ended;
-    zword eos;
-    ulong endtime;
-} EFFECT;
+static int playaiff(FILE *, bb_result_t, int, int);
+static int playmod(FILE *, bb_result_t, int, int);
+static int playogg(FILE *, bb_result_t, int, int);
 
-/* no effects cache */
+static int mypower(int, int);
+static char *getfiledata(FILE *, long *);
+static void sigchld_handler(int);
 
-static EFFECT *e_sfx = NULL;
-static EFFECT *e_mod = NULL;
-
-
-int audiorunning = 0;
-
-static ao_device *device;
-
-static EFFECT *getaiff(FILE *, size_t, int, int);
-static EFFECT *geteffect(int);
-static EFFECT *new_effect(int, int);
-
-/*
-int ux_initsound(void)
-{
-    ao_sample_format format;
-
-    int default_driver;
-
-    if (audiorunning) return 1;
-    if (!f_setup.sound) return 0;
-    audiorunning = 1;
-
-    ao_initialize();
-
-    default_driver = ao_default_driver_id();
-
-    memset(&format, 0, sizeof(format));
-
-    format.bits = 16;
-    format.channels = 2;
-    format.rate = 44100;
-    format.byte_format = AO_FMT_BIG;
-
-    device = ao_open_live(default_driver, &format, NULL);
-    if (device == NULL) {
-	printf("Error opening audio device.\n");
-	exit(1);
-    }
-    printf("Audio ready.\n");
-    return 1;
-}
-
-void ux_stopsound(void)
-{
-    ao_close(device);
-    ao_shutdown();
-}
-*/
-
-static EFFECT *geteffect(int num)
-{
-    myresource res;
-    EFFECT *result = NULL;
-    unsigned int id;
-
-    if ((e_sfx) && (e_sfx->number == num)) return e_sfx;
-    if ((e_mod) && (e_mod->number == num)) return e_mod;
-
-    if (ux_getresource(num,0,bb_method_FilePos,&res) != bb_err_None)
-	return NULL;
-
-    /* Look for a recognized format. */
-
-    id = res.type;
-
-    if (id == bb_make_id('F','O','R','M')) {
-	result = getaiff(res.fp, res.bbres.data.startpos, res.bbres.length, num);
-    }
-/*
-    else if (id == bb_make_id('M','O','D',' ') {
-	result = getmodule(res.file, res.bbres.data.startpos, res.bbres.length, num);
-    } else {
-	result = getogg(res.file, res.bbres.data.startpos, res.bbres.length, num);
-    }
-*/
-    ux_freeresource(&res);
-    return result;
-}
-
-
-static void baredestroy(EFFECT * r)
-{
-    if (r) {
-	if (r->buffer != NULL) free(r->buffer);
-	free(r);
-    }
-}
-
-
-static EFFECT *new_effect(int type, int num)
-{
-    EFFECT * reader = (EFFECT *)calloc(1, sizeof(EFFECT));
-
-    if (reader) {
-	reader->type = type;
-	reader->number = num;
- 	reader->destroy = baredestroy;
-    }
-    return (EFFECT *)reader;
-}
-
-
-static EFFECT *getaiff(FILE *fp, size_t pos, int len, int num)
-{
-    ao_device *device;
-    ao_sample_format format;
-    int default_driver;
-    SNDFILE     *sndfile;
-    SF_INFO     sf_info;
-
-    EFFECT *sample;
-    void *data;
-    int size;
-    int count;
-
-    int frames_read;
-
-    int *buffer;
-
-
-    sample = new_effect(SFX_TYPE, num);
-    if (sample == NULL || sample == 0)
-	return sample;
-
-    if (fseek(fp, pos, SEEK_SET) != 0)
-       return NULL;
-
-    ao_initialize();
-    default_driver = ao_default_driver_id();
-
-    sf_info.format = 0;
-    sndfile = sf_open_fd(fileno(fp), SFM_READ, &sf_info, 1);
-
-    memset(&format, 0, sizeof(ao_sample_format));
-
-    format.byte_format = AO_FMT_NATIVE;
-    format.bits = 32;
-    format.channels = sf_info.channels;
-    format.rate = sf_info.samplerate;
-
-    device = ao_open_live(default_driver, &format, NULL /* no options */);
-    if (device == NULL) {
-        printf("Error opening sound device.\n");
-        exit(1);
-    }
-
-    buffer = malloc(sizeof(int) * sf_info.frames * sf_info.channels);
-
-    sf_read_int(sndfile, buffer, sf_info.frames);
-
-    ao_play(device, (char *)buffer, sf_info.frames * sizeof(int));
-    ao_close(device);
-    ao_shutdown();
-
-    sf_close(sndfile);
-
-/*
-    while (count <= len) {
-	fread(sample->buffer + count, 1, 1, f);
-	count++;
-    }
-
-    sample->buflen = count;
-*/
-    return sample;
-}
-
-static void startsample()
-{
-/*
-    if (e_sfx == NULL) return;
-    ao_play(device, e_sfx->buffer, e_sfx->buflen);
-*/
-}
-
-static void stopsample()
-{
-    /* nothing yet */
-}
+static pid_t sfx_pid;
+static pid_t music_pid;
 
 /*
  * os_beep
@@ -245,37 +63,8 @@ static void stopsample()
 
 void os_beep (int number)
 {
-//    beep();
 
-    ao_sample_format format;
-    char *buffer;
-    int buf_size;
-    int sample;
-    float freq;
-    int i;
-
-    if (number == 1)
-	freq = 880.0;
-    else
-	freq = 440.0;
-
-    format.bits = 16;
-    format.channels = 2;
-    format.rate = 44100;
-    format.byte_format = AO_FMT_LITTLE;
-
-    buf_size = format.bits/8 * format.channels * format.rate;
-    buffer = calloc(buf_size, sizeof(char));
-
-    for (i = 0; i < format.rate; i++) {
-	sample = (int)(0.75 * 32768.0 *
-		sin(2 * M_PI * freq * ((float) i/format.rate)));
-
-	/* Put the same stuff in left and right channel */
-	buffer[4*i] = buffer[4*i+2] = sample & 0xff;
-	buffer[4*i+1] = buffer[4*i+3] = (sample >> 8) & 0xff;
-    }
-    ao_play(device, buffer, buf_size);
+    beep();
 
 }/* os_beep */
 
@@ -307,27 +96,17 @@ void os_prepare_sample (int number)
 
 void os_start_sample (int number, int volume, int repeats, zword eos)
 {
-    EFFECT *e;
+    bb_result_t resource;
 
-//    if (!audiorunning) return;
-    e = geteffect(number);
-    if (e == NULL) return;
-//    if (e->type == SFX_TYPE) stopsample();
-    stopsample();
-    if (repeats < 1) repeats = 1;
-    if (repeats == 255) repeats = -1;
-    if (volume < 0) volume = 0;
-    if (volume > 8) volume = 8;
-    if (e->type == SFX_TYPE && repeats > 0) repeats--;
-    e->repeats = repeats;
-    e->volume = 32*volume;
-    e->eos = eos;
-    e->ended = 0;
-    if (e->type == SFX_TYPE) {
-	if ((e_sfx) && (e_sfx != e)) e_sfx->destroy(e_sfx);
-	e_sfx = e;
-	startsample();
+
+    if (bb_err_None != bb_load_resource(blorb_map, bb_method_FilePos, &resource, bb_ID_Snd, number))
+	return;
+
+    if (blorb_map->chunks[resource.chunknum].type == bb_make_id('F','O','R','M')) {
+	playaiff(blorb_fp, resource, volume, repeats);
     }
+
+    return;
 }/* os_start_sample */
 
 /*
@@ -372,3 +151,321 @@ void os_wait_sample (void)
 
 }/* os_wait_sample */
 
+
+/**************************************************/
+
+static int mypower(int base, int exp) {
+    if (exp == 0)
+        return 1;
+    else if (exp % 2)
+        return base * mypower(base, exp - 1);
+    else {
+        int temp = mypower(base, exp / 2);
+        return temp * temp;
+    }
+}
+
+static void sigchld_handler(int signal) {
+    int status;
+    struct sigaction sa;
+    int dead_child;
+
+    dead_child = wait(&status);
+    if (dead_child == sfx_pid)
+	sfx_pid = 0;
+    else if (dead_child == music_pid)
+	music_pid = 0;
+
+    sa.sa_handler = SIG_IGN;
+    sigemptyset(&sa.sa_mask);
+    sa.sa_flags = 0;
+    sigaction(SIGCHLD, &sa, NULL);
+}
+
+/*
+ * This function should be able to play OGG chunks, but for some strange
+ * reason, libsndfile refuses to load them.  Libsndfile is capable of
+ * loading and playing OGGs when they're naked file.  I don't see what
+ * the big problem is.
+ *
+ */
+int playaiff(FILE *fp, bb_result_t result, int vol, int repeats)
+{
+    int default_driver;
+    int frames_read;
+    int count;
+    int toread;
+    int *buffer;
+    long filestart;
+
+    int volcount;
+    int volfactor;
+
+    ao_device *device;
+    ao_sample_format format;
+
+    SNDFILE     *sndfile;
+    SF_INFO     sf_info;
+
+    sigset_t sigchld_mask;
+    struct sigaction sa;
+
+    sfx_pid = fork();
+
+    if (sfx_pid < 0) {
+	perror("fork");
+	return 1;
+    }
+
+    if (sfx_pid > 0) {
+	sa.sa_handler = sigchld_handler;
+	sigemptyset(&sa.sa_mask);
+	sa.sa_flags = 0;
+	sigaction(SIGCHLD, &sa, NULL);
+	return 0;
+    }
+    sigprocmask(SIG_UNBLOCK, &sigchld_mask, NULL);
+
+    ao_initialize();
+    default_driver = ao_default_driver_id();
+
+    sf_info.format = 0;
+
+    filestart = ftell(fp);
+    lseek(fileno(fp), result.data.startpos, SEEK_SET);
+    sndfile = sf_open_fd(fileno(fp), SFM_READ, &sf_info, 0);
+    memset(&format, 0, sizeof(ao_sample_format));
+
+    format.byte_format = AO_FMT_NATIVE;
+    format.bits = 32;
+    format.channels = sf_info.channels;
+    format.rate = sf_info.samplerate;
+
+    device = ao_open_live(default_driver, &format, NULL /* no options */);
+    if (device == NULL) {
+//        printf("Error opening sound device.\n");
+        return 1;
+    }
+
+    if (vol < 1) vol = 1;
+    if (vol > 8) vol = 8;
+    volfactor = mypower(2, -vol + 8);
+
+    buffer = malloc(BUFFSIZE * sf_info.channels * sizeof(int));
+    frames_read = 0;
+    toread = sf_info.frames * sf_info.channels;
+
+    while (toread > 0) {
+	if (toread < BUFFSIZE * sf_info.channels)
+	    count = toread;
+	else
+	    count = BUFFSIZE * sf_info.channels;
+        frames_read = sf_read_int(sndfile, buffer, count);
+	for (volcount = 0; volcount <= frames_read; volcount++)
+	    buffer[volcount] /= volfactor;
+        ao_play(device, (char *)buffer, frames_read * sizeof(int));
+	toread = toread - frames_read;
+    }
+
+    free(buffer);
+    fseek(fp, filestart, SEEK_SET);
+    ao_close(device);
+    sf_close(sndfile);
+    ao_shutdown();
+
+    return 0;
+}
+
+
+static int playmod(FILE *fp, bb_result_t result, int vol, int repeats)
+{
+    unsigned char *buffer;
+    int modlen;
+
+    int default_driver;
+    ao_device *device;
+    ao_sample_format format;
+
+    char *filedata;
+    long size;
+    ModPlugFile *mod;
+    ModPlug_Settings settings;
+
+    long original_offset;
+
+    original_offset = ftell(fp);
+    fseek(fp, result.data.startpos, SEEK_SET);
+
+    ao_initialize();
+    default_driver = ao_default_driver_id();
+
+    ModPlug_GetSettings(&settings);
+
+    memset(&format, 0, sizeof(ao_sample_format));
+
+    format.byte_format = AO_FMT_NATIVE;
+    format.bits = 16;
+    format.channels = 2;
+    format.rate = 44100;
+
+    /* Note: All "Basic Settings" must be set before ModPlug_Load. */
+    settings.mResamplingMode = MODPLUG_RESAMPLE_FIR; /* RESAMP */
+    settings.mChannels = 2;
+    settings.mBits = 16;
+    settings.mFrequency = 44100;
+    settings.mStereoSeparation = 128;
+    settings.mMaxMixChannels = 256;
+
+    /* insert more setting changes here */
+    ModPlug_SetSettings(&settings);
+
+    /* remember to free() filedata later */
+    filedata = getfiledata(fp, &size);
+
+    mod = ModPlug_Load(filedata, size);
+    if (!mod) {
+	printf("Unable to load module\n");
+	free(filedata);
+	return 1;
+    }
+
+    device = ao_open_live(default_driver, &format, NULL /* no options */);
+    if (device == NULL) {
+        printf("Error opening sound device.\n");
+        return 1;
+    }
+
+    if (vol < 1) vol = 1;
+    if (vol > 8) vol = 8;
+
+    ModPlug_SetMasterVolume(mod, mypower(2, vol));
+
+    buffer = malloc(BUFFSIZE * sizeof(char));
+    modlen = 1;
+    while (modlen != 0) {
+	if (modlen == 0) break;
+	modlen = ModPlug_Read(mod, buffer, BUFFSIZE * sizeof(char));
+	if (modlen > 0 && ao_play(device, (char *) buffer, modlen * sizeof(char)) == 0) {
+	    perror("audio write");
+	    exit(1);
+	}
+    }
+    free(buffer);
+    ao_close(device);
+    ao_shutdown();
+
+    fseek(fp, original_offset, SEEK_SET);
+
+    printf("Finished\n");
+
+    return 0;
+}
+
+/*
+ * libmodplug requires the whole file to be pulled into memory.
+ * This function does that and then closes the file.
+ */
+static char *getfiledata(FILE *fp, long *size)
+{
+    char *data;
+    long offset;
+
+    offset = ftell(fp);
+    fseek(fp, 0L, SEEK_END);
+    (*size) = ftell(fp);
+    fseek(fp, offset, SEEK_SET);
+    data = (char*)malloc(*size);
+    fread(data, *size, sizeof(char), fp);
+    fseek(fp, offset, SEEK_SET);
+
+    return(data);
+}
+
+
+static int playogg(FILE *fp, bb_result_t result, int vol, int repeats)
+{
+    ogg_int64_t toread;
+    ogg_int64_t frames_read;
+    ogg_int64_t count;
+
+    vorbis_info *info;
+
+    OggVorbis_File vf;
+    int current_section;
+    void *buffer;
+
+    int default_driver;
+    ao_device *device;
+    ao_sample_format format;
+
+    int volcount;
+    int volfactor;
+
+    ao_initialize();
+    default_driver = ao_default_driver_id();
+
+    fseek(fp, result.data.startpos, SEEK_SET);
+
+    memset(&format, 0, sizeof(ao_sample_format));
+
+    if (ov_open_callbacks(fp, &vf, NULL, 0, OV_CALLBACKS_NOCLOSE) < 0) {
+	printf("Oops.\n");
+	exit(1);
+    }
+
+    info = ov_info(&vf, -1);
+
+    format.byte_format = AO_FMT_LITTLE;
+    format.bits = 16;
+    format.channels = info->channels;
+    format.rate = info->rate;
+
+    device = ao_open_live(default_driver, &format, NULL /* no options */);
+    if (device == NULL) {
+        printf("Error opening sound device.\n");
+	ov_clear(&vf);
+        return 1;
+    }
+
+    if (vol < 1) vol = 1;
+    if (vol > 8) vol = 8;
+    volfactor = mypower(2, -vol + 8);
+
+    buffer = malloc(BUFFSIZE * format.channels * sizeof(int16_t));
+
+    frames_read = 0;
+    toread = ov_pcm_total(&vf, -1) * 2 * format.channels;
+    count = 0;
+
+    while (count < toread) {
+	frames_read = ov_read(&vf, (char *)buffer, BUFFSIZE, 0,2,1,&current_section);
+	for (volcount = 0; volcount <= frames_read / 2; volcount++)
+	    ((int16_t *) buffer)[volcount] /= volfactor;
+	ao_play(device, (char *)buffer, frames_read * sizeof(char));
+	count += frames_read;
+    }
+
+    ao_close(device);
+    ao_shutdown();
+    ov_clear(&vf);
+
+    free(buffer);
+    printf("Finished\n");
+
+    return 0;
+}
+
+
+
+
+
+/* ----------------------------------------- */
+
+
+/*
+ * This function should be able to play OGG chunks, but for some strange
+ * reason, libsndfile refuses to load them.  Libsndfile is capable of
+ * loading and playing OGGs when they're naked file.  I don't see what
+ * the big problem is.
+ *
+ */

@@ -60,7 +60,6 @@ static pid_t music_pid;
  * or low-pitched (number == 2).
  *
  */
-
 void os_beep (int number)
 {
 
@@ -73,14 +72,16 @@ void os_beep (int number)
  *
  * Load the sample from the disk.
  *
+ * Actually it's more efficient these days to load and play a sound in
+ * the same operation.  This function therefore does nothing.
+ *
  */
 
 void os_prepare_sample (int number)
 {
-
-    /* Not implemented */
-
+    return;
 }/* os_prepare_sample */
+
 
 /*
  * os_start_sample
@@ -93,7 +94,6 @@ void os_prepare_sample (int number)
  * as the sound finishes.
  *
  */
-
 void os_start_sample (int number, int volume, int repeats, zword eos)
 {
     bb_result_t resource;
@@ -152,8 +152,19 @@ void os_wait_sample (void)
 }/* os_wait_sample */
 
 
-/**************************************************/
+/*
+ * These functions are internal to ux_audio.c
+ *
+ */
 
+
+/*
+ * mypower
+ *
+ * Just a simple recursive integer-based power function because I don't
+ * want to use the floating-point version from libm.
+ *
+ */
 static int mypower(int base, int exp) {
     if (exp == 0)
         return 1;
@@ -170,7 +181,9 @@ static void sigchld_handler(int signal) {
     struct sigaction sa;
     int dead_child;
 
-    dead_child = wait(&status);
+//    dead_child = wait(&status);
+    dead_child = waitpid(-1, &status, WNOHANG);
+
     if (dead_child == sfx_pid)
 	sfx_pid = 0;
     else if (dead_child == music_pid)
@@ -183,6 +196,13 @@ static void sigchld_handler(int signal) {
 }
 
 /*
+ * playaiff
+ *
+ * This function takes a file pointer to a Blorb file and a bb_result_t
+ * struct describing what chunk to play.  It's up to the caller to make
+ * sure that an AIFF chunk is to be played.  Volume and repeats are also
+ * handled here.
+ *
  * This function should be able to play OGG chunks, but for some strange
  * reason, libsndfile refuses to load them.  Libsndfile is capable of
  * loading and playing OGGs when they're naked file.  I don't see what
@@ -218,12 +238,14 @@ int playaiff(FILE *fp, bb_result_t result, int vol, int repeats)
     }
 
     if (sfx_pid > 0) {
+
 	sa.sa_handler = sigchld_handler;
 	sigemptyset(&sa.sa_mask);
 	sa.sa_flags = 0;
 	sigaction(SIGCHLD, &sa, NULL);
 	return 0;
     }
+
     sigprocmask(SIG_UNBLOCK, &sigchld_mask, NULL);
 
     ao_initialize();
@@ -243,7 +265,6 @@ int playaiff(FILE *fp, bb_result_t result, int vol, int repeats)
 
     device = ao_open_live(default_driver, &format, NULL /* no options */);
     if (device == NULL) {
-//        printf("Error opening sound device.\n");
         return 1;
     }
 
@@ -273,10 +294,19 @@ int playaiff(FILE *fp, bb_result_t result, int vol, int repeats)
     sf_close(sndfile);
     ao_shutdown();
 
-    return 0;
+    exit(0);
 }
 
 
+/*
+ * playmod
+ *
+ * This function takes a file pointer to a Blorb file and a bb_result_t
+ * struct describing what chunk to play.  It's up to the caller to make
+ * sure that a MOD chunk is to be played.  Volume and repeats are also
+ * handled here.
+ *
+ */
 static int playmod(FILE *fp, bb_result_t result, int vol, int repeats)
 {
     unsigned char *buffer;
@@ -324,14 +354,14 @@ static int playmod(FILE *fp, bb_result_t result, int vol, int repeats)
 
     mod = ModPlug_Load(filedata, size);
     if (!mod) {
-	printf("Unable to load module\n");
+//	printf("Unable to load module\n");
 	free(filedata);
 	return 1;
     }
 
     device = ao_open_live(default_driver, &format, NULL /* no options */);
     if (device == NULL) {
-        printf("Error opening sound device.\n");
+//        printf("Error opening sound device.\n");
         return 1;
     }
 
@@ -356,12 +386,12 @@ static int playmod(FILE *fp, bb_result_t result, int vol, int repeats)
 
     fseek(fp, original_offset, SEEK_SET);
 
-    printf("Finished\n");
-
-    return 0;
+    exit(0);
 }
 
 /*
+ * getfiledata
+ *
  * libmodplug requires the whole file to be pulled into memory.
  * This function does that and then closes the file.
  */
@@ -377,11 +407,23 @@ static char *getfiledata(FILE *fp, long *size)
     data = (char*)malloc(*size);
     fread(data, *size, sizeof(char), fp);
     fseek(fp, offset, SEEK_SET);
-
     return(data);
 }
 
 
+/*
+ * playogg
+ *
+ * This function takes a file pointer to a Blorb file and a bb_result_t
+ * struct describing what chunk to play.  It's up to the caller to make
+ * sure that an OGG chunk is to be played.  Volume and repeats are also
+ * handled here.
+ *
+ * This function invoked libvorbisfile directly rather than going
+ * through libsndfile.  The reason for this is that libsndfile refuses
+ * to load an OGG file that's embedded in a Blorb file.
+ *
+ */
 static int playogg(FILE *fp, bb_result_t result, int vol, int repeats)
 {
     ogg_int64_t toread;
@@ -409,7 +451,7 @@ static int playogg(FILE *fp, bb_result_t result, int vol, int repeats)
     memset(&format, 0, sizeof(ao_sample_format));
 
     if (ov_open_callbacks(fp, &vf, NULL, 0, OV_CALLBACKS_NOCLOSE) < 0) {
-	printf("Oops.\n");
+//	printf("Oops.\n");
 	exit(1);
     }
 
@@ -422,7 +464,7 @@ static int playogg(FILE *fp, bb_result_t result, int vol, int repeats)
 
     device = ao_open_live(default_driver, &format, NULL /* no options */);
     if (device == NULL) {
-        printf("Error opening sound device.\n");
+//        printf("Error opening sound device.\n");
 	ov_clear(&vf);
         return 1;
     }
@@ -450,22 +492,6 @@ static int playogg(FILE *fp, bb_result_t result, int vol, int repeats)
     ov_clear(&vf);
 
     free(buffer);
-    printf("Finished\n");
 
-    return 0;
+    exit(0);
 }
-
-
-
-
-
-/* ----------------------------------------- */
-
-
-/*
- * This function should be able to play OGG chunks, but for some strange
- * reason, libsndfile refuses to load them.  Libsndfile is capable of
- * loading and playing OGGs when they're naked file.  I don't see what
- * the big problem is.
- *
- */

@@ -1,6 +1,5 @@
 /*
  * ux_blorb.c - Blorb routines
- *	David Griffith <dave@661.org>
  *
  * This file is part of Frotz.
  *

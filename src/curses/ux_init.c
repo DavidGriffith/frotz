@@ -1,7 +1,5 @@
 /*
  * ux_init.c - Unix interface, initialisation
- *	Galen Hazelwood <galenh@micron.net>
- *	David Griffith <dgriffi@cs.csubak.edu>
  *
  * This file is part of Frotz.
  *
@@ -252,14 +250,9 @@ void os_process_arguments (int argc, char *argv[])
 
     if (optind != argc - 1) {
 	printf("FROTZ V%s\t", VERSION);
-#ifdef OSS_SOUND
-	printf("oss sound driver, ");
-#endif
 
-#ifdef USE_NCURSES
-	printf("ncurses interface.");
-#else
-	printf("curses interface.");
+#ifndef NO_SOUND
+	printf("Audio output enabled.");
 #endif
 	putchar('\n');
 
@@ -303,13 +296,6 @@ void os_process_arguments (int argc, char *argv[])
     f_setup.aux_name = malloc((strlen(f_setup.story_name) + strlen(EXT_AUX)) * sizeof(char) + 1);
     strncpy(f_setup.aux_name, f_setup.story_name, strlen(f_setup.story_name) + 1);
     strncat(f_setup.aux_name, EXT_AUX, strlen(EXT_AUX));
-
-/*
-    printf("f_setup.story_file %s\n", f_setup.story_file);
-    printf("f_setup.story_name %s\n", f_setup.story_name);
-    printf("f_setup.story_path %s\n", f_setup.story_path);
-*/
-
 
 }/* os_process_arguments */
 
@@ -539,17 +525,9 @@ FILE *os_load_story(void)
 	  printf("Blorb file loaded, but lacks executable chunk.\n\n");
 	  break;
 	case bb_err_None:
-	  printf("No blorb errors.\n\n");
+//	  printf("No blorb errors.\n\n");
 	  break;
     }
-
-//    ux_initsound();
-//    os_start_sample(5, 8, 1, 0);
-//    os_start_sample(4, 8, 1, 0);
-//    os_start_sample(3, 8, 1, 0);
-//    exit(1);
-
-    printf("Loading %s\n", f_setup.story_file);
 
     fp = fopen(f_setup.story_file, "rb");
 

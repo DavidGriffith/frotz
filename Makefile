@@ -6,9 +6,10 @@ CC = gcc
 # Define your optimization flags.
 #
 # These are good for regular use.
-OPTS = -O2 -fomit-frame-pointer -falign-functions=2 -falign-loops=2 -falign-jumps=2
+#OPTS = -O2 -fomit-frame-pointer -falign-functions=2 -falign-loops=2 -falign-jumps=2
 # These are handy for debugging.
-#OPTS = -O2 -g -Wall
+OPTS = -O2 -g -Wall
+
 
 # Define where you want Frotz installed (typically /usr/local).
 #
@@ -105,8 +106,8 @@ CURSES_OBJECT = $(CURSES_DIR)/ux_init.o \
 		$(CURSES_DIR)/ux_text.o \
 		$(CURSES_DIR)/ux_blorb.o \
 		$(CURSES_DIR)/ux_audio.o \
-		$(CURSES_DIR)/ux_resource.o
-#		$(CURSES_DIR)/ux_audio_none.o \
+		$(CURSES_DIR)/ux_resource.o \
+		$(CURSES_DIR)/ux_audio_none.o
 
 DUMB_DIR = $(SRCDIR)/dumb
 DUMB_TARGET = $(SRCDIR)/frotz_dumb.a
@@ -127,11 +128,13 @@ TARGETS = $(COMMON_TARGET) $(CURSES_TARGET) $(BLORB_TARGET)
 OPT_DEFS = -DCONFIG_DIR="\"$(CONFIG_DIR)\"" $(CURSES_DEF) \
 	-DVERSION="\"$(VERSION)\""
 
-CURSES_DEFS = $(OPT_DEFS) $(COLOR_DEFS) $(SOUND_DEF) $(MEMMOVE_DEF)
+CURSES_DEFS = $(OPT_DEFS) $(COLOR_DEFS) $(NO_SOUND) $(MEMMOVE_DEF)
 
 FLAGS = $(OPTS) $(CURSES_DEFS) $(INCL)
 
-SOUND_LIB = -lao -ldl -lm -lsndfile -lvorbisfile -lmodplug
+ifeq ($(NO_SOUND), )
+	SOUND_LIB = -lao -ldl -lm -lsndfile -lvorbisfile -lmodplug
+endif
 
 
 $(NAME): $(NAME)-curses

@@ -1,5 +1,5 @@
 /*
- * ux_audio_none.c - Unix interface, sound support
+ * ux_audio.c - Unix interface, sound support
  *
  * This file is part of Frotz.
  *
@@ -19,6 +19,8 @@
  */
 
 #define __UNIX_PORT_FILE
+
+#ifndef NO_SOUND
 
 #include <stdio.h>
 #include <stdlib.h>
@@ -181,8 +183,7 @@ static void sigchld_handler(int signal) {
     struct sigaction sa;
     int dead_child;
 
-//    dead_child = wait(&status);
-    dead_child = waitpid(-1, &status, WNOHANG);
+    dead_child = wait(&status);
 
     if (dead_child == sfx_pid)
 	sfx_pid = 0;
@@ -495,3 +496,5 @@ static int playogg(FILE *fp, bb_result_t result, int vol, int repeats)
 
     exit(0);
 }
+
+#endif /* NO_SOUND */

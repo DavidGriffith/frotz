@@ -59,10 +59,6 @@
 #define	PATH1		"ZCODE_PATH"
 #define PATH2		"INFOCOM_PATH"
 
-#define NO_SOUND
-#ifdef OSS_SOUND
-# undef NO_SOUND
-#endif
 
 /* Some regular curses (not ncurses) libraries don't do this correctly. */
 #ifndef getmaxyx

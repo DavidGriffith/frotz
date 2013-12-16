@@ -1,3 +1,27 @@
+Summary of changes between Unix Frotz 2.43 and Unix Frotz 2.44:
+===============================================================
+
+Unix Frotz 2.43 was released on (date)
+
+NEW FEATURES
+
+- Game files can be loaded from Blorb files.
+
+- Sound effects are now loaded from Blorb files.
+
+- Sound effects in AIFF, MOD, and OGG formats supported per the Blorb specs.
+
+- DOS Frotz now distributed in the same source file as Unix Frotz.
+
+ENHANCEMENTS
+
+- Sound driver selection is automated through the use of libao.
+
+- Makefile cleaned up.
+
+- Documentation updated.
+
+
 Summary of changes between Unix Frotz 2.42 and Unix Frotz 2.43:
 ===============================================================
 

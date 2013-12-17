@@ -31,9 +31,6 @@
 #include <signal.h>
 #include <libgen.h>
 
-/* We will use our own private getopt functions. */
-//#include "getopt.h"
-
 #ifdef USE_NCURSES_H
 #include <ncurses.h>
 #else
@@ -230,8 +227,6 @@ void os_process_arguments (int argc, char *argv[])
 			(u_setup.foreground_color > 9))
 			u_setup.foreground_color = -1;
 		    break;
-
-
 	  case 'F': u_setup.force_color = 1;
 		    u_setup.disable_color = 0;
 		    break;
@@ -260,7 +255,7 @@ void os_process_arguments (int argc, char *argv[])
 
     } while (c != EOF);
 
-    if (optind != argc - 1) {
+    if (zoptind != argc - 1) {
 	printf("FROTZ V%s\t", VERSION);
 
 #ifndef NO_SOUND
@@ -284,14 +279,14 @@ void os_process_arguments (int argc, char *argv[])
 
     /* Save the story file name */
 
-    f_setup.story_file = strdup(argv[optind]);
-    f_setup.story_name = strdup(basename(argv[optind]));
+    f_setup.story_file = strdup(argv[zoptind]);
+    f_setup.story_name = strdup(basename(argv[zoptind]));
 
     /* Now strip off the extension. */
     p = rindex(f_setup.story_name, '.');
     *p = 0;
 
-    f_setup.story_path = strdup(dirname(argv[optind]));
+    f_setup.story_path = strdup(dirname(argv[zoptind]));
 
     f_setup.script_name = malloc((strlen(f_setup.story_name) + strlen(EXT_SCRIPT)) * sizeof(char) + 1);
     strncpy(f_setup.script_name, f_setup.story_name, strlen(f_setup.story_name) + 1);

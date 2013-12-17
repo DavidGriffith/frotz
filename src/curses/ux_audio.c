@@ -100,6 +100,7 @@ void os_start_sample (int number, int volume, int repeats, zword eos)
 {
     bb_result_t resource;
 
+    if (blorb_map == NULL) return;
 
     if (bb_err_None != bb_load_resource(blorb_map, bb_method_FilePos, &resource, bb_ID_Snd, number))
 	return;

@@ -10,7 +10,6 @@ CC = gcc
 # These are handy for debugging.
 OPTS = -O2 -g -Wall
 
-
 # Define where you want Frotz installed (typically /usr/local).
 #
 PREFIX = /usr/local
@@ -116,9 +115,6 @@ DUMB_OBJECT =	$(DUMB_DIR)/dumb_init.o \
 		$(DUMB_DIR)/dumb_output.o \
 		$(DUMB_DIR)/dumb_pic.o
 
-
-# Blorb file handling
-#
 BLORB_DIR = $(SRCDIR)/blorb
 BLORB_TARGET =  $(SRCDIR)/blorblib.a
 BLORB_OBJECT =  $(BLORB_DIR)/blorblib.o

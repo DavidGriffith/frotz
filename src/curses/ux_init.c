@@ -32,7 +32,7 @@
 #include <libgen.h>
 
 /* We will use our own private getopt functions. */
-#include "getopt.h"
+//#include "getopt.h"
 
 #ifdef USE_NCURSES_H
 #include <ncurses.h>
@@ -72,6 +72,18 @@ Syntax: frotz [options] story-file\n\
 char stripped_story_name[FILENAME_MAX+1];
 char semi_stripped_story_name[FILENAME_MAX+1];
 */
+
+static int zgetopt (int, char **, const char *);
+static int zoptind = 1;
+static int zoptopt = 0;
+static char *zoptarg = NULL;
+
+static int	getconfig(char *);
+static int	getbool(char *);
+static int	getcolor(char *);
+static int	geterrmode(char *);
+static void	redraw(void);
+static FILE	*pathopen(const char *, const char *, const char *, char *);
 
 /*
  * os_fatal
@@ -196,22 +208,22 @@ void os_process_arguments (int argc, char *argv[])
     /* Parse the options */
 
     do {
-	c = getopt(argc, argv, "aAb:c:def:Fh:il:oOpPQqr:s:S:tu:w:xZ:");
+	c = zgetopt(argc, argv, "aAb:c:def:Fh:il:oOpPQqr:s:S:tu:w:xZ:");
 	switch(c) {
 	  case 'a': f_setup.attribute_assignment = 1; break;
 	  case 'A': f_setup.attribute_testing = 1; break;
 
-	  case 'b': u_setup.background_color = atoi(optarg);
+	  case 'b': u_setup.background_color = atoi(zoptarg);
 		u_setup.force_color = 1;
 		u_setup.disable_color = 0;
 		if ((u_setup.background_color < 2) ||
 		    (u_setup.background_color > 9))
 		  u_setup.background_color = -1;
 		break;
-	  case 'c': f_setup.context_lines = atoi(optarg); break;
+	  case 'c': f_setup.context_lines = atoi(zoptarg); break;
 	  case 'd': u_setup.disable_color = 1; break;
 	  case 'e': f_setup.sound = 1; break;
-	  case 'f': u_setup.foreground_color = getcolor(optarg);
+	  case 'f': u_setup.foreground_color = getcolor(zoptarg);
 		    u_setup.force_color = 1;
 		    u_setup.disable_color = 0;
 	            if ((u_setup.foreground_color < 2) ||
@@ -223,23 +235,23 @@ void os_process_arguments (int argc, char *argv[])
 	  case 'F': u_setup.force_color = 1;
 		    u_setup.disable_color = 0;
 		    break;
-          case 'h': u_setup.screen_height = atoi(optarg); break;
+          case 'h': u_setup.screen_height = atoi(zoptarg); break;
 	  case 'i': f_setup.ignore_errors = 1; break;
-	  case 'l': f_setup.left_margin = atoi(optarg); break;
+	  case 'l': f_setup.left_margin = atoi(zoptarg); break;
 	  case 'o': f_setup.object_movement = 1; break;
 	  case 'O': f_setup.object_locating = 1; break;
 	  case 'p': u_setup.plain_ascii = 1; break;
 	  case 'P': f_setup.piracy = 1; break;
 	  case 'q': f_setup.sound = 0; break;
 	  case 'Q': f_setup.save_quetzal = 0; break;
-	  case 'r': f_setup.right_margin = atoi(optarg); break;
-	  case 's': u_setup.random_seed = atoi(optarg); break;
-	  case 'S': f_setup.script_cols = atoi(optarg); break;
+	  case 'r': f_setup.right_margin = atoi(zoptarg); break;
+	  case 's': u_setup.random_seed = atoi(zoptarg); break;
+	  case 'S': f_setup.script_cols = atoi(zoptarg); break;
 	  case 't': u_setup.tandy_bit = 1; break;
-	  case 'u': f_setup.undo_slots = atoi(optarg); break;
-	  case 'w': u_setup.screen_width = atoi(optarg); break;
+	  case 'u': f_setup.undo_slots = atoi(zoptarg); break;
+	  case 'w': u_setup.screen_width = atoi(zoptarg); break;
 	  case 'x': f_setup.expand_abbreviations = 1; break;
-	  case 'Z': f_setup.err_report_mode = atoi(optarg);
+	  case 'Z': f_setup.err_report_mode = atoi(zoptarg);
 		    if ((f_setup.err_report_mode < ERR_REPORT_NEVER) ||
 			(f_setup.err_report_mode > ERR_REPORT_FATAL))
 		      f_setup.err_report_mode = ERR_DEFAULT_REPORT_MODE;
@@ -548,7 +560,7 @@ FILE *os_load_story(void)
  *
  */
 
-FILE *pathopen(const char *name, const char *p, const char *mode, char *fullname)
+static FILE *pathopen(const char *name, const char *p, const char *mode, char *fullname)
 {
 	FILE *fp;
 	char buf[FILENAME_MAX + 1];
@@ -588,7 +600,7 @@ FILE *pathopen(const char *name, const char *p, const char *mode, char *fullname
  * compile targets to have those two tools installed.
  *
  */
-int getconfig(char *configfile)
+static int getconfig(char *configfile)
 {
 	FILE	*fp;
 
@@ -740,7 +752,7 @@ int getconfig(char *configfile)
  * Otherwise return FALSE.
  *
  */
-int getbool(char *value)
+static int getbool(char *value)
 {
 	int num;
 
@@ -768,7 +780,7 @@ int getbool(char *value)
  * corresponding to the color macros defined in frotz.h.
  *
  */
-int getcolor(char *value)
+static int getcolor(char *value)
 {
 	int num;
 
@@ -814,7 +826,7 @@ int getcolor(char *value)
  * defined in ux_frotz.h related to the error reporting mode.
  *
  */
-int geterrmode(char *value)
+static int geterrmode(char *value)
 {
 	int num;
 
@@ -921,4 +933,40 @@ void os_init_setup(void)
 	u_setup.color_enabled = FALSE;
 
 }
+
+/* A unix-like getopt, but with the names changed to avoid any problems.  
+*/
+static int zgetopt (int argc, char *argv[], const char *options)
+{
+    static int pos = 1;
+    const char *p;
+    if (zoptind >= argc || argv[zoptind][0] != '-' || argv[zoptind][1] == 0)
+	return EOF;
+    zoptopt = argv[zoptind][pos++];
+    zoptarg = NULL;
+    if (argv[zoptind][pos] == 0) {
+	pos = 1;
+	zoptind++;
+    }
+    p = strchr (options, zoptopt);
+    if (zoptopt == ':' || p == NULL) {
+	fputs ("illegal option -- ", stderr);
+	goto error;
+    } else if (p[1] == ':') {
+	if (zoptind >= argc) {
+	    fputs ("option requires an argument -- ", stderr);
+	    goto error;
+	} else {
+	    zoptarg = argv[zoptind];
+	    if (pos != 1)
+		zoptarg += pos;
+	    pos = 1; zoptind++;
+	}
+    }
+    return zoptopt;
+error:
+    fputc (zoptopt, stderr);
+    fputc ('\n', stderr);
+    return '?';
+}/* zgetopt */
 

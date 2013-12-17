@@ -44,32 +44,14 @@ FILE *blorb_fp;
 bb_result_t blorb_res;
 bb_map_t *blorb_map;
 
-/*
- * isblorb
- *
- * Returns 1 if this file is a Blorb file, 0 if not.
- *
- * FIXME Is there a potential endian problem here?
- */
-static int isblorb(FILE *fp)
-{
-    char mybuf[4];
+/* uint32 *findchunk(uint32 *data, char *chunkID, int length); */
+static char *findchunk(char *pstart, char *fourcc, int n);
+static unsigned short ReadShort(const unsigned char *bytes);
+static unsigned long ReadLong(const unsigned char *bytes);
+static double ReadExtended(const unsigned char *bytes);
+static int isblorb(FILE *);
 
-    if (fp == NULL)
-	return 0;
-
-    fread(mybuf, 1, 4, fp);
-    if (strncmp(mybuf, "FORM", 4))
-	return 0;
-
-    fseek(fp, 4, SEEK_CUR);
-    fread(mybuf, 1, 4, fp);
-
-    if (strncmp(mybuf, "IFRS", 4))
-	return 0;
-
-    return 1;
-}
+#define UnsignedToFloat(u) (((double)((long)(u - 2147483647L - 1))) + 2147483648.0)
 
 
 /*
@@ -93,10 +75,7 @@ bb_err_t ux_blorb_init(char *filename)
 
     bb_err_t blorb_err;
 
-/*
     blorb_map = NULL;
-    blorb_res = NULL;
-*/
 
     if ((fp = fopen(filename, "rb")) == NULL)
 	return bb_err_Read;
@@ -174,7 +153,36 @@ void ux_stop_blorb(void)
     blorb_fp = NULL;
 }
 
-char *findchunk(char *data, char *string, int length)
+
+
+/*
+ * isblorb
+ *
+ * Returns 1 if this file is a Blorb file, 0 if not.
+ *
+ * FIXME Is there a potential endian problem here?
+ */
+static int isblorb(FILE *fp)
+{
+    char mybuf[4];
+
+    if (fp == NULL)
+	return 0;
+
+    fread(mybuf, 1, 4, fp);
+    if (strncmp(mybuf, "FORM", 4))
+	return 0;
+
+    fseek(fp, 4, SEEK_CUR);
+    fread(mybuf, 1, 4, fp);
+
+    if (strncmp(mybuf, "IFRS", 4))
+	return 0;
+
+    return 1;
+}
+
+static char *findchunk(char *data, char *string, int length)
 {
     char *mydata = data+12;
     while (TRUE) {
@@ -188,7 +196,7 @@ char *findchunk(char *data, char *string, int length)
 }
 
 
-unsigned short ReadShort(const unsigned char *bytes)
+static unsigned short ReadShort(const unsigned char *bytes)
 {
     return (unsigned short)(
 	((unsigned short)(bytes[0] & 0xFF) << 8) |
@@ -196,7 +204,7 @@ unsigned short ReadShort(const unsigned char *bytes)
 }
 
 
-unsigned long ReadLong(const unsigned char *bytes)
+static unsigned long ReadLong(const unsigned char *bytes)
 {
     return (unsigned long)(
 	((unsigned long)(bytes[0] & 0xFF) << 24) |
@@ -206,7 +214,7 @@ unsigned long ReadLong(const unsigned char *bytes)
 }
 
 
-double ReadExtended(const unsigned char *bytes)
+static double ReadExtended(const unsigned char *bytes)
 {
     double f;
     int expon;

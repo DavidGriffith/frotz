@@ -107,6 +107,12 @@ void os_start_sample (int number, int volume, int repeats, zword eos)
 
     if (blorb_map->chunks[resource.chunknum].type == bb_make_id('F','O','R','M')) {
 	playaiff(blorb_fp, resource, volume, repeats);
+    } else if (blorb_map->chunks[resource.chunknum].type == bb_make_id('M','O','D',' ')) {
+	playmod(blorb_fp, resource, volume, repeats);
+    } else if (blorb_map->chunks[resource.chunknum].type == bb_make_id('O','G','G','V')) {
+	playogg(blorb_fp, resource, volume, repeats);
+    } else {
+	/* Something else was in there.  Ignore it. */
     }
 
     return;
@@ -325,6 +331,25 @@ static int playmod(FILE *fp, bb_result_t result, int vol, int repeats)
 
     long original_offset;
 
+    sigset_t sigchld_mask;
+    struct sigaction sa;
+
+    music_pid = fork();
+    if (music_pid < 0) {
+	perror("fork");
+	return 1;
+    }
+
+    if (music_pid > 0) {
+	sa.sa_handler = sigchld_handler;
+	sigemptyset(&sa.sa_mask);
+	sa.sa_flags = 0;
+	sigaction(SIGCHLD, &sa, NULL);
+	return 0;
+    }
+
+    sigprocmask(SIG_UNBLOCK, &sigchld_mask, NULL);
+
     original_offset = ftell(fp);
     fseek(fp, result.data.startpos, SEEK_SET);
 
@@ -444,6 +469,26 @@ static int playogg(FILE *fp, bb_result_t result, int vol, int repeats)
 
     int volcount;
     int volfactor;
+
+    sigset_t sigchld_mask;
+    struct sigaction sa;
+
+    music_pid = fork();
+    if (music_pid < 0) {
+	perror("fork");
+	return 1;
+    }
+
+    if (music_pid > 0) {
+	sa.sa_handler = sigchld_handler;
+	sigemptyset(&sa.sa_mask);
+	sa.sa_flags = 0;
+	sigaction(SIGCHLD, &sa, NULL);
+	return 0;
+    }
+
+    sigprocmask(SIG_UNBLOCK, &sigchld_mask, NULL);
+
 
     ao_initialize();
     default_driver = ao_default_driver_id();

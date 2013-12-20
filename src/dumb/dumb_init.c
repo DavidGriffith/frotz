@@ -123,6 +123,7 @@ void os_process_arguments(int argc, char *argv[])
     if (zoptind < argc)
 	graphics_filename = argv[zoptind++];
 
+    f_setup.save_name = malloc(FILENAME_MAX);
 }
 
 void os_init_screen(void)

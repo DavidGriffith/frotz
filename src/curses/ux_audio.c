@@ -127,9 +127,28 @@ void os_start_sample (int number, int volume, int repeats, zword eos)
 
 void os_stop_sample (int number)
 {
+    sigset_t sigchld_mask;
+    struct sigaction sa;
+    int status;
 
-    /* Not implemented */
+    bb_result_t resource;
 
+    if (blorb_map == NULL) return;
+    if (bb_err_None != bb_load_resource(blorb_map, bb_method_FilePos, &resource, bb_ID_Snd, number))
+        return;
+
+    if (blorb_map->chunks[resource.chunknum].type == bb_make_id('F','O','R','M')) {
+//	if (sfx_pid > 0) kill(sfx_pid, SIGTERM);
+	if (music_pid > 0) kill(music_pid, SIGTERM);
+    } else if (blorb_map->chunks[resource.chunknum].type == bb_make_id('M','O','D',' ')) {
+	if (music_pid > 0) kill(music_pid, SIGTERM);
+    } else if (blorb_map->chunks[resource.chunknum].type == bb_make_id('O','G','G','V')) {
+	if (music_pid > 0) kill(music_pid, SIGTERM);
+    } else {
+	/* Something else was in there.  Ignore it. */
+    }
+
+    return;
 }/* os_stop_sample */
 
 /*
@@ -139,10 +158,9 @@ void os_stop_sample (int number)
  *
  */
 
-void os_finish_with_sample (number)
+void os_finish_with_sample (int number)
 {
-
-    /* Not implemented */
+    os_stop_sample(number);
 
 }/* os_finish_with_sample */
 
@@ -238,15 +256,25 @@ int playaiff(FILE *fp, bb_result_t result, int vol, int repeats)
     sigset_t sigchld_mask;
     struct sigaction sa;
 
-    sfx_pid = fork();
+/* FIXME
+ * I need to figure out a way to allow music (mods and oggs) to continue
+ * playing when a sound effect is played.  Currently this causes Problems.
+ */
+    if (music_pid > 0) {
+	kill(music_pid, SIGTERM);
+    }
 
-    if (sfx_pid < 0) {
+//    sfx_pid = fork();
+    music_pid = fork();
+
+//    if (sfx_pid < 0) {
+    if (music_pid < 0) {
 	perror("fork");
 	return 1;
     }
 
-    if (sfx_pid > 0) {
-
+//    if (sfx_pid > 0) {
+    if (music_pid > 0) {
 	sa.sa_handler = sigchld_handler;
 	sigemptyset(&sa.sa_mask);
 	sa.sa_flags = 0;
@@ -333,6 +361,10 @@ static int playmod(FILE *fp, bb_result_t result, int vol, int repeats)
 
     sigset_t sigchld_mask;
     struct sigaction sa;
+
+    if (music_pid > 0) {
+	kill(music_pid, SIGTERM);
+    }
 
     music_pid = fork();
     if (music_pid < 0) {
@@ -472,6 +504,10 @@ static int playogg(FILE *fp, bb_result_t result, int vol, int repeats)
 
     sigset_t sigchld_mask;
     struct sigaction sa;
+
+    if (music_pid > 0) {
+	kill(music_pid, SIGTERM);
+    }
 
     music_pid = fork();
     if (music_pid < 0) {

@@ -1,3 +1,6 @@
+Redo how the core and interfaces use the f_setup structure.  Failure to 
+do this properly led to a segfault when dumb frotz saves a game.
+
 Rework os_process_arguments() in src/curses/ux_init.c to make Frotz more
 convenient to use as a BBS door or MUD module.
 
@@ -25,14 +28,6 @@ More sensible handling of saves, transcripts, and game files.
 Curses menu to select desired game.  Current working code heavily
 borrowed from Alan Shutko's <ats@hubert.wustl.edu> "int-fiction"
 frontend program.
-
-Blorb gamefile support.  Done for curses.  Still working on DOS.
-
-Blorb sound support on all platforms.  Full support will probably
-require a sound driver which can accept multiple inputs simultanously
-(such as esound or ALSA).
-
-Some sort of automatic endian-detection for the blorb code.
 
 An X11 graphical interface using GTK widgets (thus allowing V6 full support).
 

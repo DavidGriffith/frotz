@@ -189,10 +189,10 @@ void z_sound_effect (void)
 	    start_sample (number, lo (volume), hi (volume), (zargc == 4) ? zargs[3] : 0);
 	    break;
 	case EFFECT_STOP:
-	    os_stop_sample ();
+	    os_stop_sample (number);
 	    break;
 	case EFFECT_FINISH_WITH:
-	    os_finish_with_sample ();
+	    os_finish_with_sample (number);
 	    break;
 
 	}

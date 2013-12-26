@@ -26,7 +26,9 @@
 #include <stdlib.h>
 #include <string.h>
 #include <unistd.h>
+#include <fcntl.h>
 #include <sys/wait.h>
+#include <poll.h>
 
 #ifdef USE_NCURSES_H
 #include <ncurses.h>
@@ -45,6 +47,7 @@
 #define BUFFSIZE 4096
 
 static int playaiff(FILE *, bb_result_t, int, int);
+static int playaiff_pipe(FILE *, bb_result_t, int, int);
 static int playmod(FILE *, bb_result_t, int, int);
 static int playogg(FILE *, bb_result_t, int, int);
 
@@ -54,6 +57,8 @@ static void sigchld_handler(int);
 
 static pid_t sfx_pid;
 static pid_t music_pid;
+
+static int pipefd[2];
 
 /*
  * os_beep
@@ -106,7 +111,10 @@ void os_start_sample (int number, int volume, int repeats, zword eos)
 	return;
 
     if (blorb_map->chunks[resource.chunknum].type == bb_make_id('F','O','R','M')) {
-	playaiff(blorb_fp, resource, volume, repeats);
+	if (music_pid == 0)
+	    playaiff(blorb_fp, resource, volume, repeats);
+	else
+	    playaiff_pipe(blorb_fp, resource, volume, repeats);
     } else if (blorb_map->chunks[resource.chunknum].type == bb_make_id('M','O','D',' ')) {
 	playmod(blorb_fp, resource, volume, repeats);
     } else if (blorb_map->chunks[resource.chunknum].type == bb_make_id('O','G','G','V')) {
@@ -138,8 +146,7 @@ void os_stop_sample (int number)
         return;
 
     if (blorb_map->chunks[resource.chunknum].type == bb_make_id('F','O','R','M')) {
-//	if (sfx_pid > 0) kill(sfx_pid, SIGTERM);
-	if (music_pid > 0) kill(music_pid, SIGTERM);
+	if (sfx_pid > 0) kill(sfx_pid, SIGTERM);
     } else if (blorb_map->chunks[resource.chunknum].type == bb_make_id('M','O','D',' ')) {
 	if (music_pid > 0) kill(music_pid, SIGTERM);
     } else if (blorb_map->chunks[resource.chunknum].type == bb_make_id('O','G','G','V')) {
@@ -210,10 +217,14 @@ static void sigchld_handler(int signal) {
 
     dead_child = wait(&status);
 
-    if (dead_child == sfx_pid)
+    if (dead_child == sfx_pid) {
 	sfx_pid = 0;
-    else if (dead_child == music_pid)
+	printf(" collected sfx\n");
+    }
+    else if (dead_child == music_pid) {
 	music_pid = 0;
+	printf(" collected music\n");
+    }
 
     sa.sa_handler = SIG_IGN;
     sigemptyset(&sa.sa_mask);
@@ -256,25 +267,19 @@ int playaiff(FILE *fp, bb_result_t result, int vol, int repeats)
     sigset_t sigchld_mask;
     struct sigaction sa;
 
-/* FIXME
- * I need to figure out a way to allow music (mods and oggs) to continue
- * playing when a sound effect is played.  Currently this causes Problems.
- */
-    if (music_pid > 0) {
-	kill(music_pid, SIGTERM);
+    if (sfx_pid > 0) {
+	kill(sfx_pid, SIGTERM);
     }
 
-//    sfx_pid = fork();
-    music_pid = fork();
+    sfx_pid = fork();
 
-//    if (sfx_pid < 0) {
-    if (music_pid < 0) {
+    if (sfx_pid < 0) {
 	perror("fork");
 	return 1;
     }
 
-//    if (sfx_pid > 0) {
-    if (music_pid > 0) {
+    if (sfx_pid > 0) {
+//	printf(" sfx_pid: %d\n", sfx_pid);
 	sa.sa_handler = sigchld_handler;
 	sigemptyset(&sa.sa_mask);
 	sa.sa_flags = 0;
@@ -334,6 +339,102 @@ int playaiff(FILE *fp, bb_result_t result, int vol, int repeats)
 }
 
 
+
+/*
+ * playaiff_pipe
+ *
+ * If playmod() or playogg() is playing something, this function is used
+ * to send decoded audio data through a pipe to those functions to be mixed.
+ *
+ */
+
+int playaiff_pipe(FILE *fp, bb_result_t result, int vol, int repeats)
+{
+    int default_driver;
+    int frames_read;
+    int count;
+    int toread;
+    int *buffer;
+    long filestart;
+
+    int volcount;
+    int volfactor;
+
+    ao_device *device;
+    ao_sample_format format;
+
+    SNDFILE     *sndfile;
+    SF_INFO     sf_info;
+
+    sigset_t sigchld_mask;
+    struct sigaction sa;
+
+    struct pollfd fdinfo[1];
+    int poll_ret;
+
+    if (sfx_pid > 0) {
+	kill(sfx_pid, SIGTERM);
+    }
+
+    sfx_pid = fork();
+
+    if (sfx_pid < 0) {
+	perror("fork");
+	return 1;
+    }
+
+    if (sfx_pid > 0) {
+//	printf(" sfx_pid (pipe): %d\n", sfx_pid);
+	sa.sa_handler = sigchld_handler;
+	sigemptyset(&sa.sa_mask);
+	sa.sa_flags = 0;
+	sigaction(SIGCHLD, &sa, NULL);
+	return 0;
+    }
+
+    sigprocmask(SIG_UNBLOCK, &sigchld_mask, NULL);
+
+    fdinfo[0].fd = pipefd[1];
+    fdinfo[0].events = POLLOUT;
+
+    poll_ret = poll(fdinfo, 1, 0);
+
+    if (poll_ret < 0) {
+	/* whoops */
+    }
+
+
+    sf_info.format = 0;
+    filestart = ftell(fp);
+    lseek(fileno(fp), result.data.startpos, SEEK_SET);
+    sndfile = sf_open_fd(fileno(fp), SFM_READ, &sf_info, 0);
+
+    if (vol < 1) vol = 1;
+    if (vol > 8) vol = 8;
+    volfactor = mypower(2, -vol + 8);
+
+    buffer = malloc(BUFFSIZE * sf_info.channels * sizeof(int));
+    frames_read = 0;
+    toread = sf_info.frames * sf_info.channels;
+
+    while (toread > 0) {
+	if (toread < BUFFSIZE * sf_info.channels)
+	    count = toread;
+	else
+	    count = BUFFSIZE * sf_info.channels;
+        frames_read = sf_read_int(sndfile, buffer, count);
+	for (volcount = 0; volcount <= frames_read; volcount++)
+	    buffer[volcount] /= volfactor;
+	write(pipefd[1], buffer, count);
+	toread = toread - frames_read;
+    }
+
+    free(buffer);
+    fseek(fp, filestart, SEEK_SET);
+    sf_close(sndfile);
+    exit(0);
+}
+
 /*
  * playmod
  *
@@ -373,6 +474,7 @@ static int playmod(FILE *fp, bb_result_t result, int vol, int repeats)
     }
 
     if (music_pid > 0) {
+//	printf(" music_pid (mod): %d\n", music_pid);
 	sa.sa_handler = sigchld_handler;
 	sigemptyset(&sa.sa_mask);
 	sa.sa_flags = 0;
@@ -494,6 +596,7 @@ static int playogg(FILE *fp, bb_result_t result, int vol, int repeats)
     OggVorbis_File vf;
     int current_section;
     void *buffer;
+    void *mixbuffer;
 
     int default_driver;
     ao_device *device;
@@ -505,9 +608,20 @@ static int playogg(FILE *fp, bb_result_t result, int vol, int repeats)
     sigset_t sigchld_mask;
     struct sigaction sa;
 
+    struct pollfd fdinfo[1];
+    int poll_ret;
+
     if (music_pid > 0) {
 	kill(music_pid, SIGTERM);
     }
+
+    if (pipe(pipefd) == -1) {
+	perror("pipe");
+	exit(EXIT_FAILURE);
+    }
+
+    fcntl(pipefd[0], O_NONBLOCK);
+    fcntl(pipefd[1], O_NONBLOCK);
 
     music_pid = fork();
     if (music_pid < 0) {
@@ -515,7 +629,9 @@ static int playogg(FILE *fp, bb_result_t result, int vol, int repeats)
 	return 1;
     }
 
+    /* parent */
     if (music_pid > 0) {
+//	printf(" music_pid (ogg): %d\n", music_pid);
 	sa.sa_handler = sigchld_handler;
 	sigemptyset(&sa.sa_mask);
 	sa.sa_flags = 0;
@@ -523,8 +639,12 @@ static int playogg(FILE *fp, bb_result_t result, int vol, int repeats)
 	return 0;
     }
 
-    sigprocmask(SIG_UNBLOCK, &sigchld_mask, NULL);
+    close(pipefd[1]);	/* close unused write end */
 
+    fdinfo[0].fd = pipefd[0];
+    fdinfo[0].events = POLLIN;
+
+    sigprocmask(SIG_UNBLOCK, &sigchld_mask, NULL);
 
     ao_initialize();
     default_driver = ao_default_driver_id();
@@ -557,15 +677,33 @@ static int playogg(FILE *fp, bb_result_t result, int vol, int repeats)
     volfactor = mypower(2, -vol + 8);
 
     buffer = malloc(BUFFSIZE * format.channels * sizeof(int16_t));
+    mixbuffer = malloc(BUFFSIZE * format.channels * sizeof(int16_t));
+    memset(mixbuffer, 0, BUFFSIZE * format.channels * sizeof(int16_t));
 
     frames_read = 0;
     toread = ov_pcm_total(&vf, -1) * 2 * format.channels;
     count = 0;
 
     while (count < toread) {
+
+
 	frames_read = ov_read(&vf, (char *)buffer, BUFFSIZE, 0,2,1,&current_section);
-	for (volcount = 0; volcount <= frames_read / 2; volcount++)
+	poll_ret = poll(fdinfo, 1, 0);
+	if (poll_ret < 0) {
+		/* whoops */
+	}
+
+	if (poll_ret > 0) {
+	    read(pipefd[0], mixbuffer, frames_read);
+	}
+
+	for (volcount = 0; volcount <= frames_read / 2; volcount++) {
 	    ((int16_t *) buffer)[volcount] /= volfactor;
+	    if (poll_ret > 0) {
+		((int16_t *) buffer)[volcount] += ((int16_t *) mixbuffer)[volcount];
+	    }
+	}
+
 	ao_play(device, (char *)buffer, frames_read * sizeof(char));
 	count += frames_read;
     }
@@ -575,6 +713,8 @@ static int playogg(FILE *fp, bb_result_t result, int vol, int repeats)
     ov_clear(&vf);
 
     free(buffer);
+
+    close(pipefd[0]);
 
     exit(0);
 }

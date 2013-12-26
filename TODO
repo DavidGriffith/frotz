@@ -1,5 +1,7 @@
 Redo how the core and interfaces use the f_setup structure.  Failure to 
 do this properly led to a segfault when dumb frotz saves a game.
+Look at using a memset() or calloc() there.
+
 
 Rework os_process_arguments() in src/curses/ux_init.c to make Frotz more
 convenient to use as a BBS door or MUD module.

@@ -219,11 +219,11 @@ static void sigchld_handler(int signal) {
 
     if (dead_child == sfx_pid) {
 	sfx_pid = 0;
-	printf(" collected sfx\n");
+//	printf(" collected sfx\n");
     }
     else if (dead_child == music_pid) {
 	music_pid = 0;
-	printf(" collected music\n");
+//	printf(" collected music\n");
     }
 
     sa.sa_handler = SIG_IGN;
@@ -252,7 +252,7 @@ int playaiff(FILE *fp, bb_result_t result, int vol, int repeats)
     int frames_read;
     int count;
     int toread;
-    int *buffer;
+    short *buffer;
     long filestart;
 
     int volcount;
@@ -300,7 +300,7 @@ int playaiff(FILE *fp, bb_result_t result, int vol, int repeats)
     memset(&format, 0, sizeof(ao_sample_format));
 
     format.byte_format = AO_FMT_NATIVE;
-    format.bits = 32;
+    format.bits = 16;
     format.channels = sf_info.channels;
     format.rate = sf_info.samplerate;
 
@@ -313,7 +313,7 @@ int playaiff(FILE *fp, bb_result_t result, int vol, int repeats)
     if (vol > 8) vol = 8;
     volfactor = mypower(2, -vol + 8);
 
-    buffer = malloc(BUFFSIZE * sf_info.channels * sizeof(int));
+    buffer = malloc(BUFFSIZE * sf_info.channels * sizeof(short));
     frames_read = 0;
     toread = sf_info.frames * sf_info.channels;
 
@@ -322,10 +322,11 @@ int playaiff(FILE *fp, bb_result_t result, int vol, int repeats)
 	    count = toread;
 	else
 	    count = BUFFSIZE * sf_info.channels;
-        frames_read = sf_read_int(sndfile, buffer, count);
-	for (volcount = 0; volcount <= frames_read; volcount++)
+        frames_read = sf_read_short(sndfile, buffer, count);
+	for (volcount = 0; volcount <= frames_read; volcount++) {
 	    buffer[volcount] /= volfactor;
-        ao_play(device, (char *)buffer, frames_read * sizeof(int));
+	}
+        ao_play(device, (char *)buffer, frames_read * sizeof(short));
 	toread = toread - frames_read;
     }
 
@@ -337,7 +338,6 @@ int playaiff(FILE *fp, bb_result_t result, int vol, int repeats)
 
     exit(0);
 }
-
 
 
 /*
@@ -354,7 +354,7 @@ int playaiff_pipe(FILE *fp, bb_result_t result, int vol, int repeats)
     int frames_read;
     int count;
     int toread;
-    int *buffer;
+    short *buffer;
     long filestart;
 
     int volcount;
@@ -403,7 +403,6 @@ int playaiff_pipe(FILE *fp, bb_result_t result, int vol, int repeats)
 	/* whoops */
     }
 
-
     sf_info.format = 0;
     filestart = ftell(fp);
     lseek(fileno(fp), result.data.startpos, SEEK_SET);
@@ -413,7 +412,7 @@ int playaiff_pipe(FILE *fp, bb_result_t result, int vol, int repeats)
     if (vol > 8) vol = 8;
     volfactor = mypower(2, -vol + 8);
 
-    buffer = malloc(BUFFSIZE * sf_info.channels * sizeof(int));
+    buffer = malloc(BUFFSIZE * sf_info.channels * sizeof(short));
     frames_read = 0;
     toread = sf_info.frames * sf_info.channels;
 
@@ -422,7 +421,7 @@ int playaiff_pipe(FILE *fp, bb_result_t result, int vol, int repeats)
 	    count = toread;
 	else
 	    count = BUFFSIZE * sf_info.channels;
-        frames_read = sf_read_int(sndfile, buffer, count);
+        frames_read = sf_read_short(sndfile, buffer, count);
 	for (volcount = 0; volcount <= frames_read; volcount++)
 	    buffer[volcount] /= volfactor;
 	write(pipefd[1], buffer, count);
@@ -447,7 +446,10 @@ int playaiff_pipe(FILE *fp, bb_result_t result, int vol, int repeats)
 static int playmod(FILE *fp, bb_result_t result, int vol, int repeats)
 {
     unsigned char *buffer;
+    unsigned char *mixbuffer;
+
     int modlen;
+    int count;
 
     int default_driver;
     ao_device *device;
@@ -463,9 +465,20 @@ static int playmod(FILE *fp, bb_result_t result, int vol, int repeats)
     sigset_t sigchld_mask;
     struct sigaction sa;
 
+    struct pollfd fdinfo[1];
+    int poll_ret;
+
     if (music_pid > 0) {
 	kill(music_pid, SIGTERM);
     }
+
+    if (pipe(pipefd) == -1) {
+        perror("pipe");
+        exit(EXIT_FAILURE);
+    }
+
+    fcntl(pipefd[0], O_NONBLOCK);
+    fcntl(pipefd[1], O_NONBLOCK);
 
     music_pid = fork();
     if (music_pid < 0) {
@@ -481,6 +494,10 @@ static int playmod(FILE *fp, bb_result_t result, int vol, int repeats)
 	sigaction(SIGCHLD, &sa, NULL);
 	return 0;
     }
+
+    close(pipefd[1]);   /* close unused write end */
+    fdinfo[0].fd = pipefd[0];
+    fdinfo[0].events = POLLIN;
 
     sigprocmask(SIG_UNBLOCK, &sigchld_mask, NULL);
 
@@ -532,13 +549,25 @@ static int playmod(FILE *fp, bb_result_t result, int vol, int repeats)
     ModPlug_SetMasterVolume(mod, mypower(2, vol));
 
     buffer = malloc(BUFFSIZE * sizeof(char));
+    mixbuffer = malloc(BUFFSIZE * sizeof(char));
+
     modlen = 1;
     while (modlen != 0) {
 	if (modlen == 0) break;
 	modlen = ModPlug_Read(mod, buffer, BUFFSIZE * sizeof(char));
-	if (modlen > 0 && ao_play(device, (char *) buffer, modlen * sizeof(char)) == 0) {
-	    perror("audio write");
-	    exit(1);
+	if (modlen > 0) {
+	    poll_ret = poll(fdinfo, 1, 0);
+	    if (poll_ret < 0) { /* whoops */ }
+	    if (poll_ret > 0) {
+		read(pipefd[0], mixbuffer, modlen);
+		for (count = 0; count <= modlen; count++) {
+		    ((int16_t *)buffer)[count] += ((int16_t *)mixbuffer)[count];
+		}
+	    }
+	    if (ao_play(device, (char *) buffer, modlen * sizeof(char)) == 0) {
+		perror("audio write");
+		exit(1);
+	    }
 	}
     }
     free(buffer);
@@ -654,7 +683,6 @@ static int playogg(FILE *fp, bb_result_t result, int vol, int repeats)
     memset(&format, 0, sizeof(ao_sample_format));
 
     if (ov_open_callbacks(fp, &vf, NULL, 0, OV_CALLBACKS_NOCLOSE) < 0) {
-//	printf("Oops.\n");
 	exit(1);
     }
 

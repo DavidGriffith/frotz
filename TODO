@@ -1,3 +1,12 @@
+I have mixing sortof working.  Still to be done is to convert the sample 
+rate of the AIFF data to 44100, which is what is produced in playmod() 
+and playogg().  Another concern is how I should take care of a situation 
+in which playogg() or playmod() ends before the AIFF sample does.  
+Libsamplerate appears to be a good library for doing this, but I don't 
+know yet how to use it.
+
+
+
 Redo how the core and interfaces use the f_setup structure.  Failure to 
 do this properly led to a segfault when dumb frotz saves a game.
 Look at using a memset() or calloc() there.

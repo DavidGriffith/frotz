@@ -130,7 +130,7 @@ CURSES_DEFS = $(OPT_DEFS) $(COLOR_DEFS) $(NO_SOUND) $(MEMMOVE_DEF)
 FLAGS = $(OPTS) $(CURSES_DEFS) $(INCL)
 
 ifeq ($(NO_SOUND), )
-	SOUND_LIB = -lao -ldl -lm -lsndfile -lvorbisfile -lmodplug
+	SOUND_LIB = -lao -ldl -lm -lsndfile -lvorbisfile -lmodplug -lsamplerate
 endif
 
 

@@ -55,6 +55,15 @@ static int mypower(int, int);
 static char *getfiledata(FILE *, long *);
 static void sigchld_handler(int);
 
+
+typedef struct {
+    int channels;
+    int rate;
+    int bits;
+    sf_count_t frames;
+} SOUNDFX;
+
+
 static pid_t sfx_pid;
 static pid_t music_pid;
 
@@ -148,9 +157,14 @@ void os_stop_sample (int number)
     if (blorb_map->chunks[resource.chunknum].type == bb_make_id('F','O','R','M')) {
 	if (sfx_pid > 0) kill(sfx_pid, SIGTERM);
     } else if (blorb_map->chunks[resource.chunknum].type == bb_make_id('M','O','D',' ')) {
-	if (music_pid > 0) kill(music_pid, SIGTERM);
+	if (music_pid > 0) {
+	    kill(music_pid, SIGTERM);
+	}
     } else if (blorb_map->chunks[resource.chunknum].type == bb_make_id('O','G','G','V')) {
-	if (music_pid > 0) kill(music_pid, SIGTERM);
+	if (music_pid > 0) {
+	    printf(" -- killing %d\n", music_pid);
+	    kill(music_pid, SIGTERM);
+	}
     } else {
 	/* Something else was in there.  Ignore it. */
     }
@@ -232,6 +246,7 @@ static void sigchld_handler(int signal) {
     sigaction(SIGCHLD, &sa, NULL);
 }
 
+
 /*
  * playaiff
  *
@@ -251,7 +266,7 @@ int playaiff(FILE *fp, bb_result_t result, int vol, int repeats)
     int default_driver;
     int frames_read;
     int count;
-    int toread;
+    sf_count_t toread;
     short *buffer;
     long filestart;
 
@@ -357,6 +372,7 @@ int playaiff_pipe(FILE *fp, bb_result_t result, int vol, int repeats)
     short *buffer;
     long filestart;
 
+
     int volcount;
     int volfactor;
 
@@ -365,6 +381,9 @@ int playaiff_pipe(FILE *fp, bb_result_t result, int vol, int repeats)
 
     SNDFILE     *sndfile;
     SF_INFO     sf_info;
+
+    SOUNDFX	myinfo;
+    FILE	*pipefile;
 
     sigset_t sigchld_mask;
     struct sigaction sa;
@@ -416,6 +435,12 @@ int playaiff_pipe(FILE *fp, bb_result_t result, int vol, int repeats)
     frames_read = 0;
     toread = sf_info.frames * sf_info.channels;
 
+    myinfo.channels = sf_info.channels;
+    myinfo.rate = sf_info.samplerate;
+
+    pipefile = fdopen(pipefd[1], "w");
+    fwrite((void *)&myinfo, sizeof(SOUNDFX), 1, pipefile);
+
     while (toread > 0) {
 	if (toread < BUFFSIZE * sf_info.channels)
 	    count = toread;
@@ -424,10 +449,10 @@ int playaiff_pipe(FILE *fp, bb_result_t result, int vol, int repeats)
         frames_read = sf_read_short(sndfile, buffer, count);
 	for (volcount = 0; volcount <= frames_read; volcount++)
 	    buffer[volcount] /= volfactor;
-	write(pipefd[1], buffer, count);
+
+	fwrite((void *)buffer, sizeof(short), frames_read, pipefile);
 	toread = toread - frames_read;
     }
-
     free(buffer);
     fseek(fp, filestart, SEEK_SET);
     sf_close(sndfile);
@@ -556,14 +581,16 @@ static int playmod(FILE *fp, bb_result_t result, int vol, int repeats)
 	if (modlen == 0) break;
 	modlen = ModPlug_Read(mod, buffer, BUFFSIZE * sizeof(char));
 	if (modlen > 0) {
+/*
 	    poll_ret = poll(fdinfo, 1, 0);
-	    if (poll_ret < 0) { /* whoops */ }
+	    if (poll_ret < 0) {  }
 	    if (poll_ret > 0) {
 		read(pipefd[0], mixbuffer, modlen);
 		for (count = 0; count <= modlen; count++) {
 		    ((int16_t *)buffer)[count] += ((int16_t *)mixbuffer)[count];
 		}
 	    }
+*/
 	    if (ao_play(device, (char *) buffer, modlen * sizeof(char)) == 0) {
 		perror("audio write");
 		exit(1);
@@ -624,8 +651,8 @@ static int playogg(FILE *fp, bb_result_t result, int vol, int repeats)
 
     OggVorbis_File vf;
     int current_section;
-    void *buffer;
-    void *mixbuffer;
+    short *buffer;
+    short *mixbuffer;
 
     int default_driver;
     ao_device *device;
@@ -639,6 +666,12 @@ static int playogg(FILE *fp, bb_result_t result, int vol, int repeats)
 
     struct pollfd fdinfo[1];
     int poll_ret;
+
+    int header = 0;
+    FILE *pipefile;
+    SOUNDFX myinfo;
+    long pipe_frames_read;
+
 
     if (music_pid > 0) {
 	kill(music_pid, SIGTERM);
@@ -704,17 +737,15 @@ static int playogg(FILE *fp, bb_result_t result, int vol, int repeats)
     if (vol > 8) vol = 8;
     volfactor = mypower(2, -vol + 8);
 
-    buffer = malloc(BUFFSIZE * format.channels * sizeof(int16_t));
-    mixbuffer = malloc(BUFFSIZE * format.channels * sizeof(int16_t));
-    memset(mixbuffer, 0, BUFFSIZE * format.channels * sizeof(int16_t));
+    buffer = malloc(BUFFSIZE * format.channels * sizeof(float));
+    mixbuffer = malloc(BUFFSIZE * format.channels * sizeof(short));
+    memset(mixbuffer, 0, BUFFSIZE * format.channels * sizeof(short));
 
     frames_read = 0;
     toread = ov_pcm_total(&vf, -1) * 2 * format.channels;
     count = 0;
 
     while (count < toread) {
-
-
 	frames_read = ov_read(&vf, (char *)buffer, BUFFSIZE, 0,2,1,&current_section);
 	poll_ret = poll(fdinfo, 1, 0);
 	if (poll_ret < 0) {
@@ -722,13 +753,24 @@ static int playogg(FILE *fp, bb_result_t result, int vol, int repeats)
 	}
 
 	if (poll_ret > 0) {
-	    read(pipefd[0], mixbuffer, frames_read);
+	    if (!header) {
+		pipefile = fdopen (pipefd[0], "r");
+		fread((void *)&myinfo, sizeof(SOUNDFX), 1, pipefile);
+	        header = 1;
+	    }
+	    pipe_frames_read = fread((void *)mixbuffer, sizeof(int16_t),
+				BUFFSIZE, pipefile);
+
+	    if (pipe_frames_read != BUFFSIZE)
+		header = 0;
+	} else {
+	    memset(mixbuffer, 0, BUFFSIZE * format.channels * sizeof(short));
 	}
 
 	for (volcount = 0; volcount <= frames_read / 2; volcount++) {
 	    ((int16_t *) buffer)[volcount] /= volfactor;
 	    if (poll_ret > 0) {
-		((int16_t *) buffer)[volcount] += ((int16_t *) mixbuffer)[volcount];
+		((short *) buffer)[volcount] += ((short *) mixbuffer)[volcount];
 	    }
 	}
 

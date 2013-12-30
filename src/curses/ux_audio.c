@@ -770,7 +770,8 @@ static int playogg(FILE *fp, bb_result_t result, int vol, int repeats)
 	for (volcount = 0; volcount <= frames_read / 2; volcount++) {
 	    ((int16_t *) buffer)[volcount] /= volfactor;
 	    if (poll_ret > 0) {
-		((short *) buffer)[volcount] += ((short *) mixbuffer)[volcount];
+
+		((short *) buffer)[volcount] += ntohs(((short *) mixbuffer)[volcount]);
 	    }
 	}
 

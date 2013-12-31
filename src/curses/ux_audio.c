@@ -789,7 +789,7 @@ static int playogg(FILE *fp, bb_result_t result, int vol, int repeats)
 		fread((void *)&myinfo, sizeof(SOUNDFX), 1, pipefile);
 	        header = 1;
 	    }
-	    pipe_frames_read = fread((void *)floatbuffer2, sizeof(float),
+	    pipe_frames_read = fread((void *)floatbuffer, sizeof(float),
 				BUFFSIZE, pipefile);
 
 	    if (pipe_frames_read != BUFFSIZE)
@@ -801,7 +801,8 @@ static int playogg(FILE *fp, bb_result_t result, int vol, int repeats)
 	for (volcount = 0; volcount <= frames_read / 2; volcount++) {
 	    ((float *) floatbuffer)[volcount] /= volfactor;
 	    if (poll_ret > 0) {
-		((float *) floatbuffer)[volcount] += ntohs(((float *) floatbuffer2)[volcount]);
+//		floatbuffer[volcount] = ntohs(floatbuffer[volcount]);
+//		floatbuffer[volcount] += ntohs(((float *) floatbuffer2)[volcount]);
 	    }
 	}
 	floattopcm16(buffer, floatbuffer, frames_read);

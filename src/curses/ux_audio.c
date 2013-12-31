@@ -45,11 +45,15 @@
 #include "ux_frotz.h"
 
 #define BUFFSIZE 4096
+#define MAX(x,y) ((x)>(y)) ? (x) : (y)
+#define MIN(x,y) ((x)<(y)) ? (x) : (y)
 
 static int playaiff(FILE *, bb_result_t, int, int);
 static int playaiff_pipe(FILE *, bb_result_t, int, int);
 static int playmod(FILE *, bb_result_t, int, int);
 static int playogg(FILE *, bb_result_t, int, int);
+static void floattopcm16(short *, float *, int);
+static void pcm16tofloat(float *, short *, int);
 
 static int mypower(int, int);
 static char *getfiledata(FILE *, long *);
@@ -204,6 +208,31 @@ void os_wait_sample (void)
  * These functions are internal to ux_audio.c
  *
  */
+
+/* Convert back to shorts */
+static void floattopcm16(short *outbuf, float *inbuf, int length)
+{
+    int   count;
+
+    const float mul = (32768.0f);
+    for (count = 0; count <= length; count++) {
+	int32_t tmp = (int32_t)(mul * inbuf[count]);
+	tmp = MAX( tmp, -32768 ); // CLIP < 32768
+	tmp = MIN( tmp, 32767 );  // CLIP > 32767
+	outbuf[count] = tmp;
+    }
+}
+
+/* Convert the buffer to floats. (before resampling) */
+void pcm16tofloat(float *outbuf, short *inbuf, int length)
+{
+    int   count;
+
+    const float div = (1.0f/32768.0f);
+    for (count = 0; count <= length; count++) {
+	outbuf[count] = div * (float) inbuf[count];
+    }
+}
 
 
 /*
@@ -369,7 +398,7 @@ int playaiff_pipe(FILE *fp, bb_result_t result, int vol, int repeats)
     int frames_read;
     int count;
     int toread;
-    short *buffer;
+    float *buffer;
     long filestart;
 
 
@@ -431,7 +460,7 @@ int playaiff_pipe(FILE *fp, bb_result_t result, int vol, int repeats)
     if (vol > 8) vol = 8;
     volfactor = mypower(2, -vol + 8);
 
-    buffer = malloc(BUFFSIZE * sf_info.channels * sizeof(short));
+    buffer = malloc(BUFFSIZE * sf_info.channels * sizeof(float));
     frames_read = 0;
     toread = sf_info.frames * sf_info.channels;
 
@@ -446,11 +475,11 @@ int playaiff_pipe(FILE *fp, bb_result_t result, int vol, int repeats)
 	    count = toread;
 	else
 	    count = BUFFSIZE * sf_info.channels;
-        frames_read = sf_read_short(sndfile, buffer, count);
+        frames_read = sf_read_float(sndfile, buffer, count);
 	for (volcount = 0; volcount <= frames_read; volcount++)
 	    buffer[volcount] /= volfactor;
 
-	fwrite((void *)buffer, sizeof(short), frames_read, pipefile);
+	fwrite((void *)buffer, sizeof(float), frames_read, pipefile);
 	toread = toread - frames_read;
     }
     free(buffer);
@@ -652,7 +681,8 @@ static int playogg(FILE *fp, bb_result_t result, int vol, int repeats)
     OggVorbis_File vf;
     int current_section;
     short *buffer;
-    short *mixbuffer;
+    float *floatbuffer;
+    float *floatbuffer2;
 
     int default_driver;
     ao_device *device;
@@ -737,9 +767,9 @@ static int playogg(FILE *fp, bb_result_t result, int vol, int repeats)
     if (vol > 8) vol = 8;
     volfactor = mypower(2, -vol + 8);
 
-    buffer = malloc(BUFFSIZE * format.channels * sizeof(float));
-    mixbuffer = malloc(BUFFSIZE * format.channels * sizeof(short));
-    memset(mixbuffer, 0, BUFFSIZE * format.channels * sizeof(short));
+    buffer = malloc(BUFFSIZE * format.channels * sizeof(short));
+    floatbuffer = malloc(BUFFSIZE * format.channels * sizeof(float));
+    floatbuffer2 = malloc(BUFFSIZE * format.channels * sizeof(float));
 
     frames_read = 0;
     toread = ov_pcm_total(&vf, -1) * 2 * format.channels;
@@ -747,6 +777,7 @@ static int playogg(FILE *fp, bb_result_t result, int vol, int repeats)
 
     while (count < toread) {
 	frames_read = ov_read(&vf, (char *)buffer, BUFFSIZE, 0,2,1,&current_section);
+	pcm16tofloat(floatbuffer, buffer, frames_read);
 	poll_ret = poll(fdinfo, 1, 0);
 	if (poll_ret < 0) {
 		/* whoops */
@@ -758,22 +789,22 @@ static int playogg(FILE *fp, bb_result_t result, int vol, int repeats)
 		fread((void *)&myinfo, sizeof(SOUNDFX), 1, pipefile);
 	        header = 1;
 	    }
-	    pipe_frames_read = fread((void *)mixbuffer, sizeof(int16_t),
+	    pipe_frames_read = fread((void *)floatbuffer2, sizeof(float),
 				BUFFSIZE, pipefile);
 
 	    if (pipe_frames_read != BUFFSIZE)
 		header = 0;
 	} else {
-	    memset(mixbuffer, 0, BUFFSIZE * format.channels * sizeof(short));
+	    memset(floatbuffer2, 0, BUFFSIZE * format.channels * sizeof(float));
 	}
 
 	for (volcount = 0; volcount <= frames_read / 2; volcount++) {
-	    ((int16_t *) buffer)[volcount] /= volfactor;
+	    ((float *) floatbuffer)[volcount] /= volfactor;
 	    if (poll_ret > 0) {
-
-		((short *) buffer)[volcount] += ntohs(((short *) mixbuffer)[volcount]);
+		((float *) floatbuffer)[volcount] += ntohs(((float *) floatbuffer2)[volcount]);
 	    }
 	}
+	floattopcm16(buffer, floatbuffer, frames_read);
 
 	ao_play(device, (char *)buffer, frames_read * sizeof(char));
 	count += frames_read;

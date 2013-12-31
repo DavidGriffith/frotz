@@ -154,6 +154,14 @@ void os_stop_sample (int number)
 
     bb_result_t resource;
 
+    if (number == 0) {
+	if (music_pid > 0)
+		kill(music_pid, SIGTERM);
+	if (sfx_pid > 0)
+		kill(sfx_pid, SIGTERM);
+	return;
+    }
+
     if (blorb_map == NULL) return;
     if (bb_err_None != bb_load_resource(blorb_map, bb_method_FilePos, &resource, bb_ID_Snd, number))
         return;

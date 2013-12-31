@@ -174,7 +174,7 @@ void os_stop_sample (int number)
 	}
     } else if (blorb_map->chunks[resource.chunknum].type == bb_make_id('O','G','G','V')) {
 	if (music_pid > 0) {
-	    printf(" -- killing %d\n", music_pid);
+//	    printf(" -- killing %d\n", music_pid);
 	    kill(music_pid, SIGTERM);
 	}
     } else {

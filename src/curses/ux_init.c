@@ -187,6 +187,13 @@ void os_process_arguments (int argc, char *argv[])
     if (signal(SIGINT, SIG_IGN) != SIG_IGN)
 	signal(SIGINT, sigint_handler);
 
+    if (signal(SIGTTIN, SIG_IGN) != SIG_IGN)
+	signal(SIGTTIN, SIG_IGN);
+
+    if (signal(SIGTTOU, SIG_IGN) != SIG_IGN)
+	signal(SIGTTOU, SIG_IGN);
+
+
     /* First check for a "$HOME/.frotzrc". */
     /* If not found, look for CONFIG_DIR/frotz.conf */
     /* $HOME/.frotzrc overrides CONFIG_DIR/frotz.conf */
@@ -872,11 +879,13 @@ void sigint_handler(int dummy)
 {
     signal(SIGINT, sigint_handler);
 
+    os_stop_sample(0);
     scrollok(stdscr, TRUE); scroll(stdscr);
     refresh(); endwin();
 
     exit(1);
 }
+
 
 void redraw(void)
 {

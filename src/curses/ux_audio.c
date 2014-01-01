@@ -46,9 +46,17 @@
 #define MAX(x,y) ((x)>(y)) ? (x) : (y)
 #define MIN(x,y) ((x)<(y)) ? (x) : (y)
 
-static int playaiff(FILE *, bb_result_t, int, int);
-static int playmod(FILE *, bb_result_t, int, int);
-static int playogg(FILE *, bb_result_t, int, int);
+typedef struct {
+    FILE *fp;
+    bb_result_t result;
+    int vol;
+    int repeats;
+} EFFECT;
+
+
+static int playaiff(EFFECT);
+static int playmod(EFFECT);
+static int playogg(EFFECT);
 static void floattopcm16(short *, float *, int);
 static void pcm16tofloat(float *, short *, int);
 
@@ -100,18 +108,24 @@ void os_prepare_sample (int number)
 void os_start_sample (int number, int volume, int repeats, zword eos)
 {
     bb_result_t resource;
+    EFFECT myeffect;
 
     if (blorb_map == NULL) return;
 
     if (bb_err_None != bb_load_resource(blorb_map, bb_method_FilePos, &resource, bb_ID_Snd, number))
 	return;
 
+    myeffect.fp = blorb_fp;
+    myeffect.result = resource;
+    myeffect.vol = volume;
+    myeffect.repeats = repeats;
+
     if (blorb_map->chunks[resource.chunknum].type == bb_make_id('F','O','R','M')) {
-	playaiff(blorb_fp, resource, volume, repeats);
+	playaiff(myeffect);
     } else if (blorb_map->chunks[resource.chunknum].type == bb_make_id('M','O','D',' ')) {
-	playmod(blorb_fp, resource, volume, repeats);
+	playmod(myeffect);
     } else if (blorb_map->chunks[resource.chunknum].type == bb_make_id('O','G','G','V')) {
-	playogg(blorb_fp, resource, volume, repeats);
+	playogg(myeffect);
     } else {
 	/* Something else was in there.  Ignore it. */
     }
@@ -224,7 +238,7 @@ static int mypower(int base, int exp) {
  * the big problem is.
  *
  */
-int playaiff(FILE *fp, bb_result_t result, int vol, int repeats)
+int playaiff(EFFECT myeffect)
 {
     int default_driver;
     int frames_read;
@@ -247,9 +261,9 @@ int playaiff(FILE *fp, bb_result_t result, int vol, int repeats)
 
     sf_info.format = 0;
 
-    filestart = ftell(fp);
-    lseek(fileno(fp), result.data.startpos, SEEK_SET);
-    sndfile = sf_open_fd(fileno(fp), SFM_READ, &sf_info, 0);
+    filestart = ftell(myeffect.fp);
+    lseek(fileno(myeffect.fp), myeffect.result.data.startpos, SEEK_SET);
+    sndfile = sf_open_fd(fileno(myeffect.fp), SFM_READ, &sf_info, 0);
     memset(&format, 0, sizeof(ao_sample_format));
 
     format.byte_format = AO_FMT_NATIVE;
@@ -262,9 +276,9 @@ int playaiff(FILE *fp, bb_result_t result, int vol, int repeats)
         return 1;
     }
 
-    if (vol < 1) vol = 1;
-    if (vol > 8) vol = 8;
-    volfactor = mypower(2, -vol + 8);
+    if (myeffect.vol < 1) myeffect.vol = 1;
+    if (myeffect.vol > 8) myeffect.vol = 8;
+    volfactor = mypower(2, -myeffect.vol + 8);
 
     buffer = malloc(BUFFSIZE * sf_info.channels * sizeof(short));
     frames_read = 0;
@@ -284,7 +298,7 @@ int playaiff(FILE *fp, bb_result_t result, int vol, int repeats)
     }
 
     free(buffer);
-    fseek(fp, filestart, SEEK_SET);
+    fseek(myeffect.fp, filestart, SEEK_SET);
     ao_close(device);
     sf_close(sndfile);
     ao_shutdown();
@@ -302,7 +316,7 @@ int playaiff(FILE *fp, bb_result_t result, int vol, int repeats)
  * handled here.
  *
  */
-static int playmod(FILE *fp, bb_result_t result, int vol, int repeats)
+static int playmod(EFFECT myeffect)
 {
     unsigned char *buffer;
     unsigned char *mixbuffer;
@@ -322,8 +336,8 @@ static int playmod(FILE *fp, bb_result_t result, int vol, int repeats)
     long original_offset;
 
 
-    original_offset = ftell(fp);
-    fseek(fp, result.data.startpos, SEEK_SET);
+    original_offset = ftell(myeffect.fp);
+    fseek(myeffect.fp, myeffect.result.data.startpos, SEEK_SET);
 
     ao_initialize();
     default_driver = ao_default_driver_id();
@@ -349,7 +363,7 @@ static int playmod(FILE *fp, bb_result_t result, int vol, int repeats)
     ModPlug_SetSettings(&settings);
 
     /* remember to free() filedata later */
-    filedata = getfiledata(fp, &size);
+    filedata = getfiledata(myeffect.fp, &size);
 
     mod = ModPlug_Load(filedata, size);
     if (!mod) {
@@ -364,10 +378,10 @@ static int playmod(FILE *fp, bb_result_t result, int vol, int repeats)
         return 1;
     }
 
-    if (vol < 1) vol = 1;
-    if (vol > 8) vol = 8;
+    if (myeffect.vol < 1) myeffect.vol = 1;
+    if (myeffect.vol > 8) myeffect.vol = 8;
 
-    ModPlug_SetMasterVolume(mod, mypower(2, vol));
+    ModPlug_SetMasterVolume(mod, mypower(2, myeffect.vol));
 
     buffer = malloc(BUFFSIZE * sizeof(char));
     mixbuffer = malloc(BUFFSIZE * sizeof(char));
@@ -387,7 +401,7 @@ static int playmod(FILE *fp, bb_result_t result, int vol, int repeats)
     ao_close(device);
     ao_shutdown();
 
-    fseek(fp, original_offset, SEEK_SET);
+    fseek(myeffect.fp, original_offset, SEEK_SET);
 
     return(2);
 }
@@ -427,7 +441,7 @@ static char *getfiledata(FILE *fp, long *size)
  * to load an OGG file that's embedded in a Blorb file.
  *
  */
-static int playogg(FILE *fp, bb_result_t result, int vol, int repeats)
+static int playogg(EFFECT myeffect)
 {
     ogg_int64_t toread;
     ogg_int64_t frames_read;
@@ -451,11 +465,11 @@ static int playogg(FILE *fp, bb_result_t result, int vol, int repeats)
     ao_initialize();
     default_driver = ao_default_driver_id();
 
-    fseek(fp, result.data.startpos, SEEK_SET);
+    fseek(myeffect.fp, myeffect.result.data.startpos, SEEK_SET);
 
     memset(&format, 0, sizeof(ao_sample_format));
 
-    if (ov_open_callbacks(fp, &vf, NULL, 0, OV_CALLBACKS_NOCLOSE) < 0) {
+    if (ov_open_callbacks(myeffect.fp, &vf, NULL, 0, OV_CALLBACKS_NOCLOSE) < 0) {
 	exit(1);
     }
 
@@ -473,9 +487,9 @@ static int playogg(FILE *fp, bb_result_t result, int vol, int repeats)
         return 1;
     }
 
-    if (vol < 1) vol = 1;
-    if (vol > 8) vol = 8;
-    volfactor = mypower(2, -vol + 8);
+    if (myeffect.vol < 1) myeffect.vol = 1;
+    if (myeffect.vol > 8) myeffect.vol = 8;
+    volfactor = mypower(2, -myeffect.vol + 8);
 
     buffer = malloc(BUFFSIZE * format.channels * sizeof(short));
     floatbuffer = malloc(BUFFSIZE * format.channels * sizeof(float));

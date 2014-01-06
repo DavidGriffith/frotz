@@ -56,6 +56,7 @@ typedef struct {
     int repeats;
 } EFFECT;
 
+static void paiff(void *);
 static int playaiff(EFFECT);
 static int playmod(EFFECT);
 static int playogg(EFFECT);
@@ -73,10 +74,6 @@ static sem_t		audio_full;
 static sem_t		audio_empty;
 
 int    bleep_playing = 0;
-
-//ao_device *device;
-//int default_driver;
-//ao_sample_format format;
 
 float	*musicbuffer;
 float	*bleepbuffer;
@@ -176,8 +173,9 @@ void os_start_sample (int number, int volume, int repeats, zword eos)
     myeffect.repeats = repeats;
 
     if (blorb_map->chunks[resource.chunknum].type == bb_make_id('F','O','R','M')) {
-	playaiff(myeffect);
-
+//	playaiff(myeffect);
+	pthread_create(&playaiff_id, NULL, (void *) paiff, (void *) &myeffect);
+//	pthread_join(playaiff_id, NULL);
 
     } else if (blorb_map->chunks[resource.chunknum].type == bb_make_id('M','O','D',' ')) {
 	playmod(myeffect);
@@ -335,6 +333,14 @@ static int mypower(int base, int exp) {
     }
 }
 
+static void paiff(void *pass_arg)
+{
+    EFFECT *foobar = pass_arg;
+
+    playaiff(*foobar);
+
+    return;
+}
 /*
  * playaiff
  *

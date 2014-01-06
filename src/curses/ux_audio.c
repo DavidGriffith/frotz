@@ -97,12 +97,6 @@ void os_init_sound(void)
 {
     int err;
 
-/*
-    format.byte_format = AO_FMT_NATIVE;
-    format.bits = 16;
-    format.channels = 2;
-    format.rate = SAMPLERATE;
-*/
     musicbuffer = malloc(BUFFSIZE * 2 * sizeof(float));
     if (musicbuffer == NULL) {
 	printf("Unable to malloc musicbuffer\n");
@@ -183,6 +177,8 @@ void os_start_sample (int number, int volume, int repeats, zword eos)
 
     if (blorb_map->chunks[resource.chunknum].type == bb_make_id('F','O','R','M')) {
 	playaiff(myeffect);
+
+
     } else if (blorb_map->chunks[resource.chunknum].type == bb_make_id('M','O','D',' ')) {
 	playmod(myeffect);
     } else if (blorb_map->chunks[resource.chunknum].type == bb_make_id('O','G','G','V')) {
@@ -267,19 +263,26 @@ static void *mixer(void *arg)
     format.channels = 2;
     format.rate = SAMPLERATE;
 
+    device = NULL;
+
     while (1) {
         sem_wait(&audio_full);          /* Wait until output buffer is full */
         pthread_mutex_lock(&mutex);     /* Acquire mutex */
 
-	device = ao_open_live(default_driver, &format, NULL);
-	if (device == NULL) {
-	    printf(" Error opening sound device.\n");
+	if (bleep_playing && device == NULL) {
+	    device = ao_open_live(default_driver, &format, NULL);
+	    if (device == NULL) {
+	        printf(" Error opening sound device.\n");
+	    }
 	}
 
         floattopcm16(shortbuffer, bleepbuffer, BUFFSIZE * 2);
         ao_play(device, (char *) shortbuffer, bleepcount * 2);
 
-	ao_close(device);
+	if (!bleep_playing) {
+	    ao_close(device);
+	    device = NULL;
+	}
 
         pthread_mutex_unlock(&mutex);   /* release the mutex lock */
         sem_post(&audio_empty);         /* signal empty */
@@ -332,11 +335,6 @@ static int mypower(int base, int exp) {
     }
 }
 
-
-void *startsample(void *pass_arg)
-{
-}
-
 /*
  * playaiff
  *
@@ -358,8 +356,6 @@ static int playaiff(EFFECT myeffect)
     sf_count_t toread;
     long filestart;
 
-//    EFFECT *myeffect = pass_arg;
-
     int volcount;
     int volfactor;
 
@@ -380,7 +376,7 @@ static int playaiff(EFFECT myeffect)
     frames_read = 0;
     toread = sf_info.frames * sf_info.channels;
 
-//    device = ao_open_live(default_driver, &format, NULL);
+    bleep_playing = TRUE;
     while (toread > 0) {
 	sem_wait(&audio_empty);
 	pthread_mutex_lock(&mutex);
@@ -400,8 +396,7 @@ static int playaiff(EFFECT myeffect)
 	pthread_mutex_unlock(&mutex);
 	sem_post(&audio_full);
     }
-
-//    ao_close(device);
+    bleep_playing = FALSE;
 
     fseek(myeffect.fp, filestart, SEEK_SET);
     sf_close(sndfile);

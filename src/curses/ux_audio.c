@@ -27,6 +27,8 @@
 #include <string.h>
 #include <unistd.h>
 #include <fcntl.h>
+#include <pthread.h>
+#include <semaphore.h>
 
 #ifdef USE_NCURSES_H
 #include <ncurses.h>
@@ -43,6 +45,7 @@
 #include "ux_frotz.h"
 
 #define BUFFSIZE 4096
+#define SAMPLERATE 44100
 #define MAX(x,y) ((x)>(y)) ? (x) : (y)
 #define MIN(x,y) ((x)<(y)) ? (x) : (y)
 
@@ -62,6 +65,19 @@ static void pcm16tofloat(float *, short *, int);
 
 static int mypower(int, int);
 static char *getfiledata(FILE *, long *);
+static void *mixer(void *);
+
+static pthread_t	mixer_id;
+static pthread_mutex_t	mutex;
+static sem_t		audio_full;
+static sem_t		audio_empty;
+
+float	*musicbuffer;
+float	*bleepbuffer;
+
+ao_device *device;
+ao_sample_format format;
+int default_driver;
 
 
 /*
@@ -73,9 +89,35 @@ static char *getfiledata(FILE *, long *);
  */
 void os_init_sound(void)
 {
+    int err;
 
-  /* Not yet implemented */
+    ao_initialize();
+    default_driver = ao_default_driver_id();
 
+    format.byte_format = AO_FMT_NATIVE;
+    format.bits = 16;
+    format.channels = 2;
+    format.rate = SAMPLERATE;
+
+    musicbuffer = malloc(BUFFSIZE * 2 * sizeof(float));
+    if (musicbuffer == NULL) {
+	printf("Unable to malloc musicbuffer\n");
+	exit(1);
+    }
+
+    bleepbuffer = malloc(BUFFSIZE * 2 * sizeof(float));
+    if (bleepbuffer == NULL) {
+	printf("Unable to malloc bleepbuffer\n");
+	exit(1);
+    }
+
+    err = pthread_create(&(mixer_id), NULL, &mixer, NULL);
+    if (err != 0) {
+	printf("Can't create mixer thread :[%s]", strerror(err));
+	exit(1);
+    }
+
+    sem_post(&audio_empty);
 }
 
 
@@ -194,6 +236,37 @@ void os_wait_sample (void)
  *
  */
 
+/*
+ * mixer
+ *
+ * In a classic producer/consumer arrangement, this mixer watches for audio
+ * data to be placed in *bleepbuffer or *musicbuffer.  When a semaphore for
+ * either is raised, the mixer processes the buffer.
+ *
+ * Data presented to the mixer must be floats at 44100hz
+ *
+ */
+
+static void *mixer(void *arg)
+{
+    short *shortbuffer;
+
+    shortbuffer = malloc(BUFFSIZE * sizeof(short) * 2);
+    memset(&format, 0, sizeof(ao_sample_format));
+
+    while (1) {
+        sem_wait(&audio_full);          /* Wait until output buffer is full */
+        pthread_mutex_lock(&mutex);     /* Acquire mutex */
+
+        floattopcm16(shortbuffer, bleepbuffer, BUFFSIZE);
+        ao_play(device, (char *) shortbuffer, BUFFSIZE);
+
+        pthread_mutex_unlock(&mutex);   /* release the mutex lock */
+        sem_post(&audio_empty);         /* signal empty */
+    }
+}
+
+
 /* Convert back to shorts */
 static void floattopcm16(short *outbuf, float *inbuf, int length)
 {
@@ -207,6 +280,7 @@ static void floattopcm16(short *outbuf, float *inbuf, int length)
 	outbuf[count] = tmp;
     }
 }
+
 
 /* Convert the buffer to floats. (before resampling) */
 void pcm16tofloat(float *outbuf, short *inbuf, int length)
@@ -255,24 +329,24 @@ static int mypower(int base, int exp) {
  */
 int playaiff(EFFECT myeffect)
 {
-    int default_driver;
+//    int default_driver;
     int frames_read;
     int count;
     sf_count_t toread;
-    short *buffer;
+//    short *buffer;
     long filestart;
 
     int volcount;
     int volfactor;
 
-    ao_device *device;
-    ao_sample_format format;
+//    ao_device *device;
+//    ao_sample_format format;
 
     SNDFILE     *sndfile;
     SF_INFO     sf_info;
 
-    ao_initialize();
-    default_driver = ao_default_driver_id();
+//    ao_initialize();
+//    default_driver = ao_default_driver_id();
 
     sf_info.format = 0;
 
@@ -283,10 +357,10 @@ int playaiff(EFFECT myeffect)
 
     format.byte_format = AO_FMT_NATIVE;
     format.bits = 16;
-    format.channels = sf_info.channels;
-    format.rate = sf_info.samplerate;
+    format.channels = 2;
+    format.rate = SAMPLERATE;
 
-    device = ao_open_live(default_driver, &format, NULL /* no options */);
+    device = ao_open_live(default_driver, &format, NULL);
     if (device == NULL) {
         return 1;
     }
@@ -295,28 +369,34 @@ int playaiff(EFFECT myeffect)
     if (myeffect.vol > 8) myeffect.vol = 8;
     volfactor = mypower(2, -myeffect.vol + 8);
 
-    buffer = malloc(BUFFSIZE * sf_info.channels * sizeof(short));
+//    buffer = malloc(BUFFSIZE * sf_info.channels * sizeof(short));
     frames_read = 0;
     toread = sf_info.frames * sf_info.channels;
 
     while (toread > 0) {
+	sem_wait(&audio_empty);
+	pthread_mutex_lock(&mutex);
+
 	if (toread < BUFFSIZE * sf_info.channels)
 	    count = toread;
 	else
 	    count = BUFFSIZE * sf_info.channels;
-        frames_read = sf_read_short(sndfile, buffer, count);
+        frames_read = sf_read_float(sndfile, bleepbuffer, count);
 	for (volcount = 0; volcount <= frames_read; volcount++) {
-	    buffer[volcount] /= volfactor;
+	    bleepbuffer[volcount] /= volfactor;
 	}
-        ao_play(device, (char *)buffer, frames_read * sizeof(short));
+//        ao_play(device, (char *)buffer, frames_read * sizeof(short));
 	toread = toread - frames_read;
+
+	pthread_mutex_unlock(&mutex);
+	sem_post(&audio_full);
     }
 
-    free(buffer);
+//    free(buffer);
     fseek(myeffect.fp, filestart, SEEK_SET);
     ao_close(device);
     sf_close(sndfile);
-    ao_shutdown();
+//    ao_shutdown();
 
     return(2);
 }

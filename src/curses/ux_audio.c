@@ -65,6 +65,21 @@ static char *getfiledata(FILE *, long *);
 
 
 /*
+ * os_init_sound
+ *
+ * Do any required setup for sound output.
+ * Here we start a thread to act as a mixer.
+ *
+ */
+void os_init_sound(void)
+{
+
+  /* Not yet implemented */
+
+}
+
+
+/*
  * os_beep
  *
  * Play a beep sound. Ideally, the sound should be high- (number == 1)

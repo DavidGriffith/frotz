@@ -50,6 +50,9 @@ void init_sound (void)
 {
     locked = FALSE;
     playing = FALSE;
+
+    os_init_sound();
+
 } /* init_sound */
 
 

@@ -31,6 +31,19 @@
 
 
 /*
+ * os_init_sound
+ *
+ * Do any required setup for sound output.
+ *
+ */
+void os_init_sound(void)
+{
+
+    /* Not implemented */
+
+}
+
+/*
  * os_beep
  *
  * Play a beep sound. Ideally, the sound should be high- (number == 1)

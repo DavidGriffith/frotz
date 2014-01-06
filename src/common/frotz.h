@@ -726,6 +726,7 @@ void 	os_fatal (const char *, ...);
 void 	os_finish_with_sample ();
 int  	os_font_data (int, int *, int *);
 void 	os_init_screen (void);
+void	os_init_sound (void);
 void 	os_more_prompt (void);
 int  	os_peek_colour (void);
 int  	os_picture_data (int, int *, int *);
@@ -746,5 +747,4 @@ void 	os_start_sample (int, int, int, zword);
 void 	os_stop_sample ();
 int  	os_string_width (const zchar *);
 void	os_init_setup (void);
-int	os_speech_output(const zchar *);
 

@@ -47,8 +47,12 @@ void memory_open (zword table, zword xsize, bool buffering)
 
 	if (!buffering)
 	    xsize = 0xffff;
-	if (buffering && (short) xsize <= 0)
-	    xsize = get_max_width ((zword) (- (short) xsize));
+	else {
+	    if ((short) xsize >= 0)
+		xsize = get_max_width (xsize);
+	    else
+		xsize = -xsize;
+	}
 
 	storew (table, 0);
 

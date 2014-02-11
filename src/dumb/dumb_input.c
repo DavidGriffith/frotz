@@ -205,6 +205,8 @@ static bool dumb_read_line(char *s, char *prompt, bool show_cursor,
       fputs(prompt, stdout);
     else
       dumb_show_prompt(show_cursor, (timeout ? "tTD" : ")>}")[type]);
+    /* Prompt only shows up after user input if we don't flush stdout */
+    fflush(stdout);
     dumb_getline(s);
     if ((s[0] != '\\') || ((s[1] != '\0') && !islower(s[1]))) {
       /* Is not a command line.  */
@@ -268,6 +270,7 @@ static bool dumb_read_line(char *s, char *prompt, bool show_cursor,
 	  if (!*current_page)
 	    break;
 	  printf("HELP: Type <return> for more, or q <return> to stop: ");
+	  fflush(stdout);
 	  dumb_getline(s);
 	  if (!strcmp(s, "q\n"))
 	    break;

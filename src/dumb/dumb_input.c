@@ -270,6 +270,7 @@ static bool dumb_read_line(char *s, char *prompt, bool show_cursor,
 	  if (!*current_page)
 	    break;
 	  printf("HELP: Type <return> for more, or q <return> to stop: ");
+	  fflush(stdout);
 	  dumb_getline(s);
 	  if (!strcmp(s, "q\n"))
 	    break;

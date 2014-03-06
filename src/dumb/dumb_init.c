@@ -73,15 +73,17 @@ void os_process_arguments(int argc, char *argv[])
 {
     int c;
 
+    do_more_prompts = TRUE;
     /* Parse the options */
     do {
-	c = zgetopt(argc, argv, "aAh:iI:oOpPQs:R:S:tu:w:xZ:");
+	c = zgetopt(argc, argv, "aAh:iI:moOpPQs:R:S:tu:w:xZ:");
 	switch(c) {
 	  case 'a': f_setup.attribute_assignment = 1; break;
 	  case 'A': f_setup.attribute_testing = 1; break;
 	case 'h': user_screen_height = atoi(zoptarg); break;
 	  case 'i': f_setup.ignore_errors = 1; break;
 	  case 'I': f_setup.interpreter_number = atoi(zoptarg); break;
+	  case 'm': do_more_prompts = FALSE;
 	  case 'o': f_setup.object_movement = 1; break;
 	  case 'O': f_setup.object_locating = 1; break;
 	  case 'P': f_setup.piracy = 1; break;

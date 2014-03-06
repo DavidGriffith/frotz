@@ -54,7 +54,6 @@ static char runtime_usage[] =
 ;
 
 static float speed = 1;
-static bool do_more_prompts = TRUE;
 
 enum input_type {
     INPUT_CHAR,

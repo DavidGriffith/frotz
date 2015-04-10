@@ -19,7 +19,6 @@
  */
 
 #define __UNIX_PORT_FILE
-#ifdef NO_SOUND	/* don't compile this unless we're using no audio */
 
 #ifdef USE_NCURSES_H
 #include <ncurses.h>
@@ -28,6 +27,7 @@
 #endif
 
 #include "ux_frotz.h"
+#ifdef NO_SOUND	/* don't compile this unless we're using no audio */
 
 
 /*

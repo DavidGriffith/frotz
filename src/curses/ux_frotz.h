@@ -5,6 +5,7 @@
  *
  */
 
+#include "defines.h"
 #include "../common/frotz.h"
 #include "../blorb/blorb.h"
 #include "../blorb/blorblow.h"

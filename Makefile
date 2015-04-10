@@ -18,10 +18,13 @@ MAN_PREFIX = $(PREFIX)
 CONFIG_DIR = /etc
 #CONFIG_DIR = $(PREFIX)/etc
 
-# Sound support requires 
-# If you want to compile Frotz with no sound support, uncomment this line:
+# Pick your sound support.  The most featureful form of sound support is 
+# through libao.  Comment all of these out if you don't want sound.
 #
-#NO_SOUND = -DNO_SOUND
+#SOUND = none
+SOUND = ao
+#SOUND = sun
+#SOUND = oss
 
 
 ##########################################################################
@@ -30,9 +33,9 @@ CONFIG_DIR = /etc
 # ignore this section.
 ##########################################################################
 
-# If your machine's version of curses doesn't support color, comment this out.
+# If your machine's version of curses doesn't support color...
 #
-COLOR_DEFS = -DCOLOR_SUPPORT
+COLOR = yes
 
 # If this matters, you can choose libcurses or libncurses.
 #
@@ -59,7 +62,7 @@ CURSES = -lncurses
 # the memmove(3) system call.  If you don't know what this means, leave it
 # alone.
 #
-#MEMMOVE_DEF = -DNO_MEMMOVE
+#NO_MEMMOVE = yes
 
 
 #########################################################################
@@ -122,22 +125,29 @@ BLORB_OBJECT =  $(BLORB_DIR)/blorblib.o
 
 TARGETS = $(COMMON_TARGET) $(CURSES_TARGET) $(BLORB_TARGET)
 
-OPT_DEFS = -DCONFIG_DIR="\"$(CONFIG_DIR)\"" $(CURSES_DEF) \
-	-DVERSION="\"$(VERSION)\""
+FLAGS = $(OPTS) $(INCL)
 
-CURSES_DEFS = $(OPT_DEFS) $(COLOR_DEFS) $(NO_SOUND) $(MEMMOVE_DEF)
+SOUND_LIB = -lao -ldl -lm -lsndfile -lvorbisfile -lmodplug -lsamplerate
 
-FLAGS = $(OPTS) $(CURSES_DEFS) $(INCL)
-
-ifeq ($(NO_SOUND), )
-	SOUND_LIB = -lao -ldl -lm -lsndfile -lvorbisfile -lmodplug -lsamplerate
-endif
-
+#########################################################################
+#########################################################################
+# Targets
+#
 
 $(NAME): $(NAME)-curses
 curses:  $(NAME)-curses
-$(NAME)-curses: $(COMMON_TARGET) $(CURSES_TARGET) $(BLORB_TARGET)
+$(NAME)-curses: defines $(COMMON_TARGET) $(CURSES_TARGET) $(BLORB_TARGET)
+
+ifeq ($(SOUND), ao)
 	$(CC) -o $(BINNAME)$(EXTENSION) $(TARGETS) $(LIB) $(CURSES) $(SOUND_LIB)
+else ifeq ($(SOUND), none)
+	$(CC) -o $(BINNAME)$(EXTENSION) $(TARGETS) $(LIB) $(CURSES)
+else ifndef SOUND
+	$(CC) -o $(BINNAME)$(EXTENSION) $(TARGETS) $(LIB) $(CURSES)
+else
+	@echo "Invalid sound choice $(SOUND)."
+endif
+
 
 dumb:		$(NAME)-dumb
 d$(NAME):	$(NAME)-dumb
@@ -151,7 +161,7 @@ all:	$(NAME) d$(NAME)
 .SUFFIXES: .c .o .h
 
 $(COMMON_OBJECT): %.o: %.c
-	$(CC) $(OPTS) $(COMMON_DEFS) -o $@ -c $<
+	$(CC) $(OPTS) -o $@ -c $<
 
 $(BLORB_OBJECT): %.o: %.c
 	$(CC) $(OPTS) -o $@ -c $<
@@ -160,9 +170,36 @@ $(DUMB_OBJECT): %.o: %.c
 	$(CC) $(OPTS) -o $@ -c $<
 
 $(CURSES_OBJECT): %.o: %.c
-	$(CC) $(OPTS) $(CURSES_DEFS) -o $@ -c $<
+	$(CC) $(OPTS) -o $@ -c $<
 
 
+####################################
+# Get the defines set up just right
+#
+defines:
+	@echo "Sound support: $(SOUND)"
+	echo "#define VERSION \"$(VERSION)\"" > $(CURSES_DIR)/defines.h
+	echo "#define CONFIG_DIR \"$(CONFIG_DIR)\"" >> $(CURSES_DIR)/defines.h
+	echo "#define SOUND \"$(SOUND)\"" >> src/curses/defines.h
+
+ifeq ($(SOUND), none)
+	echo "#define NO_SOUND" >> $(CURSES_DIR)/defines.h
+endif
+
+ifndef SOUND
+	echo "#define NO_SOUND" >> $(CURSES_DIR)/defines.h
+endif
+
+ifdef COLOR
+	echo "#define COLOR_SUPPORT" >> $(CURSES_DIR)/defines.h
+endif
+
+ifdef NO_MEMMOVE
+	echo "#define NO_MEMMOVE" >> $(CURSES_DIR)/defines.h
+endif
+
+
+########################################################################
 # If you're going to make this target manually, you'd better know which
 # config target to make first.
 #
@@ -243,6 +280,7 @@ dist: distclean
 
 clean:
 	rm -f $(SRCDIR)/*.h $(SRCDIR)/*.a
+	rm -f $(CURSES_DIR)/defines.h
 	find . -name *.o -exec rm -f {} \;
 	find . -name *.O -exec rm -f {} \;
 

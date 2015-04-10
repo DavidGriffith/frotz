@@ -20,8 +20,6 @@
 
 #define __UNIX_PORT_FILE
 
-#ifndef NO_SOUND
-
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
@@ -36,13 +34,15 @@
 #include <curses.h>
 #endif
 
+#include "ux_frotz.h"
+
+#ifndef NO_SOUND
+
 #include <ao/ao.h>
 #include <sndfile.h>
 #include <vorbis/codec.h>
 #include <vorbis/vorbisfile.h>
 #include <libmodplug/modplug.h>
-
-#include "ux_frotz.h"
 
 #define BUFFSIZE 4096
 #define SAMPLERATE 44100

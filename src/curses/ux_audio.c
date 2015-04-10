@@ -173,9 +173,8 @@ void os_start_sample (int number, int volume, int repeats, zword eos)
     myeffect.repeats = repeats;
 
     if (blorb_map->chunks[resource.chunknum].type == bb_make_id('F','O','R','M')) {
-//	playaiff(myeffect);
-	pthread_create(&playaiff_id, NULL, (void *) paiff, (void *) &myeffect);
-//	pthread_join(playaiff_id, NULL);
+	playaiff(myeffect);
+
 
     } else if (blorb_map->chunks[resource.chunknum].type == bb_make_id('M','O','D',' ')) {
 	playmod(myeffect);

@@ -176,26 +176,27 @@ $(CURSES_OBJECT): %.o: %.c
 ####################################
 # Get the defines set up just right
 #
-defines:
+defines: defines.h
+defines.h:
 	@echo "Sound support: $(SOUND)"
-	echo "#define VERSION \"$(VERSION)\"" > $(CURSES_DIR)/defines.h
-	echo "#define CONFIG_DIR \"$(CONFIG_DIR)\"" >> $(CURSES_DIR)/defines.h
-	echo "#define SOUND \"$(SOUND)\"" >> src/curses/defines.h
+	@echo "#define VERSION \"$(VERSION)\"" > $(CURSES_DIR)/defines.h
+	@echo "#define CONFIG_DIR \"$(CONFIG_DIR)\"" >> $(CURSES_DIR)/defines.h
+	@echo "#define SOUND \"$(SOUND)\"" >> src/curses/defines.h
 
 ifeq ($(SOUND), none)
-	echo "#define NO_SOUND" >> $(CURSES_DIR)/defines.h
+	@echo "#define NO_SOUND" >> $(CURSES_DIR)/defines.h
 endif
 
 ifndef SOUND
-	echo "#define NO_SOUND" >> $(CURSES_DIR)/defines.h
+	@echo "#define NO_SOUND" >> $(CURSES_DIR)/defines.h
 endif
 
 ifdef COLOR
-	echo "#define COLOR_SUPPORT" >> $(CURSES_DIR)/defines.h
+	@echo "#define COLOR_SUPPORT" >> $(CURSES_DIR)/defines.h
 endif
 
 ifdef NO_MEMMOVE
-	echo "#define NO_MEMMOVE" >> $(CURSES_DIR)/defines.h
+	@echo "#define NO_MEMMOVE" >> $(CURSES_DIR)/defines.h
 endif
 
 

@@ -76,7 +76,10 @@ static sem_t		audio_empty;
 int    bleep_playing = 0;
 
 float	*musicbuffer;
+
 float	*bleepbuffer;
+int	bleepchannels;
+int	bleeprate;
 
 int	musiccount;
 int	bleepcount;
@@ -257,8 +260,6 @@ static void *mixer(void *arg)
 
     format.byte_format = AO_FMT_NATIVE;
     format.bits = 16;
-    format.channels = 2;
-    format.rate = SAMPLERATE;
 
     device = NULL;
 
@@ -266,6 +267,8 @@ static void *mixer(void *arg)
         sem_wait(&audio_full);          /* Wait until output buffer is full */
         pthread_mutex_lock(&mutex);     /* Acquire mutex */
 
+	format.channels = bleepchannels;
+	format.rate = bleeprate;
 	if (bleep_playing && device == NULL) {
 	    device = ao_open_live(default_driver, &format, NULL);
 	    if (device == NULL) {
@@ -380,6 +383,9 @@ static int playaiff(EFFECT myeffect)
 
     frames_read = 0;
     toread = sf_info.frames * sf_info.channels;
+
+    bleepchannels = sf_info.channels;
+    bleeprate = sf_info.samplerate;
 
     bleep_playing = TRUE;
     while (toread > 0) {

@@ -56,8 +56,7 @@ typedef struct {
     int repeats;
 } EFFECT;
 
-static void paiff(void *);
-static int playaiff(EFFECT);
+static void *playaiff(EFFECT *);
 static int playmod(EFFECT);
 static int playogg(EFFECT);
 static void floattopcm16(short *, float *, int);
@@ -164,6 +163,9 @@ void os_start_sample (int number, int volume, int repeats, zword eos)
 {
     bb_result_t resource;
     EFFECT myeffect;
+    int err;
+    static pthread_attr_t attr;
+
 
     if (blorb_map == NULL) return;
 
@@ -175,9 +177,15 @@ void os_start_sample (int number, int volume, int repeats, zword eos)
     myeffect.vol = volume;
     myeffect.repeats = repeats;
 
-    if (blorb_map->chunks[resource.chunknum].type == bb_make_id('F','O','R','M')) {
-	playaiff(myeffect);
+    pthread_attr_init(&attr);
+    pthread_attr_setdetachstate(&attr, PTHREAD_CREATE_DETACHED);
 
+    if (blorb_map->chunks[resource.chunknum].type == bb_make_id('F','O','R','M')) {
+	err = pthread_create(&playaiff_id, &attr, (void *) &playaiff, &myeffect);
+	if (err != 0) {
+	    printf("Can't create playaiff thread :[%s]", strerror(err));
+	    exit(1);
+	}
 
     } else if (blorb_map->chunks[resource.chunknum].type == bb_make_id('M','O','D',' ')) {
 	playmod(myeffect);
@@ -187,6 +195,8 @@ void os_start_sample (int number, int volume, int repeats, zword eos)
 	/* Something else was in there.  Ignore it. */
     }
 
+    /* If I don't have this usleep() here, Frotz will segfault. Why?*/
+    usleep(0);
 }/* os_start_sample */
 
 /*
@@ -335,14 +345,6 @@ static int mypower(int base, int exp) {
     }
 }
 
-static void paiff(void *pass_arg)
-{
-    EFFECT *foobar = pass_arg;
-
-    playaiff(*foobar);
-
-    return;
-}
 /*
  * playaiff
  *
@@ -357,7 +359,7 @@ static void paiff(void *pass_arg)
  * the big problem is.
  *
  */
-static int playaiff(EFFECT myeffect)
+void *playaiff(EFFECT *raw_effect)
 {
     int frames_read;
     int count;
@@ -370,6 +372,7 @@ static int playaiff(EFFECT myeffect)
     SNDFILE     *sndfile;
     SF_INFO     sf_info;
 
+    EFFECT myeffect = *raw_effect;
 
     sf_info.format = 0;
 
@@ -412,8 +415,7 @@ static int playaiff(EFFECT myeffect)
     fseek(myeffect.fp, filestart, SEEK_SET);
     sf_close(sndfile);
 
-    return(1);
-
+    pthread_exit((void*) raw_effect);
 }
 
 

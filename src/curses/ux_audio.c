@@ -44,7 +44,8 @@
 #include <vorbis/vorbisfile.h>
 #include <libmodplug/modplug.h>
 
-#define BUFFSIZE 4096
+//#define BUFFSIZE 4096
+#define BUFFSIZE 512
 #define SAMPLERATE 44100
 #define MAX(x,y) ((x)>(y)) ? (x) : (y)
 #define MIN(x,y) ((x)<(y)) ? (x) : (y)
@@ -72,7 +73,8 @@ static pthread_mutex_t	mutex;
 static sem_t		audio_full;
 static sem_t		audio_empty;
 
-int    bleep_playing = 0;
+bool    bleep_playing = FALSE;
+bool	bleep_stop = FALSE;
 
 float	*musicbuffer;
 
@@ -208,6 +210,9 @@ void os_start_sample (int number, int volume, int repeats, zword eos)
 
 void os_stop_sample (int number)
 {
+    if (bleep_playing) {
+	bleep_stop = TRUE;
+    }
     return;
 }/* os_stop_sample */
 
@@ -392,6 +397,8 @@ void *playaiff(EFFECT *raw_effect)
 
     bleep_playing = TRUE;
     while (toread > 0) {
+	if (bleep_stop) break;
+
 	sem_wait(&audio_empty);
 	pthread_mutex_lock(&mutex);
 
@@ -410,6 +417,7 @@ void *playaiff(EFFECT *raw_effect)
 	pthread_mutex_unlock(&mutex);
 	sem_post(&audio_full);
     }
+    bleep_stop = FALSE;
     bleep_playing = FALSE;
 
     fseek(myeffect.fp, filestart, SEEK_SET);

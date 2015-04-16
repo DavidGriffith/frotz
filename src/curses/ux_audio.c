@@ -97,6 +97,11 @@ int	bleepcount;
 void os_init_sound(void)
 {
     int err;
+    static pthread_attr_t attr;
+
+    pthread_mutex_init(&mutex, NULL);
+    sem_init(&audio_empty, 0, 1);
+    sem_init(&audio_full, 0, 0);
 
     musicbuffer = malloc(BUFFSIZE * 2 * sizeof(float));
     if (musicbuffer == NULL) {
@@ -110,13 +115,16 @@ void os_init_sound(void)
 	exit(1);
     }
 
-    err = pthread_create(&(mixer_id), NULL, &mixer, NULL);
+    pthread_attr_init(&attr);
+    pthread_attr_setdetachstate(&attr, PTHREAD_CREATE_DETACHED);
+
+    err = pthread_create(&(mixer_id), &attr, &mixer, NULL);
     if (err != 0) {
 	printf("Can't create mixer thread :[%s]", strerror(err));
 	exit(1);
     }
 
-    sem_post(&audio_empty);
+//    sem_post(&audio_empty);
 }
 
 
@@ -168,7 +176,6 @@ void os_start_sample (int number, int volume, int repeats, zword eos)
     int err;
     static pthread_attr_t attr;
 
-
     if (blorb_map == NULL) return;
 
     if (bb_err_None != bb_load_resource(blorb_map, bb_method_FilePos, &resource, bb_ID_Snd, number))
@@ -198,7 +205,7 @@ void os_start_sample (int number, int volume, int repeats, zword eos)
     }
 
     /* If I don't have this usleep() here, Frotz will segfault. Why?*/
-    usleep(0);
+//    usleep(0);
 }/* os_start_sample */
 
 /*
@@ -271,6 +278,11 @@ static void *mixer(void *arg)
     default_driver = ao_default_driver_id();
 
     shortbuffer = malloc(BUFFSIZE * sizeof(short) * 2);
+    if (shortbuffer == NULL) {
+	printf("Unable to malloc shortbuffer\n");
+	exit(1);
+    }
+
     memset(&format, 0, sizeof(ao_sample_format));
 
     format.byte_format = AO_FMT_NATIVE;

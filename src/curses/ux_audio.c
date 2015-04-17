@@ -205,7 +205,7 @@ void os_start_sample (int number, int volume, int repeats, zword eos)
     }
 
     /* If I don't have this usleep() here, Frotz will segfault. Why?*/
-//    usleep(0);
+    usleep(0);
 }/* os_start_sample */
 
 /*

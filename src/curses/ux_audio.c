@@ -72,6 +72,7 @@ static pthread_t	playaiff_id;
 static pthread_mutex_t	mutex;
 static sem_t		audio_full;
 static sem_t		audio_empty;
+static sem_t		playaiff_okay;
 
 bool    bleep_playing = FALSE;
 bool	bleep_stop = FALSE;
@@ -102,6 +103,7 @@ void os_init_sound(void)
     pthread_mutex_init(&mutex, NULL);
     sem_init(&audio_empty, 0, 1);
     sem_init(&audio_full, 0, 0);
+    sem_init(&playaiff_okay, 0, 0);
 
     musicbuffer = malloc(BUFFSIZE * 2 * sizeof(float));
     if (musicbuffer == NULL) {
@@ -123,8 +125,6 @@ void os_init_sound(void)
 	printf("Can't create mixer thread :[%s]", strerror(err));
 	exit(1);
     }
-
-//    sem_post(&audio_empty);
 }
 
 
@@ -195,17 +195,15 @@ void os_start_sample (int number, int volume, int repeats, zword eos)
 	    printf("Can't create playaiff thread :[%s]", strerror(err));
 	    exit(1);
 	}
-
+	sem_wait(&playaiff_okay);
     } else if (blorb_map->chunks[resource.chunknum].type == bb_make_id('M','O','D',' ')) {
 	playmod(myeffect);
     } else if (blorb_map->chunks[resource.chunknum].type == bb_make_id('O','G','G','V')) {
 	playogg(myeffect);
     } else {
-	/* Something else was in there.  Ignore it. */
+	/* Something else was presented as an audio chunk.  Ignore it. */
     }
 
-    /* If I don't have this usleep() here, Frotz will segfault. Why?*/
-    usleep(0);
 }/* os_start_sample */
 
 /*
@@ -390,6 +388,8 @@ void *playaiff(EFFECT *raw_effect)
     SF_INFO     sf_info;
 
     EFFECT myeffect = *raw_effect;
+
+    sem_post(&playaiff_okay);
 
     sf_info.format = 0;
 

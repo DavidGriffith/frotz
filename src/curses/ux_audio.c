@@ -53,6 +53,7 @@
 typedef struct {
     FILE *fp;
     bb_result_t result;
+    int number;
     int vol;
     int repeats;
 } EFFECT;
@@ -82,9 +83,10 @@ float	*musicbuffer;
 float	*bleepbuffer;
 int	bleepchannels;
 int	bleeprate;
+int	bleepcount;
+int	bleepnum;
 
 int	musiccount;
-int	bleepcount;
 
 
 
@@ -185,6 +187,7 @@ void os_start_sample (int number, int volume, int repeats, zword eos)
     myeffect.result = resource;
     myeffect.vol = volume;
     myeffect.repeats = repeats;
+    myeffect.number = number;
 
     pthread_attr_init(&attr);
     pthread_attr_setdetachstate(&attr, PTHREAD_CREATE_DETACHED);
@@ -215,7 +218,7 @@ void os_start_sample (int number, int volume, int repeats, zword eos)
 
 void os_stop_sample (int number)
 {
-    if (bleep_playing) {
+    if (bleep_playing && number == bleepnum) {
 	bleep_stop = TRUE;
     }
     return;
@@ -392,6 +395,7 @@ void *playaiff(EFFECT *raw_effect)
     sem_post(&playaiff_okay);
 
     sf_info.format = 0;
+    bleepnum = myeffect.number;
 
     filestart = ftell(myeffect.fp);
     lseek(fileno(myeffect.fp), myeffect.result.data.startpos, SEEK_SET);

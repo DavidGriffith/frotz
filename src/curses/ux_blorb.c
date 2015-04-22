@@ -141,12 +141,12 @@ bb_err_t ux_blorb_init(char *filename)
 }
 
 /*
- * ux_stop_blorb
+ * ux_blorb_stop
  *
  * Basically just close the Blorb file.
  *
  */
-void ux_stop_blorb(void)
+void ux_blorb_stop(void)
 {
     if (blorb_fp != NULL)
 	fclose(blorb_fp);

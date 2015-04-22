@@ -79,6 +79,7 @@ static void unix_set_global_timeout(int timeout)
           global_timeout.tv_usec -= 1000000;
         }
     }
+    return;
 }
 
 /* This returns the number of milliseconds until the input timeout
@@ -272,6 +273,8 @@ static void unix_add_to_history(zchar *str)
     strcpy( *history_next, (char *)str);
     RING_INC( history_next, history_buffer, history_end);
     history_view = history_next; /* Reset user frame after each line */
+
+    return;
 }
 
 /*
@@ -347,6 +350,8 @@ static void scrnmove(int dest, int src, int n)
       }
     }
     move(y, x);
+
+    return;
 }
 
 /*
@@ -363,6 +368,8 @@ static void scrnset(int start, int c, int n)
     while (n--)
 	mvaddch(y, start + n, c);
     move(y, x);
+
+    return;
 }
 
 /*
@@ -642,7 +649,7 @@ int os_read_file_name (char *file_name, const char *default_name, int flag)
 zword os_read_mouse (void)
 {
 	/* INCOMPLETE */
-
+    return 0;
 } /* os_read_mouse */
 
 
@@ -675,6 +682,7 @@ void *memmove(void *s, void *t, size_t n)
 		p += n; q += n;
 		while (n--) *--p = *--q;
 	}
+	return;
 }
 
 #endif /* NO_MEMMOVE */

@@ -1754,7 +1754,7 @@ zword get_window_font (zword win)
 {
     zword font = wp[win].font;
 
-    if (font == TEXT_FONT)
+    if (font == TEXT_FONT) {
 
         if (h_version != V6) {
 
@@ -1769,6 +1769,7 @@ zword get_window_font (zword win)
                 font = FIXED_WIDTH_FONT;
 
         }
+    }
 
     return font;
 

@@ -54,8 +54,10 @@ int ux_getresource( int num, int ispic, int method, myresource * res)
 int ux_freeresource(myresource *res)
 {
     if (res == NULL)
-	return;
+	return 0;
 
     if (blorb_map != NULL)
 	return bb_unload_chunk(blorb_map, res->bbres.chunknum);
+
+    return 0;
 }

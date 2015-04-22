@@ -103,7 +103,7 @@ void os_fatal (const char *s, ...)
 	os_display_string((zchar *)"\n");
 	new_line();
 	os_reset_screen();
-	ux_stop_blorb();
+	ux_blorb_stop();
 	exit(1);
     }
 
@@ -146,7 +146,7 @@ void os_fatal (const char *s, ...)
 
 void os_process_arguments (int argc, char *argv[])
 {
-    int c, i;
+    int c;
     char *p = NULL;
     char *home;
     char configfile[FILENAME_MAX + 1];

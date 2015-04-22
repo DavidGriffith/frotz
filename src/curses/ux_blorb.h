@@ -26,6 +26,5 @@ typedef struct {
 } myresource;
 
 
-
-
-
+bb_err_t ux_blorb_init(char *);
+void ux_blorb_stop(void);

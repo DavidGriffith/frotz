@@ -11,6 +11,10 @@
 #include "../blorb/blorblow.h"
 #include "ux_setup.h"
 
+#ifndef rindex
+    #define rindex strrchr
+#endif
+
 #define MASTER_CONFIG		"frotz.conf"
 #define USER_CONFIG		".frotzrc"
 

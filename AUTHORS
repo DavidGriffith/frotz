@@ -25,3 +25,8 @@ others that I've forgotten.
 
 Michael Edmonson (author of Rezrov) and Evin Robertson (author of Nitfol)
 deserve recognition for the ideas that I've borrowed from their programs.
+
+Thanks goes to Erik de Castro Lopo, author of libsndfile and 
+libsamplerate for putting up with my numerous questions about audio 
+programming and gently nudging me towards how to do things the right 
+way.

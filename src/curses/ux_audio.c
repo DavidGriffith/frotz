@@ -40,13 +40,11 @@
 
 #include <ao/ao.h>
 #include <sndfile.h>
+#include <samplerate.h>
 #include <vorbis/codec.h>
 #include <vorbis/vorbisfile.h>
 #include <libmodplug/modplug.h>
 
-//#define BUFFSIZE 4096
-#define BUFFSIZE 512
-#define SAMPLERATE 44100
 #define MAX(x,y) ((x)>(y)) ? (x) : (y)
 #define MIN(x,y) ((x)<(y)) ? (x) : (y)
 
@@ -78,14 +76,13 @@ static sem_t		playaiff_okay;
 bool    bleep_playing = FALSE;
 bool	bleep_stop = FALSE;
 
-float	*musicbuffer;
-
-float	*bleepbuffer;
+short	*bleepbuffer;
 int	bleepchannels;
-int	bleeprate;
+int	bleepsamples;
 int	bleepcount;
 int	bleepnum;
 
+float	*musicbuffer;
 int	musiccount;
 
 
@@ -113,7 +110,7 @@ void os_init_sound(void)
 	exit(1);
     }
 
-    bleepbuffer = malloc(BUFFSIZE * 2 * sizeof(float));
+    bleepbuffer = malloc(BUFFSIZE * 2 * sizeof(short));
     if (bleepbuffer == NULL) {
 	printf("Unable to malloc bleepbuffer\n");
 	exit(1);
@@ -296,7 +293,7 @@ static void *mixer(void *arg)
         pthread_mutex_lock(&mutex);     /* Acquire mutex */
 
 	format.channels = bleepchannels;
-	format.rate = bleeprate;
+	format.rate = SAMPLERATE;
 	if (bleep_playing && device == NULL) {
 	    device = ao_open_live(default_driver, &format, NULL);
 	    if (device == NULL) {
@@ -304,8 +301,7 @@ static void *mixer(void *arg)
 	    }
 	}
 
-        floattopcm16(shortbuffer, bleepbuffer, BUFFSIZE * 2);
-        ao_play(device, (char *) shortbuffer, bleepcount * 2);
+        ao_play(device, (char *) bleepbuffer, bleepsamples);
 
 	if (!bleep_playing) {
 	    ao_close(device);
@@ -379,16 +375,21 @@ static int mypower(int base, int exp) {
  */
 void *playaiff(EFFECT *raw_effect)
 {
-    int frames_read;
-    int count;
-    sf_count_t toread;
     long filestart;
 
     int volcount;
     int volfactor;
 
+    float *floatbuffer;
+    float *floatbuffer2;
+
     SNDFILE     *sndfile;
     SF_INFO     sf_info;
+
+    SRC_STATE	*src_state;
+    SRC_DATA	src_data;
+    int		error;
+    sf_count_t	output_count = 0;
 
     EFFECT myeffect = *raw_effect;
 
@@ -405,34 +406,71 @@ void *playaiff(EFFECT *raw_effect)
     if (myeffect.vol > 8) myeffect.vol = 8;
     volfactor = mypower(2, -myeffect.vol + 8);
 
-    frames_read = 0;
-    toread = sf_info.frames * sf_info.channels;
+    floatbuffer = malloc(BUFFSIZE * sf_info.channels * sizeof(float));
+    floatbuffer2 = malloc(BUFFSIZE * sf_info.channels * sizeof(float));
+
+    /* Set up for conversion */
+    if ((src_state = src_new(DEFAULT_CONVERTER, sf_info.channels, &error)) == NULL) {
+	printf("Error: src_new() failed: %s.\n", src_strerror(error));
+	exit(1);
+    }
+    src_data.end_of_input = 0;
+    src_data.input_frames = 0;
+    src_data.data_in = floatbuffer;
+    src_data.src_ratio = (1.0 * SAMPLERATE) / sf_info.samplerate;
+    src_data.data_out = floatbuffer2;
+    src_data.output_frames = BUFFSIZE / sf_info.channels;
 
     bleepchannels = sf_info.channels;
-    bleeprate = sf_info.samplerate;
 
     bleep_playing = TRUE;
-    while (toread > 0) {
-	if (bleep_stop) break;
 
+    while (1) {
+	/* Check if we're being told to stop */
+	if (bleep_stop) break;
 	sem_wait(&audio_empty);
 	pthread_mutex_lock(&mutex);
 
-	if (toread < BUFFSIZE * sf_info.channels)
-	    count = toread;
-	else
-	    count = BUFFSIZE * sf_info.channels;
-        frames_read = sf_read_float(sndfile, bleepbuffer, count);
-	for (volcount = 0; volcount <= frames_read; volcount++) {
-	    bleepbuffer[volcount] /= volfactor;
+	/* if floatbuffer is empty, refill it */
+	if (src_data.input_frames == 0) {
+	    src_data.input_frames = sf_readf_float(sndfile, floatbuffer, BUFFSIZE / sf_info.channels);
+	    src_data.data_in = floatbuffer;
+	    /* mark end of input */
+	    if (src_data.input_frames < BUFFSIZE / sf_info.channels)
+		src_data.end_of_input = SF_TRUE;
 	}
 
-	bleepcount = frames_read;
-	toread = toread - frames_read;
+	/* do the sample rate conversion */
+	if ((error = src_process(src_state, &src_data))) {
+	    printf("Error: %s\n", src_strerror(error));
+	    exit(1);
+	}
+
+	bleepsamples = src_data.output_frames_gen * sizeof(short) * sf_info.channels;
+
+	/* if that's all, terminate and signal that we're done */
+	if (src_data.end_of_input && src_data.output_frames_gen == 0) {
+	    pthread_mutex_unlock(&mutex);
+	    sem_post(&audio_full);
+	    break;
+	}
+
+	/* convert floats to pcm16 and put them in bleepbuffer */
+        floattopcm16(bleepbuffer, floatbuffer2, src_data.output_frames_gen * sf_info.channels);
+
+	/* adjust volume */
+	for (volcount = 0; volcount <= bleepsamples; volcount++)
+	    bleepbuffer[volcount] /= volfactor;
+
+	/* get ready for the next chunk */
+        output_count += src_data.output_frames_gen;
+        src_data.data_in += src_data.input_frames_used * sf_info.channels;
+        src_data.input_frames -= src_data.input_frames_used;
 
 	pthread_mutex_unlock(&mutex);
 	sem_post(&audio_full);
     }
+
     bleep_stop = FALSE;
     bleep_playing = FALSE;
 

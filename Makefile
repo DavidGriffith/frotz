@@ -8,8 +8,8 @@ CC = gcc
 # These are good for regular use.
 #OPTS = -O2 -fomit-frame-pointer -falign-functions=2 -falign-loops=2 -falign-jumps=2
 # These are handy for debugging.
-#OPTS = -g -Wall
 OPTS = -g
+#OPTS = -g -Wall -Wextra
 
 # Define where you want Frotz installed (typically /usr/local).
 #
@@ -64,6 +64,17 @@ CURSES = -lncurses
 #
 #NO_MEMMOVE = yes
 
+# Default sample rate for sound effects.
+# All modern sound interfaces can be expected to support 44100 Hz sample 
+# rates.  Earlier ones, particularly ones in Sun 4c workstations support 
+# only up to 8000 Hz.
+SAMPLERATE = 44100
+
+# Audio buffer size in frames
+BUFFSIZE = 512
+
+# Default sample rate converter type
+DEFAULT_CONVERTER = SRC_SINC_MEDIUM_QUALITY
 
 #########################################################################
 # This section is where Frotz is actually built.
@@ -178,10 +189,13 @@ $(CURSES_OBJECT): %.o: %.c
 #
 defines: defines.h
 defines.h:
-	@echo "Sound support: $(SOUND)"
+	@echo "Generating defines.h"
 	@echo "#define VERSION \"$(VERSION)\"" > $(CURSES_DIR)/defines.h
 	@echo "#define CONFIG_DIR \"$(CONFIG_DIR)\"" >> $(CURSES_DIR)/defines.h
 	@echo "#define SOUND \"$(SOUND)\"" >> src/curses/defines.h
+	@echo "#define SAMPLERATE $(SAMPLERATE)" >> src/curses/defines.h
+	@echo "#define BUFFSIZE $(BUFFSIZE)" >> src/curses/defines.h
+	@echo "#define DEFAULT_CONVERTER $(DEFAULT_CONVERTER)" >> src/curses/defines.h
 
 ifeq ($(SOUND), none)
 	@echo "#define NO_SOUND" >> $(CURSES_DIR)/defines.h

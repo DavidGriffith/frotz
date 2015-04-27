@@ -136,10 +136,9 @@ void os_init_sound(void)
  */
 void os_beep (int number)
 {
-
     beep();
-
 }/* os_beep */
+
 
 /*
  * os_prepare_sample
@@ -150,7 +149,6 @@ void os_beep (int number)
  * the same operation.  This function therefore does nothing.
  *
  */
-
 void os_prepare_sample (int number)
 {
     return;
@@ -203,8 +201,8 @@ void os_start_sample (int number, int volume, int repeats, zword eos)
     } else {
 	/* Something else was presented as an audio chunk.  Ignore it. */
     }
-
 }/* os_start_sample */
+
 
 /*
  * os_stop_sample
@@ -212,7 +210,6 @@ void os_start_sample (int number, int volume, int repeats, zword eos)
  * Turn off the current sample.
  *
  */
-
 void os_stop_sample (int number)
 {
     if (bleep_playing && number == bleepnum) {
@@ -221,18 +218,19 @@ void os_stop_sample (int number)
     return;
 }/* os_stop_sample */
 
+
 /*
  * os_finish_with_sample
  *
  * Remove the current sample from memory (if any).
  *
  */
-
 void os_finish_with_sample (int number)
 {
     os_stop_sample(number);
 
 }/* os_finish_with_sample */
+
 
 /*
  * os_wait_sample
@@ -240,7 +238,6 @@ void os_finish_with_sample (int number)
  * Stop repeating the current sample and wait until it finishes.
  *
  */
-
 void os_wait_sample (void)
 {
 
@@ -250,8 +247,10 @@ void os_wait_sample (void)
 
 
 /*
+ **********************************************
  * These functions are internal to ux_audio.c
  *
+ **********************************************
  */
 
 /*
@@ -264,7 +263,6 @@ void os_wait_sample (void)
  * Data presented to the mixer must be floats at 44100hz
  *
  */
-
 static void *mixer(void *arg)
 {
     short *shortbuffer;
@@ -330,7 +328,7 @@ static void floattopcm16(short *outbuf, float *inbuf, int length)
 
 
 /* Convert the buffer to floats. (before resampling) */
-void pcm16tofloat(float *outbuf, short *inbuf, int length)
+static void pcm16tofloat(float *outbuf, short *inbuf, int length)
 {
     int   count;
 
@@ -358,6 +356,7 @@ static int mypower(int base, int exp) {
         return temp * temp;
     }
 }
+
 
 /*
  * playaiff
@@ -579,6 +578,7 @@ static int playmod(EFFECT myeffect)
 
     return(2);
 }
+
 
 /*
  * getfiledata

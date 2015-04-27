@@ -8,6 +8,7 @@
 
 bb_map_t *blorb_map;
 
+
 /*
  * ux_getresource
  *
@@ -44,13 +45,13 @@ int ux_getresource( int num, int ispic, int method, myresource * res)
     return st;
 }
 
+
 /*
  * ux_freeresource
  *
  * Destroys a myresource struct and returns the memory to the heap.
  *
  */
-
 int ux_freeresource(myresource *res)
 {
     if (res == NULL)

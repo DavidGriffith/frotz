@@ -82,16 +82,15 @@ static int	geterrmode(char *);
 static void	redraw(void);
 static FILE	*pathopen(const char *, const char *, const char *, char *);
 
+
 /*
  * os_fatal
  *
  * Display error message and exit program.
  *
  */
-
 void os_fatal (const char *s, ...)
 {
-
     if (u_setup.curses_active) {
 	/* Solaris 2.6's cc complains if the below cast is missing */
 	os_display_string((zchar *)"\n\n");
@@ -112,13 +111,13 @@ void os_fatal (const char *s, ...)
     fputs ("\n\n", stderr);
 
     exit (1);
-
 }/* os_fatal */
 
 /* extern char script_name[]; */
 /* extern char command_name[]; */
 /* extern char save_name[];*/
 /*extern char auxilary_name[];*/
+
 
 /*
  * os_process_arguments
@@ -143,7 +142,6 @@ void os_fatal (const char *s, ...)
  *
  *
  */
-
 void os_process_arguments (int argc, char *argv[])
 {
     int c;
@@ -169,6 +167,7 @@ void os_process_arguments (int argc, char *argv[])
 	exit(1);
     }
 
+
 /*
  * It doesn't look like Frotz can reliably be resized given its current
  * screen-handling code.  While playing with Nitfol, I noticed that it
@@ -193,7 +192,6 @@ void os_process_arguments (int argc, char *argv[])
     if (signal(SIGTTOU, SIG_IGN) != SIG_IGN)
 	signal(SIGTTOU, SIG_IGN);
 
-
     /* First check for a "$HOME/.frotzrc". */
     /* If not found, look for CONFIG_DIR/frotz.conf */
     /* $HOME/.frotzrc overrides CONFIG_DIR/frotz.conf */
@@ -210,7 +208,6 @@ void os_process_arguments (int argc, char *argv[])
     }
 
     /* Parse the options */
-
     do {
 	c = zgetopt(argc, argv, "aAb:c:def:Fh:il:oOpPQqr:s:S:tu:w:xZ:");
 	switch(c) {
@@ -313,6 +310,7 @@ void os_process_arguments (int argc, char *argv[])
 
 }/* os_process_arguments */
 
+
 /*
  * os_init_screen
  *
@@ -341,10 +339,8 @@ void os_process_arguments (int argc, char *argv[])
  *  ugly hacks, neener neener neener. --GH :)
  *
  */
-
 void os_init_screen (void)
 {
-
     /*trace(TRACE_CALLS);*/
 
     if (initscr() == NULL) {    /* Set up curses */
@@ -458,24 +454,23 @@ void os_init_screen (void)
     os_erase_area(1, 1, h_screen_rows, h_screen_cols, 0);
 }/* os_init_screen */
 
+
 /*
  * os_reset_screen
  *
  * Reset the screen before the program stops.
  *
  */
-
 void os_reset_screen (void)
 {
-
     os_stop_sample(0);
     os_set_text_style(0);
     print_string("[Hit any key to exit.]\n");
     os_read_key(0, FALSE);
     scrollok(stdscr, TRUE); scroll(stdscr);
     refresh(); endwin();
-
 }/* os_reset_screen */
+
 
 /*
  * os_restart_game
@@ -488,10 +483,10 @@ void os_reset_screen (void)
  *     RESTART_END - restart is complete
  *
  */
-
 void os_restart_game (int stage)
 {
 }
+
 
 /*
  * os_random_seed
@@ -500,7 +495,6 @@ void os_restart_game (int stage)
  * 32767, possibly by using the current system time.
  *
  */
-
 int os_random_seed (void)
 {
 
@@ -561,7 +555,6 @@ FILE *os_load_story(void)
  * path where the file was found in fullname.
  *
  */
-
 static FILE *pathopen(const char *name, const char *p, const char *mode, char *fullname)
 {
 	FILE *fp;
@@ -610,7 +603,6 @@ static int getconfig(char *configfile)
 
 	char	varname[LINELEN + 1];
 	char	value[LINELEN + 1];
-
 
 	/*
 	 * We shouldn't care if the config file is unreadable or not
@@ -742,7 +734,6 @@ static int getconfig(char *configfile)
 
 		/* The big nasty if-else thingy is finished */
 	} /* while */
-
 	return TRUE;
 } /* getconfig() */
 
@@ -856,7 +847,6 @@ static int geterrmode(char *value)
  * cleanly resize the window.
  *
  */
-
 void sigwinch_handler(int sig)
 {
 /*
@@ -868,6 +858,7 @@ does nothing.
 */
 
 }
+
 
 /*
  * sigint_handler
@@ -895,7 +886,6 @@ void redraw(void)
 
 void os_init_setup(void)
 {
-
 	f_setup.attribute_assignment = 0;
 	f_setup.attribute_testing = 0;
 	f_setup.context_lines = 0;
@@ -938,8 +928,8 @@ void os_init_setup(void)
 
 }
 
-/* A unix-like getopt, but with the names changed to avoid any problems.  
-*/
+
+/* A unix-like getopt, but with the names changed to avoid any problems. */
 static int zgetopt (int argc, char *argv[], const char *options)
 {
     static int pos = 1;
@@ -973,4 +963,3 @@ error:
     fputc ('\n', stderr);
     return '?';
 }/* zgetopt */
-

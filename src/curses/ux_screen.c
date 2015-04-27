@@ -32,6 +32,7 @@
 
 #include "ux_frotz.h"
 
+
 /*
  * os_erase_area
  *
@@ -43,7 +44,6 @@
  * being erased.  This is not relevant for the curses interface.
  *
  */
-
 void os_erase_area (int top, int left, int bottom, int right, int win)
 {
     int y, x, i, j;
@@ -77,6 +77,7 @@ void os_erase_area (int top, int left, int bottom, int right, int win)
     }
 }/* os_erase_area */
 
+
 /*
  * os_scroll_area
  *
@@ -85,7 +86,6 @@ void os_erase_area (int top, int left, int bottom, int right, int win)
  * colour. Top left coordinates are (1,1). The cursor stays put.
  *
  */
-
 void os_scroll_area (int top, int left, int bottom, int right, int units)
 {
   top--; left--; bottom--; right--;

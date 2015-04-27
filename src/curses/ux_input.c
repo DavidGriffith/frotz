@@ -66,7 +66,6 @@ extern int completion (const zchar *, zchar *);
  * equals global_timeout, boom.
  *
  */
-
 static void unix_set_global_timeout(int timeout)
 {
     if (!timeout) global_timeout.tv_sec = 0;
@@ -82,7 +81,11 @@ static void unix_set_global_timeout(int timeout)
     return;
 }
 
-/* This returns the number of milliseconds until the input timeout
+
+/*
+ * timeout_to_ms
+ *
+ * This returns the number of milliseconds until the input timeout
  * elapses or zero if it has already elapsed.  -1 is returned if no
  * timeout is in effect, otherwise the return value is non-negative.
  */
@@ -104,6 +107,7 @@ static int timeout_to_ms()
 	return INT_MAX - 1000;
     return diff.tv_sec * 1000 + diff.tv_usec / 1000;
 }
+
 
 /*
  * unix_read_char
@@ -227,7 +231,7 @@ static int unix_read_char(int extkeys)
 	case MOD_META | 'd': return ZC_HKEY_DEBUG;
 	case MOD_META | 'h': return ZC_HKEY_HELP;
 
-/* these are the emacs-editing characters */
+	/* these are the emacs-editing characters */
 	case MOD_CTRL ^ 'B': return ZC_ARROW_LEFT;
 	case MOD_CTRL ^ 'F': return ZC_ARROW_RIGHT;
 	case MOD_CTRL ^ 'P': return ZC_ARROW_UP;
@@ -263,7 +267,6 @@ static int unix_read_char(int extkeys)
  * Add the given string to the next available history buffer slot.
  *
  */
-
 static void unix_add_to_history(zchar *str)
 {
 
@@ -276,6 +279,7 @@ static void unix_add_to_history(zchar *str)
 
     return;
 }
+
 
 /*
  * unix_history_back
@@ -302,6 +306,7 @@ static int unix_history_back(zchar *str, int searchlen, int maxlen)
     return 1;
 }
 
+
 /*
  * unix_history_forward
  *
@@ -326,13 +331,13 @@ static int unix_history_forward(zchar *str, int searchlen, int maxlen)
     return 1;
 }
 
+
 /*
  * scrnmove
  *
  * In the row of the cursor, move n characters starting at src to dest.
  *
  */
-
 static void scrnmove(int dest, int src, int n)
 {
     int col, x, y;
@@ -354,13 +359,13 @@ static void scrnmove(int dest, int src, int n)
     return;
 }
 
+
 /*
  * scrnset
  *
  * In the row of the cursor, set n characters starting at start to c.
  *
  */
-
 static void scrnset(int start, int c, int n)
 {
     int y, x;
@@ -371,6 +376,7 @@ static void scrnset(int start, int c, int n)
 
     return;
 }
+
 
 /*
  * os_read_line
@@ -417,7 +423,6 @@ static void scrnset(int start, int c, int n)
  * to implement word completion (similar to tcsh under Unix).
  *
  */
-
 zchar os_read_line (int max, zchar *buf, int timeout, int width, int continued)
 {
     int ch, y, x, len = strlen( (char *)buf);
@@ -564,6 +569,7 @@ zchar os_read_line (int max, zchar *buf, int timeout, int width, int continued)
     }
 }/* os_read_line */
 
+
 /*
  * os_read_key
  *
@@ -571,7 +577,6 @@ zchar os_read_line (int max, zchar *buf, int timeout, int width, int continued)
  * return it. Input aborts after timeout/10 seconds.
  *
  */
-
 zchar os_read_key (int timeout, int cursor)
 {
     zchar c;
@@ -586,6 +591,7 @@ zchar os_read_key (int timeout, int cursor)
     return c;
 
 }/* os_read_key */
+
 
 /*
  * os_read_file_name

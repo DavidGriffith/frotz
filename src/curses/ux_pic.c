@@ -51,15 +51,18 @@ static struct {
 } *pict_info;
 static int num_pictures = 0;
 
+
 static unsigned char lookupb(unsigned char *p, int n)
 {
   return p[n];
 }
 
+
 static unsigned short lookupw(unsigned char *p, int n)
 {
   return (p[n + 1] << 8) | p[n];
 }
+
 
 /*
  * Do a rounding division, rounding to even if fraction part is 1/2.
@@ -149,6 +152,7 @@ bool unix_init_pictures (void)
   return success;
 }
 
+
 /* Convert a Z picture number to an index into pict_info.  */
 static int z_num_to_index(int n)
 {
@@ -158,6 +162,7 @@ static int z_num_to_index(int n)
       return i;
   return -1;
 }
+
 
 /*
  * os_picture_data
@@ -187,6 +192,7 @@ int os_picture_data(int num, int *height, int *width)
   return TRUE;
 }
 
+
 /*
  * Do a mvaddch if the coordinates aren't too large.
  *
@@ -196,6 +202,7 @@ static void safe_mvaddch(int y, int x, int ch)
 	if ((y < h_screen_rows) && (x < h_screen_cols))
 		mvaddch(y, x, ch);
 }
+
 
 /*
  * Set n chars starting at (x, y), doing bounds checking.
@@ -212,18 +219,17 @@ static void safe_scrnset(int y, int x, int ch, int n)
 	}
 }
 
+
 /*
  * os_draw_picture
  *
  * Display a picture at the given coordinates. Top left is (1,1).
  *
  */
-
 /* TODO: handle truncation correctly.  Spec 8.8.3 says all graphics should
  * be clipped to the current window.  To do that, we should probably
  * modify z_draw_picture in the frotz core to pass some extra parameters.
  */
-
 void os_draw_picture (int num, int row, int col)
 {
   int width, height, r, c;
@@ -269,11 +275,6 @@ void os_draw_picture (int num, int row, int col)
    *                                v
    */
 
-
-
-
-
-
   if ((height == 1) && (width == 1))
     safe_mvaddch(row, col, plus);
   else if (height == 1) {
@@ -308,6 +309,7 @@ void os_draw_picture (int num, int row, int col)
   move(saved_y, saved_x);
 }
 
+
 /*
  * os_peek_colour
  *
@@ -322,7 +324,6 @@ void os_draw_picture (int num, int row, int col)
  * instead.
  *
  */
-
 int os_peek_colour (void)
 {
   if (u_setup.color_enabled) {

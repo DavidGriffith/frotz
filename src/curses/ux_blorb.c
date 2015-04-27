@@ -101,7 +101,6 @@ bb_err_t ux_blorb_init(char *filename)
 	fclose(fp);
 	fp = NULL;
 
-
 	/* Check if foo.blb is there. */
         if ((blorb_fp = fopen(mystring, "rb")) == NULL) {
 	    p = rindex(mystring, '.');
@@ -140,6 +139,7 @@ bb_err_t ux_blorb_init(char *filename)
     return blorb_err;
 }
 
+
 /*
  * ux_blorb_stop
  *
@@ -153,7 +153,12 @@ void ux_blorb_stop(void)
     blorb_fp = NULL;
 }
 
-
+/*
+ **********************************************
+ * These functions are internal to ux_blorb.c
+ *
+ **********************************************
+ */
 
 /*
  * isblorb
@@ -181,6 +186,7 @@ static int isblorb(FILE *fp)
 
     return 1;
 }
+
 
 static char *findchunk(char *data, char *string, int length)
 {

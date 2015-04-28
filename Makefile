@@ -145,10 +145,9 @@ SOUND_LIB = -lao -ldl -lm -lsndfile -lvorbisfile -lmodplug -lsamplerate
 # Targets
 #
 
-$(NAME): $(NAME)-curses
-curses:  $(NAME)-curses
-$(NAME)-curses: defines $(COMMON_TARGET) $(CURSES_TARGET) $(BLORB_TARGET)
+.PHONY: all help dist clean distclean install install_dumb uninstall uninstall_dumb
 
+$(NAME): $(CURSES_DIR)/defines.h $(COMMON_TARGET) $(CURSES_TARGET) $(BLORB_TARGET)
 ifeq ($(SOUND), ao)
 	$(CC) -o $(BINNAME)$(EXTENSION) $(TARGETS) $(LIB) $(CURSES) $(SOUND_LIB)
 else ifeq ($(SOUND), none)
@@ -160,9 +159,7 @@ else
 endif
 
 
-dumb:		$(NAME)-dumb
-d$(NAME):	$(NAME)-dumb
-$(NAME)-dumb:		$(COMMON_TARGET) $(DUMB_TARGET)
+d$(NAME):		$(COMMON_TARGET) $(DUMB_TARGET)
 	$(CC) -o d$(BINNAME)$(EXTENSION) $(COMMON_TARGET) $(DUMB_TARGET) $(LIB)
 
 all:	$(NAME) d$(NAME)
@@ -187,30 +184,29 @@ $(CURSES_OBJECT): %.o: %.c
 ####################################
 # Get the defines set up just right
 #
-defines: defines.h
-defines.h:
-	@echo "Generating defines.h"
-	@echo "#define VERSION \"$(VERSION)\"" > $(CURSES_DIR)/defines.h
-	@echo "#define CONFIG_DIR \"$(CONFIG_DIR)\"" >> $(CURSES_DIR)/defines.h
-	@echo "#define SOUND \"$(SOUND)\"" >> src/curses/defines.h
-	@echo "#define SAMPLERATE $(SAMPLERATE)" >> src/curses/defines.h
-	@echo "#define BUFFSIZE $(BUFFSIZE)" >> src/curses/defines.h
-	@echo "#define DEFAULT_CONVERTER $(DEFAULT_CONVERTER)" >> src/curses/defines.h
+$(CURSES_DIR)/defines.h:
+	@echo "Generating $@"
+	@echo "#define VERSION \"$(VERSION)\"" > $@
+	@echo "#define CONFIG_DIR \"$(CONFIG_DIR)\"" >> $@
+	@echo "#define SOUND \"$(SOUND)\"" >> $@
+	@echo "#define SAMPLERATE $(SAMPLERATE)" >> $@
+	@echo "#define BUFFSIZE $(BUFFSIZE)" >> $@
+	@echo "#define DEFAULT_CONVERTER $(DEFAULT_CONVERTER)" >> $@
 
 ifeq ($(SOUND), none)
-	@echo "#define NO_SOUND" >> $(CURSES_DIR)/defines.h
+	@echo "#define NO_SOUND" >> $@
 endif
 
 ifndef SOUND
-	@echo "#define NO_SOUND" >> $(CURSES_DIR)/defines.h
+	@echo "#define NO_SOUND" >> $@
 endif
 
 ifdef COLOR
-	@echo "#define COLOR_SUPPORT" >> $(CURSES_DIR)/defines.h
+	@echo "#define COLOR_SUPPORT" >> $@
 endif
 
 ifdef NO_MEMMOVE
-	@echo "#define NO_MEMMOVE" >> $(CURSES_DIR)/defines.h
+	@echo "#define NO_MEMMOVE" >> $@
 endif
 
 
@@ -261,8 +257,6 @@ uninstall:
 	rm -f $(PREFIX)/bin/$(NAME)
 	rm -f $(MAN_PREFIX)/man/man6/$(NAME).6
 
-deinstall: uninstall
-
 install_dumb: d$(NAME)
 	strip d$(BINNAME)$(EXTENSION)
 	install -d $(PREFIX)/bin
@@ -273,10 +267,6 @@ install_dumb: d$(NAME)
 uninstall_dumb:
 	rm -f $(PREFIX)/bin/d$(NAME)
 	rm -f $(MAN_PREFIX)/man/man6/d$(NAME).6
-
-deinstall_dumb: uninstall_dumb
-
-distro: dist
 
 dist: distclean
 	mkdir $(distdir)
@@ -307,9 +297,6 @@ distclean: clean
 	-rm -rf $(distdir)
 	-rm -f $(distdir).tar $(distdir).tar.gz
 
-realclean: distclean
-clobber: distclean
-
 help:
 	@echo
 	@echo "Targets:"
@@ -317,7 +304,10 @@ help:
 	@echo "    dfrotz"
 	@echo "    install"
 	@echo "    uninstall"
+	@echo "    install_dfrotz"
+	@echo "    uninstall_dfrotz"
 	@echo "    clean"
 	@echo "    distclean"
+	@echo "    dist"
 	@echo
 

@@ -76,7 +76,7 @@ static sem_t		playaiff_okay;
 bool    bleep_playing = FALSE;
 bool	bleep_stop = FALSE;
 
-short	*bleepbuffer;
+float	*bleepbuffer;
 int	bleepchannels;
 int	bleepsamples;
 int	bleepcount;
@@ -110,7 +110,7 @@ void os_init_sound(void)
 	exit(1);
     }
 
-    bleepbuffer = malloc(BUFFSIZE * 2 * sizeof(short));
+    bleepbuffer = malloc(BUFFSIZE * 2 * sizeof(float));
     if (bleepbuffer == NULL) {
 	printf("Unable to malloc bleepbuffer\n");
 	exit(1);
@@ -299,7 +299,10 @@ static void *mixer(void *arg)
 	    }
 	}
 
-        ao_play(device, (char *) bleepbuffer, bleepsamples);
+	floattopcm16(shortbuffer, bleepbuffer, bleepsamples);
+        ao_play(device, (char *) shortbuffer, bleepsamples);
+	memset(shortbuffer, 0, BUFFSIZE * sizeof(short) * 2);
+	memset(bleepbuffer, 0, BUFFSIZE * sizeof(float) * bleepchannels);
 
 	if (!bleep_playing) {
 	    ao_close(device);
@@ -380,7 +383,6 @@ void *playaiff(EFFECT *raw_effect)
     int volfactor;
 
     float *floatbuffer;
-    float *floatbuffer2;
 
     SNDFILE     *sndfile;
     SF_INFO     sf_info;
@@ -406,7 +408,6 @@ void *playaiff(EFFECT *raw_effect)
     volfactor = mypower(2, -myeffect.vol + 8);
 
     floatbuffer = malloc(BUFFSIZE * sf_info.channels * sizeof(float));
-    floatbuffer2 = malloc(BUFFSIZE * sf_info.channels * sizeof(float));
 
     /* Set up for conversion */
     if ((src_state = src_new(DEFAULT_CONVERTER, sf_info.channels, &error)) == NULL) {
@@ -417,7 +418,7 @@ void *playaiff(EFFECT *raw_effect)
     src_data.input_frames = 0;
     src_data.data_in = floatbuffer;
     src_data.src_ratio = (1.0 * SAMPLERATE) / sf_info.samplerate;
-    src_data.data_out = floatbuffer2;
+    src_data.data_out = bleepbuffer;
     src_data.output_frames = BUFFSIZE / sf_info.channels;
 
     bleepchannels = sf_info.channels;
@@ -453,9 +454,6 @@ void *playaiff(EFFECT *raw_effect)
 	    sem_post(&audio_full);
 	    break;
 	}
-
-	/* convert floats to pcm16 and put them in bleepbuffer */
-        floattopcm16(bleepbuffer, floatbuffer2, src_data.output_frames_gen * sf_info.channels);
 
 	/* adjust volume */
 	for (volcount = 0; volcount <= bleepsamples; volcount++)

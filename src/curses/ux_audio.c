@@ -300,7 +300,7 @@ static void *mixer(void *arg)
 	}
 
 	floattopcm16(shortbuffer, bleepbuffer, bleepsamples);
-        ao_play(device, (char *) shortbuffer, bleepsamples);
+        ao_play(device, (char *) shortbuffer, bleepsamples * sizeof(short));
 	memset(shortbuffer, 0, BUFFSIZE * sizeof(short) * 2);
 	memset(bleepbuffer, 0, BUFFSIZE * sizeof(float) * bleepchannels);
 
@@ -446,7 +446,11 @@ void *playaiff(EFFECT *raw_effect)
 	    exit(1);
 	}
 
-	bleepsamples = src_data.output_frames_gen * sizeof(short) * sf_info.channels;
+	bleepsamples = src_data.output_frames_gen * sf_info.channels;
+
+	/* adjust volume */
+	for (volcount = 0; volcount <= bleepsamples; volcount++)
+	    bleepbuffer[volcount] /= volfactor;
 
 	/* if that's all, terminate and signal that we're done */
 	if (src_data.end_of_input && src_data.output_frames_gen == 0) {
@@ -454,10 +458,6 @@ void *playaiff(EFFECT *raw_effect)
 	    sem_post(&audio_full);
 	    break;
 	}
-
-	/* adjust volume */
-	for (volcount = 0; volcount <= bleepsamples; volcount++)
-	    bleepbuffer[volcount] /= volfactor;
 
 	/* get ready for the next chunk */
         output_count += src_data.output_frames_gen;

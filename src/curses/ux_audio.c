@@ -185,9 +185,12 @@ void os_start_sample (int number, int volume, int repeats, zword eos)
     myeffect.number = number;
 
     pthread_attr_init(&attr);
-    pthread_attr_setdetachstate(&attr, PTHREAD_CREATE_DETACHED);
 
     if (blorb_map->chunks[resource.chunknum].type == bb_make_id('F','O','R','M')) {
+	if (bleep_playing) {
+	    bleep_playing = FALSE;
+	    pthread_join(playaiff_id, NULL);
+	}
 	err = pthread_create(&playaiff_id, &attr, (void *) &playaiff, &myeffect);
 	if (err != 0) {
 	    printf("Can't create playaiff thread :[%s]", strerror(err));
@@ -212,8 +215,9 @@ void os_start_sample (int number, int volume, int repeats, zword eos)
  */
 void os_stop_sample (int number)
 {
-    if (bleep_playing && number == bleepnum) {
-	bleep_stop = TRUE;
+    if (bleep_playing && (number == bleepnum || number == 0)) {
+	bleep_playing = FALSE;
+	while(pthread_kill(playaiff_id, 0) == 0);
     }
     return;
 }/* os_stop_sample */
@@ -448,7 +452,7 @@ void *playaiff(EFFECT *raw_effect)
 
     while (1) {
 	/* Check if we're being told to stop. */
-	if (bleep_stop) break;
+	if (!bleep_playing) break;
 	sem_wait(&audio_empty);
 	pthread_mutex_lock(&mutex);
 
@@ -504,13 +508,14 @@ void *playaiff(EFFECT *raw_effect)
      * Whichever, we need to clean up and terminate this thread.
      */
 
-    bleep_stop = FALSE;
     bleep_playing = FALSE;
 
     fseek(myeffect.fp, filestart, SEEK_SET);
     sf_close(sndfile);
+    free(floatbuffer);
+    free(floatbuffer2);
 
-    pthread_exit((void*) raw_effect);
+    pthread_exit(NULL);
 }
 
 

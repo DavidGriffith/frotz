@@ -61,6 +61,7 @@ static int playmod(EFFECT);
 static int playogg(EFFECT);
 static void floattopcm16(short *, float *, int);
 static void pcm16tofloat(float *, short *, int);
+static void stereoize(float *, float *, size_t);
 
 static int mypower(int, int);
 static char *getfiledata(FILE *, long *);
@@ -77,7 +78,6 @@ bool    bleep_playing = FALSE;
 bool	bleep_stop = FALSE;
 
 float	*bleepbuffer;
-int	bleepchannels;
 int	bleepsamples;
 int	bleepcount;
 int	bleepnum;
@@ -283,6 +283,8 @@ static void *mixer(void *arg)
 
     format.byte_format = AO_FMT_NATIVE;
     format.bits = 16;
+    format.channels = 2;
+    format.rate = SAMPLERATE;
 
     device = NULL;
 
@@ -290,8 +292,6 @@ static void *mixer(void *arg)
         sem_wait(&audio_full);          /* Wait until output buffer is full */
         pthread_mutex_lock(&mutex);     /* Acquire mutex */
 
-	format.channels = bleepchannels;
-	format.rate = SAMPLERATE;
 	if (bleep_playing && device == NULL) {
 	    device = ao_open_live(default_driver, &format, NULL);
 	    if (device == NULL) {
@@ -302,7 +302,7 @@ static void *mixer(void *arg)
 	floattopcm16(shortbuffer, bleepbuffer, bleepsamples);
         ao_play(device, (char *) shortbuffer, bleepsamples * sizeof(short));
 	memset(shortbuffer, 0, BUFFSIZE * sizeof(short) * 2);
-	memset(bleepbuffer, 0, BUFFSIZE * sizeof(float) * bleepchannels);
+	memset(bleepbuffer, 0, BUFFSIZE * sizeof(float) * 2);
 
 	if (!bleep_playing) {
 	    ao_close(device);
@@ -338,6 +338,27 @@ static void pcm16tofloat(float *outbuf, short *inbuf, int length)
     const float div = (1.0f/32768.0f);
     for (count = 0; count <= length; count++) {
 	outbuf[count] = div * (float) inbuf[count];
+    }
+}
+
+
+/*
+ * stereoize
+ *
+ * Copy the single channel of a monaural stream to both channels
+ * of a stereo stream.
+ *
+ */
+static void stereoize(float *outbuf, float *inbuf, size_t length)
+{
+    int count;
+    int outcount;
+
+    outcount = 0;
+
+    for (count = 0; count < length; count++) {
+	outbuf[outcount] = outbuf[outcount+1] = inbuf[count];
+	outcount += 2;
     }
 }
 
@@ -383,6 +404,7 @@ void *playaiff(EFFECT *raw_effect)
     int volfactor;
 
     float *floatbuffer;
+    float *floatbuffer2;
 
     SNDFILE     *sndfile;
     SF_INFO     sf_info;
@@ -408,6 +430,7 @@ void *playaiff(EFFECT *raw_effect)
     volfactor = mypower(2, -myeffect.vol + 8);
 
     floatbuffer = malloc(BUFFSIZE * sf_info.channels * sizeof(float));
+    floatbuffer2 = malloc(BUFFSIZE * 2 * sizeof(float));
 
     /* Set up for conversion */
     if ((src_state = src_new(DEFAULT_CONVERTER, sf_info.channels, &error)) == NULL) {
@@ -418,55 +441,68 @@ void *playaiff(EFFECT *raw_effect)
     src_data.input_frames = 0;
     src_data.data_in = floatbuffer;
     src_data.src_ratio = (1.0 * SAMPLERATE) / sf_info.samplerate;
-    src_data.data_out = bleepbuffer;
+    src_data.data_out = floatbuffer2;
     src_data.output_frames = BUFFSIZE / sf_info.channels;
-
-    bleepchannels = sf_info.channels;
 
     bleep_playing = TRUE;
 
     while (1) {
-	/* Check if we're being told to stop */
+	/* Check if we're being told to stop. */
 	if (bleep_stop) break;
 	sem_wait(&audio_empty);
 	pthread_mutex_lock(&mutex);
 
-	/* if floatbuffer is empty, refill it */
+	/* If floatbuffer is empty, refill it. */
 	if (src_data.input_frames == 0) {
 	    src_data.input_frames = sf_readf_float(sndfile, floatbuffer, BUFFSIZE / sf_info.channels);
 	    src_data.data_in = floatbuffer;
-	    /* mark end of input */
+	    /* Mark end of input. */
 	    if (src_data.input_frames < BUFFSIZE / sf_info.channels)
 		src_data.end_of_input = SF_TRUE;
 	}
 
-	/* do the sample rate conversion */
+	/* Do the sample rate conversion. */
 	if ((error = src_process(src_state, &src_data))) {
 	    printf("Error: %s\n", src_strerror(error));
 	    exit(1);
 	}
 
-	bleepsamples = src_data.output_frames_gen * sf_info.channels;
+	bleepsamples = src_data.output_frames_gen * 2;
 
-	/* adjust volume */
+	/* Stereoize monaural sound-effects. */
+	if (sf_info.channels == 1) {
+	    /* Remember that each monaural frame contains just one sample. */
+	    stereoize(bleepbuffer, floatbuffer2, src_data.output_frames_gen);
+	} else {
+	    /* It's already stereo.  Just copy the buffer. */
+	    memcpy(bleepbuffer, floatbuffer2, sizeof(float) * src_data.output_frames_gen * 2);
+	}
+
+	/* Adjust volume. */
 	for (volcount = 0; volcount <= bleepsamples; volcount++)
 	    bleepbuffer[volcount] /= volfactor;
 
-	/* if that's all, terminate and signal that we're done */
+	/* If that's all, terminate and signal that we're done. */
 	if (src_data.end_of_input && src_data.output_frames_gen == 0) {
 	    pthread_mutex_unlock(&mutex);
 	    sem_post(&audio_full);
 	    break;
 	}
 
-	/* get ready for the next chunk */
+	/* Get ready for the next chunk. */
         output_count += src_data.output_frames_gen;
         src_data.data_in += src_data.input_frames_used * sf_info.channels;
         src_data.input_frames -= src_data.input_frames_used;
 
+	/* By this time, the buffer is full.  Signal the mixer to play it. */
 	pthread_mutex_unlock(&mutex);
 	sem_post(&audio_full);
     }
+
+    /* The two ways to exit the above loop are to process all the
+     * samples in the AIFF file or else get told to stop early.
+     * Whichever, we need to clean up and terminate this thread.
+     */
 
     bleep_stop = FALSE;
     bleep_playing = FALSE;

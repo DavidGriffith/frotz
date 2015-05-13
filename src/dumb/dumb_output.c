@@ -431,6 +431,7 @@ void os_beep (int volume)
 
 /* To make the common code happy */
 
+void os_init_sound(void) {}
 void os_prepare_sample (int a) {}
 void os_finish_with_sample (int a) {}
 void os_start_sample (int a, int b, int c, zword d) {}

@@ -84,6 +84,27 @@ static FILE	*pathopen(const char *, const char *, const char *, char *);
 
 
 /*
+ * os_warn
+ *
+ * Display a warning message and continue with the game.
+ *
+ */
+void os_warn (const char *s, ...)
+{
+    if (u_setup.curses_active) {
+	/* Solaris 2.6's cc complains if the below cast is missing */
+	os_display_string((zchar *)"\n\n");
+	os_beep(BEEP_HIGH);
+	os_set_text_style(BOLDFACE_STYLE);
+	os_display_string((zchar *)"Warning: ");
+	os_set_text_style(0);
+	os_display_string((zchar *)s);
+	os_display_string((zchar *)"\n");
+	new_line();
+    }
+}/* os_warn */
+
+/*
  * os_fatal
  *
  * Display error message and exit program.

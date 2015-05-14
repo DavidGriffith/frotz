@@ -10,7 +10,7 @@
    this definition, but have the unix port see the curses version. */
 
 #ifndef VERSION
-#define VERSION "2.44pre"
+#define VERSION "2.44"
 #endif
 
 #ifndef __UNIX_PORT_FILE

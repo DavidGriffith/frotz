@@ -1,3 +1,23 @@
+Summary of changes between Frotz 2.43 and Frotz 2.44:
+=====================================================
+
+Frotz 2.44 was released on Thursday May 14, 2015.
+
+NEW FEATURES
+
+- Blorb support implemented.  No support for audio in Blorb files yet.
+
+- Added an -m option for Dumb Frotz to suppress the [MORE] prompt.
+
+- Makefile and code for compiling for 16-bit DOS.
+
+BUG FIXES
+
+- Fixed a problem with saving and restoring in certain games.
+
+- Fixed assorted minor 64-bitness problems.
+
+
 Summary of changes between Unix Frotz 2.42 and Unix Frotz 2.43:
 ===============================================================
 

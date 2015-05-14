@@ -107,7 +107,7 @@ SDL_LIBS = -ljpeg -lpng -lz -lSDL -lSDL_mixer
 
 SRCDIR = src
 
-VERSION = 2.44pre
+VERSION = 2.44
 
 NAME = frotz
 BINNAME = $(NAME)

@@ -539,7 +539,7 @@ zword save_quetzal (FILE *svf, FILE *stf)
 	    || !write_word (svf, nstk))			return 0;
 
 	/* Write the variables and eval stack. */
-	for (j=0, ++p; j<nvars+nstk; ++j, --p)
+	for (j=0, --p; j<nvars+nstk; ++j, --p)
 	    if (!write_word (svf, *p))			return 0;
 
 	/* Calculate length written thus far. */

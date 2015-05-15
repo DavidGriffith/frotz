@@ -28,7 +28,7 @@
 #define TANDY_DEF		0
 #define OBJ_MOVE_DEF		0
 #define OBJ_LOC_DEF		0
-#define BACKGROUND_DEF		BLUE_COLOUR
+#define BACKGROUND_DEF		BLACK_COLOUR
 #define FOREGROUND_DEF		WHITE_COLOUR
 #define HEIGHT_DEF		-1	/* let curses figure it out */
 #define CONTEXTLINES_DEF	0

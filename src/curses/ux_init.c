@@ -235,7 +235,7 @@ void os_process_arguments (int argc, char *argv[])
 	  case 'a': f_setup.attribute_assignment = 1; break;
 	  case 'A': f_setup.attribute_testing = 1; break;
 
-	  case 'b': u_setup.background_color = atoi(zoptarg);
+	  case 'b': u_setup.background_color = getcolor(zoptarg);
 		u_setup.force_color = 1;
 		u_setup.disable_color = 0;
 		if ((u_setup.background_color < 2) ||

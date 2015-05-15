@@ -2,44 +2,42 @@ Frotz is a very portable program and as such has been ported to quite a
 lot of different platforms.
 
 
-These are actively-maintained ports and their webpages (if known):
-------------------------------------
+These are actively-maintained ports and their webpages:
+------------------------------------------------------=
 
-WinFrotz
+Windows Frotz
 Frotz for machines running Microsoft Windows.
-http://www.d.kinder.btinternet.co.uk
-
-AmigaFrotz
-Frotz for the Amiga series of computers.
-(no webpage)
-
-FrotzCE
-Frotz for PocketPC machines running WindowsCE.
-http://www.pyram-id.demon.co.uk/FrotzCE.html
-(Based on 2.32)
+http://www.davidkinder.co.uk/frotz.html
 
 DOS
 Good ol' DOS
-(no webpage)
+https://github.com/DavidGriffith/frotz
 
-Kwest
-Frotz ported to KDE.
-http://users.pandora.be/peter.bienstman/kwest/
+iOS
+Frotz for the Apple iPhone, iPad, and iPod Touch.
+https://itunes.apple.com/us/app/frotz/id287653015 (app store)
+https://code.google.com/p/iphonefrotz/ (source code)
 
-EbmFrotz
-Frotz ported to Franklin's eBookman.
-http://www.twpo.com.au/cwarrens/ebm
+Gameboy Advance
+Frotz for the Nintendo Gameboy Advance
+http://gbaemu.dcemu.co.uk/gbafrotz.shtml
 
+Grue
+An Infocom playing bot for irc
+http://grue.sourceforge.net/
 
+CliFrotz
+Frotz for PalmOS machines
+http://zodiacstuff.sourceforge.net/clifrotz.html
 
-Nobody maintains these ports:
------------------------------
+To my knowledge, nobody maintains these ports anymore and none have pages:
+--------------------------------------------------------------------------
 
-Pilot Frotz
-Frotz for Palm Pilot machines.
-http://www.geocities.com/SiliconValley/Way/2367/
-(Link has been dead for several months)
-
+AmigaFrotz:	For the Commodore Amiga
+EbmFrotz:	For the Franklin's eBookman
+FrotzCE:	For Windows CE
+Kwest:		KDE graphical interface
+Pilot Frotz:	For Palm Pilot machines
 
 
 Frotz might work well with these platforms:
@@ -89,12 +87,6 @@ Probably same troubles as with Apple II.
 Atari 8-bit:
 Probably troubles as with the Commodore 64.
 
-Wireless phones:
-They might have enough memory to handle Frotz, but I have severe doubts
-about how usable any sort of Interactive Fiction can be on such a
-device.  Phones were not designed to be used as general-purpose
-terminals.
-
 Digital cameras:
 Someone ported the venerable arcade machine emulator MAME to a Kodak
 digital camera some time ago.  There should be enough space and
@@ -109,8 +101,8 @@ response to my emailed question:
 
 
 Date: Thu, 8 Aug 2002 18:54:51 -0400
-From: Brian Moriarty <prof@ludix.com>
-To: Dave <dgriffi@cs.csubak.edu>
+From: Brian Moriarty
+To: Dave
 Subject: RE: porting Frotz to 6502 machines
 
 The original 6502 ZIPs were hand-written in assembler, and
@@ -124,9 +116,9 @@ into versions 3 and beyond, we decided to leave that class of
 machine behind.
 
 -----Original Message-----
-From: Dave [mailto:dgriffi@cs.csubak.edu]
+From: Dave 
 Sent: Thursday, August 08, 2002 6:43 PM
-To: prof@ludix.com
+To: Brian Moriarty
 Subject: porting Frotz to 6502 machines
 
 

@@ -11,9 +11,13 @@ NEW FEATURES
 
 - Makefile and code for compiling for 16-bit DOS.
 
+
 BUG FIXES
 
 - Fixed a problem with saving and restoring in certain games.
+
+- Removed old-style save support.  It was getting hard to manage.  Only 
+  the Quetzal save file format is supported now.
 
 - Fixed assorted minor 64-bitness problems.
 

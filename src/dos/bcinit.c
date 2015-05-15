@@ -949,3 +949,58 @@ int dos_init_blorb(void)
     return 0;
 }
 
+
+/*
+ * os_storyfile_seek
+ *
+ * Seek into a storyfile, either a standalone file or the 
+ * ZCODE chunk of a blorb file
+ *
+ */
+int os_storyfile_seek(FILE * fp, long offset, int whence)
+{
+    /* Is this a Blorb file containing Zcode? */
+    if (exec_in_blorb)
+    {
+       switch (whence)
+       {
+           case SEEK_END:
+               return fseek(fp, blorb_res.data.startpos + blorb_res.length + offset, SEEK_SET);
+               break;
+           case SEEK_CUR:
+               return fseek(fp, offset, SEEK_CUR);
+               break;
+           case SEEK_SET:
+           default:
+               return fseek(fp, blorb_res.data.startpos + offset, SEEK_SET);
+               break;
+       }
+    }
+    else
+    {
+       return fseek(fp, offset, whence);
+    }
+
+}
+
+
+/*
+ * os_storyfile_seek
+ *
+ * Tell the position in a storyfile, either a standalone file 
+ * or the ZCODE chunk of a blorb file
+ *
+ */
+int os_storyfile_tell(FILE * fp)
+{
+    /* Is this a Blorb file containing Zcode? */
+    if (exec_in_blorb)
+    {
+       return ftell(fp) - blorb_res.data.startpos;
+    }
+    else
+    {
+       return ftell(fp);
+    }
+
+}

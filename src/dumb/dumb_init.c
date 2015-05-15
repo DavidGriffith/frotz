@@ -172,6 +172,26 @@ FILE *os_load_story(void)
     return fopen(f_setup.story_file, "rb");
 }
 
+/*
+ * Seek into a storyfile, either a standalone file or the
+ * ZCODE chunk of a blorb file (dumb does not support blorb
+ * so this is just a wrapper for fseek)
+ */
+int os_storyfile_seek(FILE * fp, long offset, int whence)
+{
+    return fseek(fp, offset, whence);
+}
+
+/*
+ * Tell the position in a storyfile, either a standalone file
+ * or the ZCODE chunk of a blorb file (dumb does not support
+ * blorb so this is just a wrapper for fseek)
+ */
+int os_storyfile_tell(FILE * fp)
+{
+    return ftell(fp);
+}
+
 void os_init_setup(void)
 {
 	f_setup.attribute_assignment = 0;

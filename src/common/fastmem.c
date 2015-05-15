@@ -58,6 +58,8 @@ extern void script_open (void);
 extern void script_close (void);
 
 extern FILE *os_load_story (void);
+extern int os_storyfile_seek (FILE * fp, long offset, int whence);
+extern int os_storyfile_tell (FILE * fp);
 
 extern zword save_quetzal (FILE *, FILE *);
 extern zword restore_quetzal (FILE *, FILE *);
@@ -321,11 +323,9 @@ void init_memory (void)
 	    story_size *= 2;
 
     } else {		/* some old games lack the file size entry */
-
-	fseek (story_fp, 0, SEEK_END);
-	story_size = ftell (story_fp);
-	fseek (story_fp, 64, SEEK_SET);
-
+	os_storyfile_seek (story_fp, 0, SEEK_END);
+	story_size = os_storyfile_tell (story_fp);
+	os_storyfile_seek (story_fp, 64, SEEK_SET);
     }
 
     LOW_WORD (H_CHECKSUM, h_checksum);
@@ -534,7 +534,7 @@ void z_restart (void)
 
     if (!first_restart) {
 
-	fseek (story_fp, 0, SEEK_SET);
+	os_storyfile_seek (story_fp, 0, SEEK_SET);
 
 	if (fread (zmp, 1, h_dynamic_size, story_fp) != h_dynamic_size)
 	    os_fatal ("Story file read error");
@@ -692,7 +692,7 @@ void z_restore (void)
 		    stack[i] |= fgetc (gfp);
 		}
 
-		fseek (story_fp, 0, SEEK_SET);
+		os_storyfile_seek (story_fp, 0, SEEK_SET);
 
 		for (addr = 0; addr < h_dynamic_size; addr++) {
 		    int skip = fgetc (gfp);
@@ -981,7 +981,7 @@ void z_save (void)
 		fputc ((int) lo (stack[i]), gfp);
 	    }
 
-	    fseek (story_fp, 0, SEEK_SET);
+	    os_storyfile_seek (story_fp, 0, SEEK_SET);
 
 	    for (addr = 0, skip = 0; addr < h_dynamic_size; addr++)
 		if (zmp[addr] != fgetc (story_fp) || skip == 255 || addr + 1 == h_dynamic_size) {
@@ -1107,7 +1107,7 @@ void z_verify (void)
 
     /* Sum all bytes in story file except header bytes */
 
-    fseek (story_fp, 64, SEEK_SET);
+    os_storyfile_seek (story_fp, 64, SEEK_SET);
 
     for (i = 64; i < story_size; i++)
 	checksum += fgetc (story_fp);

@@ -48,6 +48,12 @@
 #define get_c fgetc
 #define put_c fputc
 
+/*
+ * externs
+ */
+
+extern int os_storyfile_seek(FILE * fp, long offset, int whence);
+
 typedef unsigned long zlong;
 
 /*
@@ -321,7 +327,7 @@ zword restore_quetzal (FILE *svf, FILE *stf)
 	    case ID_CMem:
 		if (!(progress & GOT_MEMORY))	/* Don't complain if two. */
 		{
-		    (void) fseek (stf, 0, SEEK_SET);
+		    (void) os_storyfile_seek (stf, 0, SEEK_SET);
 		    i=0;	/* Bytes written to data area. */
 		    for (; currlen > 0; --currlen)
 		    {
@@ -442,7 +448,7 @@ zword save_quetzal (FILE *svf, FILE *stf)
     /* Write `CMem' chunk. */
     if ((cmempos = ftell (svf)) < 0)			return 0;
     if (!write_chnk (svf, ID_CMem, 0))			return 0;
-    (void) fseek (stf, 0, SEEK_SET);
+    (void) os_storyfile_seek (stf, 0, SEEK_SET);
     /* j holds current run length. */
     for (i=0, j=0, cmemlen=0; i < h_dynamic_size; ++i)
     {

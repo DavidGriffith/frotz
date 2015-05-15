@@ -1,7 +1,7 @@
 Summary of changes between Frotz 2.43 and Frotz 2.44:
 =====================================================
 
-Frotz 2.44 was released on Thursday May 14, 2015.
+Frotz 2.44 was released on Sunday May 17, 2015.
 
 NEW FEATURES
 
@@ -16,7 +16,7 @@ BUG FIXES
 
 - Fixed a problem with saving and restoring in certain games.
 
-- Added soem fflush() calls to make Dumb Frotz more suitable for bot use.
+- Added some fflush() calls to make Dumb Frotz more suitable for bot use.
 
 - Removed old-style save support.  It was getting hard to manage.  Only 
   the Quetzal save file format is supported now.

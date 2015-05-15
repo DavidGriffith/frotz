@@ -16,6 +16,8 @@ BUG FIXES
 
 - Fixed a problem with saving and restoring in certain games.
 
+- Added soem fflush() calls to make Dumb Frotz more suitable for bot use.
+
 - Removed old-style save support.  It was getting hard to manage.  Only 
   the Quetzal save file format is supported now.
 

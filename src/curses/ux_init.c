@@ -205,7 +205,7 @@ void os_process_arguments (int argc, char *argv[])
 	  case 'a': f_setup.attribute_assignment = 1; break;
 	  case 'A': f_setup.attribute_testing = 1; break;
 
-	  case 'b': u_setup.background_color = atoi(optarg);
+	  case 'b': u_setup.background_color = getcolor(optarg);
 		u_setup.force_color = 1;
 		u_setup.disable_color = 0;
 		if ((u_setup.background_color < 2) ||
@@ -222,8 +222,6 @@ void os_process_arguments (int argc, char *argv[])
 			(u_setup.foreground_color > 9))
 			u_setup.foreground_color = -1;
 		    break;
-
-
 	  case 'F': u_setup.force_color = 1;
 		    u_setup.disable_color = 0;
 		    break;

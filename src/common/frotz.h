@@ -231,6 +231,7 @@ typedef struct {
 #define INTERP_APPLE_IIGS 10
 #define INTERP_TANDY 11
 
+#define DEFAULT_COLOUR 1
 #define BLACK_COLOUR 2
 #define RED_COLOUR 3
 #define GREEN_COLOUR 4

@@ -338,7 +338,7 @@ void call (zword routine, int argc, zword *args, int ct)
     *--sp = (zword) (pc >> 9);
     *--sp = (zword) (pc & 0x1ff);
     *--sp = (zword) (fp - stack - 1);
-    *--sp = (zword) (argc | (ct << (f_setup.save_quetzal ? 12 : 8)));
+    *--sp = (zword) (argc | (ct << 12));
 
     fp = sp;
     frame_count++;
@@ -368,8 +368,7 @@ void call (zword routine, int argc, zword *args, int ct)
     if (sp - stack < count)
 	runtime_error (ERR_STK_OVF);
 
-    if (f_setup.save_quetzal)
-	fp[0] |= (zword) count << 8;	/* Save local var count for Quetzal. */
+    fp[0] |= (zword) count << 8;	/* Save local var count for Quetzal. */
 
     value = 0;
 
@@ -409,7 +408,7 @@ void ret (zword value)
 
     sp = fp;
 
-    ct = *sp++ >> (f_setup.save_quetzal ? 12 : 8);
+    ct = *sp++ >> 12;
     frame_count--;
     fp = stack + 1 + *sp++;
     pc = *sp++;
@@ -603,7 +602,7 @@ static void __illegal__ (void)
 void z_catch (void)
 {
 
-    store (f_setup.save_quetzal ? frame_count : (zword) (fp - stack));
+    store (frame_count);
 
 }/* z_catch */
 
@@ -618,19 +617,12 @@ void z_catch (void)
 void z_throw (void)
 {
 
-    if (f_setup.save_quetzal) {
-	if (zargs[1] > frame_count)
-	    runtime_error (ERR_BAD_FRAME);
+    if (zargs[1] > frame_count)
+	runtime_error (ERR_BAD_FRAME);
 
-	/* Unwind the stack a frame at a time. */
-	for (; frame_count > zargs[1]; --frame_count)
-	    fp = stack + 1 + fp[1];
-    } else {
-	if (zargs[1] > STACK_SIZE)
-	    runtime_error (ERR_BAD_FRAME);
-
-	fp = stack + zargs[1];
-    }
+    /* Unwind the stack a frame at a time. */
+    for (; frame_count > zargs[1]; --frame_count)
+	fp = stack + 1 + fp[1];
 
     ret (zargs[0]);
 

@@ -39,7 +39,6 @@ extern void seed_random (int);
  * ...allows user to toggle cheating options on/off.
  *
  */
-
 static bool hot_key_debugging (void)
 {
 
@@ -55,13 +54,13 @@ static bool hot_key_debugging (void)
 
 }/* hot_key_debugging */
 
+
 /*
  * hot_key_help
  *
  * ...displays a list of all hot keys.
  *
  */
-
 static bool hot_key_help (void) {
 
     print_string ("Help\n");
@@ -81,16 +80,15 @@ static bool hot_key_help (void) {
 
 }/* hot_key_help */
 
+
 /*
  * hot_key_playback
  *
  * ...allows user to turn playback on.
  *
  */
-
 static bool hot_key_playback (void)
 {
-
     print_string ("Playback on\n");
 
     if (!istream_replay)
@@ -100,13 +98,13 @@ static bool hot_key_playback (void)
 
 }/* hot_key_playback */
 
+
 /*
  * hot_key_recording
  *
  * ...allows user to turn recording on/off.
  *
  */
-
 static bool hot_key_recording (void)
 {
 
@@ -125,13 +123,13 @@ static bool hot_key_recording (void)
 
 }/* hot_key_recording */
 
+
 /*
  * hot_key_seed
  *
  * ...allows user to seed the random number seed.
  *
  */
-
 static bool hot_key_seed (void)
 {
 
@@ -144,13 +142,13 @@ static bool hot_key_seed (void)
 
 }/* hot_key_seed */
 
+
 /*
  * hot_key_undo
  *
  * ...allows user to undo the previous turn.
  *
  */
-
 static bool hot_key_undo (void)
 {
 
@@ -174,16 +172,15 @@ static bool hot_key_undo (void)
 
 }/* hot_key_undo */
 
+
 /*
  * hot_key_restart
  *
  * ...allows user to start a new game.
  *
  */
-
 static bool hot_key_restart (void)
 {
-
     print_string ("New game\n");
 
     if (read_yes_or_no ("Do you wish to restart")) {
@@ -195,13 +192,13 @@ static bool hot_key_restart (void)
 
 }/* hot_key_restart */
 
+
 /*
  * hot_key_quit
  *
  * ...allows user to exit the game.
  *
  */
-
 static bool hot_key_quit (void)
 {
 
@@ -216,6 +213,7 @@ static bool hot_key_quit (void)
 
 }/* hot_key_quit */
 
+
 /*
  * handle_hot_key
  *
@@ -223,10 +221,8 @@ static bool hot_key_quit (void)
  * true to abort the current input action.
  *
  */
-
 bool handle_hot_key (zchar key)
 {
-
     if (cwin == 0) {
 
 	bool aborting;

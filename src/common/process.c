@@ -177,7 +177,6 @@ void (*ext_opcodes[0x1d]) (void) = {
  * Initialize process variables.
  *
  */
-
 void init_process (void)
 {
     finished = 0;
@@ -190,7 +189,6 @@ void init_process (void)
  * Load an operand, either a variable or a constant.
  *
  */
-
 static void load_operand (zbyte type)
 {
     zword value;
@@ -223,6 +221,7 @@ static void load_operand (zbyte type)
 
 }/* load_operand */
 
+
 /*
  * load_all_operands
  *
@@ -230,7 +229,6 @@ static void load_operand (zbyte type)
  * for a VAR or EXT opcode.
  *
  */
-
 static void load_all_operands (zbyte specifier)
 {
     int i;
@@ -248,13 +246,13 @@ static void load_all_operands (zbyte specifier)
 
 }/* load_all_operands */
 
+
 /*
  * interpret
  *
  * Z-code interpreter main loop
  *
  */
-
 void interpret (void)
 {
 
@@ -313,6 +311,7 @@ void interpret (void)
 
 }/* interpret */
 
+
 /*
  * call
  *
@@ -322,7 +321,6 @@ void interpret (void)
  * can be 0 (z_call_s), 1 (z_call_n) or 2 (direct call).
  *
  */
-
 void call (zword routine, int argc, zword *args, int ct)
 {
     long pc;
@@ -388,6 +386,7 @@ void call (zword routine, int argc, zword *args, int ct)
 
 }/* call */
 
+
 /*
  * ret
  *
@@ -397,7 +396,6 @@ void call (zword routine, int argc, zword *args, int ct)
  * and we must exit the interpreter loop.
  *
  */
-
 void ret (zword value)
 {
     long pc;
@@ -430,6 +428,7 @@ void ret (zword value)
 
 }/* ret */
 
+
 /*
  * branch
  *
@@ -444,7 +443,6 @@ void ret (zword value)
  * return true.
  *
  */
-
 void branch (bool flag)
 {
     long pc;
@@ -484,13 +482,13 @@ void branch (bool flag)
 
 }/* branch */
 
+
 /*
  * store
  *
  * Store an operand, either as a variable or pushed on the stack.
  *
  */
-
 void store (zword value)
 {
     zbyte variable;
@@ -508,6 +506,7 @@ void store (zword value)
 
 }/* store */
 
+
 /*
  * direct_call
  *
@@ -520,7 +519,6 @@ void store (zword value)
  * The interpreter returns the result value on the stack.
  *
  */
-
 int direct_call (zword addr)
 {
     zword saved_zargs[8];
@@ -556,13 +554,13 @@ int direct_call (zword addr)
 
 }/* direct_call */
 
+
 /*
  * __extended__
  *
  * Load and execute an extended opcode.
  *
  */
-
 static void __extended__ (void)
 {
     zbyte opcode;
@@ -578,19 +576,19 @@ static void __extended__ (void)
 
 }/* __extended__ */
 
+
 /*
  * __illegal__
  *
  * Exit game because an unknown opcode has been hit.
  *
  */
-
 static void __illegal__ (void)
 {
-
     runtime_error (ERR_ILL_OPCODE);
 
 }/* __illegal__ */
+
 
 /*
  * z_catch, store the current stack frame for later use with z_throw.
@@ -598,13 +596,12 @@ static void __illegal__ (void)
  *	no zargs used
  *
  */
-
 void z_catch (void)
 {
-
     store (frame_count);
 
 }/* z_catch */
+
 
 /*
  * z_throw, go back to the given stack frame and return the given value.
@@ -613,10 +610,8 @@ void z_catch (void)
  *	zargs[1] = stack frame
  *
  */
-
 void z_throw (void)
 {
-
     if (zargs[1] > frame_count)
 	runtime_error (ERR_BAD_FRAME);
 
@@ -628,6 +623,7 @@ void z_throw (void)
 
 }/* z_throw */
 
+
 /*
  * z_call_n, call a subroutine and discard its result.
  *
@@ -637,14 +633,13 @@ void z_throw (void)
  *	zargs[7] = seventh argument (optional)
  *
  */
-
 void z_call_n (void)
 {
-
     if (zargs[0] != 0)
 	call (zargs[0], zargc - 1, zargs + 1, 1);
 
 }/* z_call_n */
+
 
 /*
  * z_call_s, call a subroutine and store its result.
@@ -655,10 +650,8 @@ void z_call_n (void)
  *	zargs[7] = seventh argument (optional)
  *
  */
-
 void z_call_s (void)
 {
-
     if (zargs[0] != 0)
 	call (zargs[0], zargc - 1, zargs + 1, 0);
     else
@@ -666,16 +659,15 @@ void z_call_s (void)
 
 }/* z_call_s */
 
+
 /*
  * z_check_arg_count, branch if subroutine was called with >= n arg's.
  *
  * 	zargs[0] = number of arguments
  *
  */
-
 void z_check_arg_count (void)
 {
-
     if (fp == stack + STACK_SIZE)
 	branch (zargs[0] == 0);
     else
@@ -683,13 +675,13 @@ void z_check_arg_count (void)
 
 }/* z_check_arg_count */
 
+
 /*
  * z_jump, jump unconditionally to the given address.
  *
  *	zargs[0] = PC relative address
  *
  */
-
 void z_jump (void)
 {
     long pc;
@@ -705,19 +697,19 @@ void z_jump (void)
 
 }/* z_jump */
 
+
 /*
  * z_nop, no operation.
  *
  *	no zargs used
  *
  */
-
 void z_nop (void)
 {
-
     /* Do nothing */
 
 }/* z_nop */
+
 
 /*
  * z_quit, stop game and exit interpreter.
@@ -725,13 +717,12 @@ void z_nop (void)
  *	no zargs used
  *
  */
-
 void z_quit (void)
 {
-
     finished = 9999;
 
 }/* z_quit */
+
 
 /*
  * z_ret, return from a subroutine with the given value.
@@ -739,13 +730,12 @@ void z_quit (void)
  *	zargs[0] = value to return
  *
  */
-
 void z_ret (void)
 {
-
     ret (zargs[0]);
 
 }/* z_ret */
+
 
 /*
  * z_ret_popped, return from a subroutine with a value popped off the stack.
@@ -753,13 +743,12 @@ void z_ret (void)
  *	no zargs used
  *
  */
-
 void z_ret_popped (void)
 {
-
     ret (*sp++);
 
 }/* z_ret_popped */
+
 
 /*
  * z_rfalse, return from a subroutine with false (0).
@@ -767,13 +756,12 @@ void z_ret_popped (void)
  * 	no zargs used
  *
  */
-
 void z_rfalse (void)
 {
-
     ret (0);
 
 }/* z_rfalse */
+
 
 /*
  * z_rtrue, return from a subroutine with true (1).
@@ -781,10 +769,8 @@ void z_rfalse (void)
  * 	no zargs used
  *
  */
-
 void z_rtrue (void)
 {
-
     ret (1);
 
 }/* z_rtrue */

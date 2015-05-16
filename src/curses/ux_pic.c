@@ -271,11 +271,6 @@ void os_draw_picture (int num, int row, int col)
    *                                v
    */
 
-
-
-
-
-
   if ((height == 1) && (width == 1))
     safe_mvaddch(row, col, plus);
   else if (height == 1) {

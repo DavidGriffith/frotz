@@ -25,13 +25,13 @@ static long A = 1;
 static int interval = 0;
 static int counter = 0;
 
+
 /*
  * seed_random
  *
  * Set the seed value for the random number generator.
  *
  */
-
 void seed_random (int value)
 {
 
@@ -48,16 +48,15 @@ void seed_random (int value)
 
 }/* seed_random */
 
+
 /*
  * z_random, store a random number or set the random number seed.
  *
  *	zargs[0] = range (positive) or seed value (negative)
  *
  */
-
 void z_random ()
 {
-
     if ((short) zargs[0] <= 0) {	/* set random seed */
 
 	seed_random (- (short) zargs[0]);
@@ -76,7 +75,6 @@ void z_random ()
 	}
 
 	store ((zword) (result % zargs[0] + 1));
-
     }
 
 }/* z_random */

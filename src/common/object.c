@@ -34,13 +34,13 @@
 #define O4_PROPERTY_OFFSET 12
 #define O4_SIZE 14
 
+
 /*
  * object_address
  *
  * Calculate the address of an object.
  *
  */
-
 static zword object_address (zword obj)
 {
 /*    zchar obj_num[10]; */
@@ -64,13 +64,13 @@ static zword object_address (zword obj)
 
 }/* object_address */
 
+
 /*
  * object_name
  *
  * Return the address of the given object's name.
  *
  */
-
 zword object_name (zword object)
 {
     zword obj_addr;
@@ -91,6 +91,7 @@ zword object_name (zword object)
 
 }/* object_name */
 
+
 /*
  * first_property
  *
@@ -98,7 +99,6 @@ zword object_name (zword object)
  * an object.
  *
  */
-
 static zword first_property (zword obj)
 {
     zword prop_addr;
@@ -118,13 +118,13 @@ static zword first_property (zword obj)
 
 }/* first_property */
 
+
 /*
  * next_property
  *
  * Calculate the address of the next property in a property list.
  *
  */
-
 static zword next_property (zword prop_addr)
 {
     zbyte value;
@@ -155,13 +155,13 @@ static zword next_property (zword prop_addr)
 
 }/* next_property */
 
+
 /*
  * unlink_object
  *
  * Unlink an object from its parent and siblings.
  *
  */
-
 static void unlink_object (zword object)
 {
     zword obj_addr;
@@ -257,6 +257,7 @@ static void unlink_object (zword object)
 
 }/* unlink_object */
 
+
 /*
  * z_clear_attr, clear an object attribute.
  *
@@ -264,7 +265,6 @@ static void unlink_object (zword object)
  *	zargs[1] = number of attribute to be cleared
  *
  */
-
 void z_clear_attr (void)
 {
     zword obj_addr;
@@ -305,6 +305,7 @@ void z_clear_attr (void)
 
 }/* z_clear_attr */
 
+
 /*
  * z_jin, branch if the first object is inside the second.
  *
@@ -312,7 +313,6 @@ void z_clear_attr (void)
  *	zargs[1] = second object
  *
  */
-
 void z_jin (void)
 {
     zword obj_addr;
@@ -366,13 +366,13 @@ void z_jin (void)
 
 }/* z_jin */
 
+
 /*
  * z_get_child, store the child of an object.
  *
  *	zargs[0] = object
  *
  */
-
 void z_get_child (void)
 {
     zword obj_addr;
@@ -427,6 +427,7 @@ void z_get_child (void)
 
 }/* z_get_child */
 
+
 /*
  * z_get_next_prop, store the number of the first or next property.
  *
@@ -434,7 +435,6 @@ void z_get_child (void)
  *	zargs[1] = address of current property (0 gets the first property)
  *
  */
-
 void z_get_next_prop (void)
 {
     zword prop_addr;
@@ -478,13 +478,13 @@ void z_get_next_prop (void)
 
 }/* z_get_next_prop */
 
+
 /*
  * z_get_parent, store the parent of an object.
  *
  *	zargs[0] = object
  *
  */
-
 void z_get_parent (void)
 {
     zword obj_addr;
@@ -536,6 +536,7 @@ void z_get_parent (void)
 
 }/* z_get_parent */
 
+
 /*
  * z_get_prop, store the value of an object property.
  *
@@ -543,7 +544,6 @@ void z_get_parent (void)
  *	zargs[1] = number of property to be examined
  *
  */
-
 void z_get_prop (void)
 {
     zword prop_addr;
@@ -603,6 +603,7 @@ void z_get_prop (void)
 
 }/* z_get_prop */
 
+
 /*
  * z_get_prop_addr, store the address of an object property.
  *
@@ -610,7 +611,6 @@ void z_get_prop (void)
  *	zargs[1] = number of property to be examined
  *
  */
-
 void z_get_prop_addr (void)
 {
     zword prop_addr;
@@ -656,13 +656,13 @@ void z_get_prop_addr (void)
 
 }/* z_get_prop_addr */
 
+
 /*
  * z_get_prop_len, store the length of an object property.
  *
  * 	zargs[0] = address of property to be examined
  *
  */
-
 void z_get_prop_len (void)
 {
     zword addr;
@@ -693,13 +693,13 @@ void z_get_prop_len (void)
 
 }/* z_get_prop_len */
 
+
 /*
  * z_get_sibling, store the sibling of an object.
  *
  *	zargs[0] = object
  *
  */
-
 void z_get_sibling (void)
 {
     zword obj_addr;
@@ -745,6 +745,7 @@ void z_get_sibling (void)
 
 }/* z_get_sibling */
 
+
 /*
  * z_insert_obj, make an object the first child of another object.
  *
@@ -752,7 +753,6 @@ void z_get_sibling (void)
  *	zargs[1] = destination object
  *
  */
-
 void z_insert_obj (void)
 {
     zword obj1 = zargs[0];
@@ -820,6 +820,7 @@ void z_insert_obj (void)
 
 }/* z_insert_obj */
 
+
 /*
  * z_put_prop, set the value of an object property.
  *
@@ -828,7 +829,6 @@ void z_insert_obj (void)
  *	zargs[2] = value to set property to
  *
  */
-
 void z_put_prop (void)
 {
     zword prop_addr;
@@ -876,16 +876,15 @@ void z_put_prop (void)
 
 }/* z_put_prop */
 
+
 /*
  * z_remove_obj, unlink an object from its parent and siblings.
  *
  *	zargs[0] = object
  *
  */
-
 void z_remove_obj (void)
 {
-
     /* If we are monitoring object movements display a short note */
 
     if (f_setup.object_movement) {
@@ -901,6 +900,7 @@ void z_remove_obj (void)
 
 }/* z_remove_obj */
 
+
 /*
  * z_set_attr, set an object attribute.
  *
@@ -908,7 +908,6 @@ void z_remove_obj (void)
  *	zargs[1] = number of attribute to set
  *
  */
-
 void z_set_attr (void)
 {
     zword obj_addr;
@@ -955,6 +954,7 @@ void z_set_attr (void)
 
 }/* z_set_attr */
 
+
 /*
  * z_test_attr, branch if an object attribute is set.
  *
@@ -962,7 +962,6 @@ void z_set_attr (void)
  *	zargs[1] = number of attribute to test
  *
  */
-
 void z_test_attr (void)
 {
     zword obj_addr;

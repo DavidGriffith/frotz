@@ -20,13 +20,13 @@
 
 #include "frotz.h"
 
+
 /*
  * z_dec, decrement a variable.
  *
  * 	zargs[0] = variable to decrement
  *
  */
-
 void z_dec (void)
 {
     zword value;
@@ -44,6 +44,7 @@ void z_dec (void)
 
 }/* z_dec */
 
+
 /*
  * z_dec_chk, decrement a variable and branch if now less than value.
  *
@@ -51,7 +52,6 @@ void z_dec (void)
  * 	zargs[1] = value to check variable against
  *
  */
-
 void z_dec_chk (void)
 {
     zword value;
@@ -71,13 +71,13 @@ void z_dec_chk (void)
 
 }/* z_dec_chk */
 
+
 /*
  * z_inc, increment a variable.
  *
  * 	zargs[0] = variable to increment
  *
  */
-
 void z_inc (void)
 {
     zword value;
@@ -95,6 +95,7 @@ void z_inc (void)
 
 }/* z_inc */
 
+
 /*
  * z_inc_chk, increment a variable and branch if now greater than value.
  *
@@ -102,7 +103,6 @@ void z_inc (void)
  * 	zargs[1] = value to check variable against
  *
  */
-
 void z_inc_chk (void)
 {
     zword value;
@@ -122,13 +122,13 @@ void z_inc_chk (void)
 
 }/* z_inc_chk */
 
+
 /*
  * z_load, store the value of a variable.
  *
  *	zargs[0] = variable to store
  *
  */
-
 void z_load (void)
 {
     zword value;
@@ -146,19 +146,19 @@ void z_load (void)
 
 }/* z_load */
 
+
 /*
  * z_pop, pop a value off the game stack and discard it.
  *
  *	no zargs used
  *
  */
-
 void z_pop (void)
 {
-
     sp++;
 
 }/* z_pop */
+
 
 /*
  * z_pop_stack, pop n values off the game or user stack and discard them.
@@ -167,10 +167,8 @@ void z_pop (void)
  *	zargs[1] = address of user stack (optional)
  *
  */
-
 void z_pop_stack (void)
 {
-
     if (zargc == 2) {		/* it's a user stack */
 
 	zword size;
@@ -185,6 +183,7 @@ void z_pop_stack (void)
 
 }/* z_pop_stack */
 
+
 /*
  * z_pull, pop a value off...
  *
@@ -197,7 +196,6 @@ void z_pop_stack (void)
  *	zargs[0] = variable to write value to
  *
  */
-
 void z_pull (void)
 {
     zword value;
@@ -238,19 +236,19 @@ void z_pull (void)
 
 }/* z_pull */
 
+
 /*
  * z_push, push a value onto the game stack.
  *
  *	zargs[0] = value to push onto the stack
  *
  */
-
 void z_push (void)
 {
-
     *--sp = zargs[0];
 
 }/* z_push */
+
 
 /*
  * z_push_stack, push a value onto a user stack then branch if successful.
@@ -259,7 +257,6 @@ void z_push (void)
  *	zargs[1] = address of user stack
  *
  */
-
 void z_push_stack (void)
 {
     zword size;
@@ -280,6 +277,7 @@ void z_push_stack (void)
 
 }/* z_push_stack */
 
+
 /*
  * z_store, write a value to a variable.
  *
@@ -287,7 +285,6 @@ void z_push_stack (void)
  *      zargs[1] = value to write
  *
  */
-
 void z_store (void)
 {
     zword value = zargs[1];

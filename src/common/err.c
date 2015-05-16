@@ -73,7 +73,6 @@ static void print_long (unsigned long value, int base);
  * Initialise error reporting.
  *
  */
-
 void init_err (void)
 {
     int i;
@@ -84,6 +83,7 @@ void init_err (void)
         error_count[i] = 0;
 }
 
+
 /*
  * runtime_error
  *
@@ -93,7 +93,6 @@ void init_err (void)
  * errnum : Numeric code for error (1 to ERR_NUM_ERRORS)
  *
  */
-
 void runtime_error (int errnum)
 {
     int wasfirst;
@@ -131,8 +130,8 @@ void runtime_error (int errnum)
 	}
 	new_line ();
     }
-
 } /* report_error */
+
 
 /*
  * print_long
@@ -140,7 +139,6 @@ void runtime_error (int errnum)
  * Print an unsigned 32bit number in decimal or hex.
  *
  */
-
 static void print_long (unsigned long value, int base)
 {
     unsigned long i;

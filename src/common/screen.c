@@ -61,10 +61,8 @@ Zwindow * curwinrec() { return cwp;}
  * current window.
  *
  */
-
 static zword winarg0 (void)
 {
-
     if (h_version == V6 && (short) zargs[0] == -3)
 	return cwin;
 
@@ -75,6 +73,7 @@ static zword winarg0 (void)
 
 }/* winarg0 */
 
+
 /*
  * winarg2
  *
@@ -83,10 +82,8 @@ static zword winarg0 (void)
  * V6 opcodes: set_cursor, set_margins, set_colour.
  *
  */
-
 static zword winarg2 (void)
 {
-
     if (zargc < 3 || (short) zargs[2] == -3)
 	return cwin;
 
@@ -97,21 +94,21 @@ static zword winarg2 (void)
 
 }/* winarg2 */
 
+
 /*
  * update_cursor
  *
  * Move the hardware cursor to make it match the window properties.
  *
  */
-
 static void update_cursor (void)
 {
-
     os_set_cursor (
 	cwp->y_pos + cwp->y_cursor - 1,
 	cwp->x_pos + cwp->x_cursor - 1);
 
 }/* update_cursor */
+
 
 /*
  * reset_cursor
@@ -119,7 +116,6 @@ static void update_cursor (void)
  * Reset the cursor of a given window to its initial position.
  *
  */
-
 static void reset_cursor (zword win)
 {
     int lines = 0;
@@ -135,16 +131,15 @@ static void reset_cursor (zword win)
 
 }/* reset_cursor */
 
+
 /*
  * set_more_prompts
  *
  * Turn more prompts on/off.
  *
  */
-
 void set_more_prompts (bool flag)
 {
-
     if (flag && !more_prompts)
 	cwp->line_count = 0;
 
@@ -152,19 +147,19 @@ void set_more_prompts (bool flag)
 
 }/* set_more_prompts */
 
+
 /*
  * units_left
  *
  * Return the #screen units from the cursor to the end of the line.
  *
  */
-
 static int units_left (void)
 {
-
     return cwp->x_size - cwp->right - cwp->x_cursor + 1;
 
 }/* units_left */
+
 
 /*
  * get_max_width
@@ -173,10 +168,8 @@ static int units_left (void)
  * connection with the extended output stream #3 call in V6.
  *
  */
-
 zword get_max_width (zword win)
 {
-
     if (h_version == V6) {
 
 	if (win >= 8)
@@ -188,6 +181,7 @@ zword get_max_width (zword win)
 
 }/* get_max_width */
 
+
 /*
  * countdown
  *
@@ -195,15 +189,14 @@ zword get_max_width (zword win)
  * counter hits zero. This is a helper function for screen_new_line.
  *
  */
-
 static void countdown (void)
 {
-
     if (cwp->nl_countdown != 0)
 	if (--cwp->nl_countdown == 0)
 	    direct_call (cwp->nl_routine);
 
 }/* countdown */
+
 
 /*
  * screen_new_line
@@ -214,7 +207,6 @@ static void countdown (void)
 
 void screen_new_line (void)
 {
-
     if (discarding) return;
 
     /* Handle newline interrupts at the start (for most cases) */
@@ -280,6 +272,7 @@ void screen_new_line (void)
 
 }/* screen_new_line */
 
+
 /*
  * screen_char
  *
@@ -309,6 +302,7 @@ void screen_char (zchar c)
 
 }/* screen_char */
 
+
 /*
  * screen_word
  *
@@ -317,7 +311,6 @@ void screen_char (zchar c)
  * enable_wrapping flag.
  *
  */
-
 void screen_word (const zchar *s)
 {
     int width;
@@ -365,13 +358,13 @@ void screen_word (const zchar *s)
 
 }/* screen_word */
 
+
 /*
  * screen_write_input
  *
  * Display an input line on the screen. This is required during playback.
  *
  */
-
 void screen_write_input (const zchar *buf, zchar key)
 {
     int width;
@@ -386,6 +379,7 @@ void screen_write_input (const zchar *buf, zchar key)
 
 }/* screen_write_input */
 
+
 /*
  * screen_erase_input
  *
@@ -394,10 +388,8 @@ void screen_write_input (const zchar *buf, zchar key)
  * playback.
  *
  */
-
 void screen_erase_input (const zchar *buf)
 {
-
     if (buf[0] != 0) {
 
 	int width = os_string_width (buf);
@@ -417,13 +409,13 @@ void screen_erase_input (const zchar *buf)
 
 }/* screen_erase_input */
 
+
 /*
  * console_read_input
  *
  * Read an input line from the keyboard and return the terminating key.
  *
  */
-
 zchar console_read_input (int max, zchar *buf, zword timeout, bool continued)
 {
     zchar key;
@@ -461,13 +453,13 @@ zchar console_read_input (int max, zchar *buf, zword timeout, bool continued)
 
 }/* console_read_input */
 
+
 /*
  * console_read_key
  *
  * Read a single keystroke and return it.
  *
  */
-
 zchar console_read_key (zword timeout)
 {
     zchar key;
@@ -483,6 +475,7 @@ zchar console_read_key (zword timeout)
 
 }/* console_read_key */
 
+
 /*
  * update_attributes
  *
@@ -490,7 +483,6 @@ zchar console_read_key (zword timeout)
  * of the current window.
  *
  */
-
 static void update_attributes (void)
 {
     zword attr = cwp->attribute;
@@ -511,6 +503,7 @@ static void update_attributes (void)
 
 }/* update_attributes */
 
+
 /*
  * refresh_text_style
  *
@@ -519,7 +512,6 @@ static void update_attributes (void)
  * uses the set_text_style opcode.
  *
  */
-
 void refresh_text_style (void)
 {
     zword style;
@@ -542,6 +534,7 @@ void refresh_text_style (void)
 
 }/* refresh_text_style */
 
+
 /*
  * set_window
  *
@@ -549,10 +542,8 @@ void refresh_text_style (void)
  * properties such as colours, text style, cursor position and size.
  *
  */
-
 static void set_window (zword win)
 {
-
     flush_buffer ();
 
     cwin = win; cwp = wp + win;
@@ -579,13 +570,13 @@ static void set_window (zword win)
 
 }/* set_window */
 
+
 /*
  * erase_window
  *
  * Erase a window to background colour.
  *
  */
-
 void erase_window (zword win)
 {
     zword y = wp[win].y_pos;
@@ -609,6 +600,7 @@ void erase_window (zword win)
 
 }/* erase_window */
 
+
 /*
  * split_window
  *
@@ -616,7 +608,6 @@ void erase_window (zword win)
  * window appears below the status line.
  *
  */
-
 void split_window (zword height)
 {
     zword stat_height = 0;
@@ -658,13 +649,13 @@ void split_window (zword height)
 
 }/* split_window */
 
+
 /*
  * erase_screen
  *
  * Erase the entire screen to background colour.
  *
  */
-
 static void erase_screen (zword win)
 {
     int i;
@@ -684,13 +675,13 @@ static void erase_screen (zword win)
 
 /* #ifdef AMIGA */
 
+
 /*
  * resize_screen
  *
  * Try to adapt the window properties to a new screen size.
  *
  */
-
 void resize_screen (void)
 {
 
@@ -708,16 +699,15 @@ void resize_screen (void)
 
 /* #endif */
 
+
 /*
  * restart_screen
  *
  * Prepare the screen for a new game.
  *
  */
-
 void restart_screen (void)
 {
-
     /* Use default settings */
 
     os_set_colour (h_default_foreground, h_default_background);
@@ -772,6 +762,7 @@ void restart_screen (void)
 
 }/* restart_screen */
 
+
 /*
  * validate_click
  *
@@ -780,7 +771,6 @@ void restart_screen (void)
  * memory of the header extension table and return true.
  *
  */
-
 bool validate_click (void)
 {
 
@@ -818,6 +808,7 @@ bool validate_click (void)
 
 }/* validate_click */
 
+
 /*
  * screen_mssg_on
  *
@@ -826,10 +817,8 @@ bool validate_click (void)
  * stream with maximum priority.
  *
  */
-
 void screen_mssg_on (void)
 {
-
     if (cwin == 0) {		/* messages in window 0 only */
 
 	os_set_text_style (0);
@@ -843,16 +832,15 @@ void screen_mssg_on (void)
 
 }/* screen_mssg_on */
 
+
 /*
  * screen_mssg_off
  *
  * Stop printing a "debugging" message.
  *
  */
-
 void screen_mssg_off (void)
 {
-
     if (cwin == 0) {		/* messages in window 0 only */
 
 	screen_new_line ();
@@ -863,16 +851,15 @@ void screen_mssg_off (void)
 
 }/* screen_mssg_off */
 
+
 /*
  * z_buffer_mode, turn text buffering on/off.
  *
  *	zargs[0] = new text buffering flag (0 or 1)
  *
  */
-
 void z_buffer_mode (void)
 {
-
     /* Infocom's V6 games rarely use the buffer_mode opcode. If they do
        then only to print text immediately, without any delay. This was
        used to give the player some sign of life while the game was
@@ -895,6 +882,7 @@ void z_buffer_mode (void)
 
 }/* z_buffer_mode */
 
+
 /*
  * z_draw_picture, draw a picture.
  *
@@ -903,7 +891,6 @@ void z_buffer_mode (void)
  *	zargs[2] = x-coordinate of top left corner
  *
  */
-
 void z_draw_picture (void)
 {
     zword pic = zargs[0];
@@ -964,13 +951,13 @@ void z_draw_picture (void)
 
 }/* z_draw_picture */
 
+
 /*
  * z_erase_line, erase the line starting at the cursor position.
  *
  *	zargs[0] = 1 + #units to erase (1 clears to the end of the line)
  *
  */
-
 void z_erase_line (void)
 {
     zword pixels = zargs[0];
@@ -992,6 +979,7 @@ void z_erase_line (void)
 
 }/* z_erase_line */
 
+
 /*
  * z_erase_picture, erase a picture with background colour.
  *
@@ -1000,7 +988,6 @@ void z_erase_line (void)
  *	zargs[2] = x-coordinate of top left corner (optional)
  *
  */
-
 void z_erase_picture (void)
 {
     int height, width;
@@ -1024,16 +1011,15 @@ void z_erase_picture (void)
 
 }/* z_erase_picture */
 
+
 /*
  * z_erase_window, erase a window or the screen to background colour.
  *
  *	zargs[0] = window (-3 current, -2 screen, -1 screen & unsplit)
  *
  */
-
 void z_erase_window (void)
 {
-
     flush_buffer ();
 
     if ((short) zargs[0] == -1 || (short) zargs[0] == -2)
@@ -1043,13 +1029,13 @@ void z_erase_window (void)
 
 }/* z_erase_window */
 
+
 /*
  * z_get_cursor, write the cursor coordinates into a table.
  *
  *	zargs[0] = address to write information to
  *
  */
-
 void z_get_cursor (void)
 {
     zword y, x;
@@ -1069,6 +1055,7 @@ void z_get_cursor (void)
 
 }/* z_get_cursor */
 
+
 /*
  * z_get_wind_prop, store the value of a window property.
  *
@@ -1076,10 +1063,8 @@ void z_get_cursor (void)
  *	zargs[1] = number of window property to be stored
  *
  */
-
 void z_get_wind_prop (void)
 {
-
     flush_buffer ();
 
     if (zargs[1] >= 16)
@@ -1089,19 +1074,19 @@ void z_get_wind_prop (void)
 
 }/* z_get_wind_prop */
 
+
 /*
  * z_mouse_window, select a window as mouse window.
  *
  *	zargs[0] = window number (-3 is the current) or -1 for the screen
  *
  */
-
 void z_mouse_window (void)
 {
-
     mwin = ((short) zargs[0] == -1) ? -1 : winarg0 ();
 
 }/* z_mouse_window */
+
 
 /*
  * z_move_window, place a window on the screen.
@@ -1111,7 +1096,6 @@ void z_mouse_window (void)
  *	zargs[2] = x-coordinate
  *
  */
-
 void z_move_window (void)
 {
     zword win = winarg0 ();
@@ -1126,6 +1110,7 @@ void z_move_window (void)
 
 }/* z_move_window */
 
+
 /*
  * z_picture_data, get information on a picture or the graphics file.
  *
@@ -1133,7 +1118,6 @@ void z_move_window (void)
  *	zargs[1] = address to write information to
  *
  */
-
 void z_picture_data (void)
 {
     zword pic = zargs[0];
@@ -1169,22 +1153,22 @@ void z_picture_data (void)
 
 }/* z_picture_data */
 
+
 /*
  * z_picture_table, prepare a group of pictures for faster display.
  *
  *	zargs[0] = address of table holding the picture numbers
  *
  */
-
 void z_picture_table (void)
 {
-
     /* This opcode is used by Shogun and Zork Zero when the player
        encounters built-in games such as Peggleboz. Nowadays it is
        not very helpful to hold the picture data in memory because
        even a small disk cache avoids re-loading of data. */
 
 }/* z_picture_table */
+
 
 /*
  * z_print_table, print ASCII text in a rectangular area.
@@ -1195,7 +1179,6 @@ void z_picture_table (void)
  *	zargs[3] = number of char's to skip between lines (optional)
  *
  */
-
 void z_print_table (void)
 {
     zword addr = zargs[0];
@@ -1245,6 +1228,7 @@ void z_print_table (void)
 
 }/* z_print_table */
 
+
 /*
  * z_put_wind_prop, set the value of a window property.
  *
@@ -1253,10 +1237,8 @@ void z_print_table (void)
  *	zargs[2] = value to set window property to
  *
  */
-
 void z_put_wind_prop (void)
 {
-
     flush_buffer ();
 
     if (zargs[1] >= 16)
@@ -1266,6 +1248,7 @@ void z_put_wind_prop (void)
 
 }/* z_put_wind_prop */
 
+
 /*
  * z_scroll_window, scroll a window up or down.
  *
@@ -1273,7 +1256,6 @@ void z_put_wind_prop (void)
  *	zargs[1] = #screen units to scroll up (positive) or down (negative)
  *
  */
-
 void z_scroll_window (void)
 {
     zword win = winarg0 ();
@@ -1300,6 +1282,7 @@ void z_scroll_window (void)
 
 }/* z_scroll_window */
 
+
 /*
  * z_set_colour, set the foreground and background colours.
  *
@@ -1308,7 +1291,6 @@ void z_scroll_window (void)
  *	zargs[2] = window (-3 is the current one, optional)
  *
  */
-
 void z_set_colour (void)
 {
     zword win = (h_version == V6) ? winarg2 () : 0;
@@ -1364,13 +1346,13 @@ void z_set_colour (void)
 
 }/* z_set_colour */
 
+
 /*
  * z_set_font, set the font for text output and store the previous font.
  *
  * 	zargs[0] = number of font or 0 to keep current font
  *
  */
-
 void z_set_font (void)
 {
     zword win = (h_version == V6) ? cwin : 0;
@@ -1398,6 +1380,7 @@ void z_set_font (void)
 
 }/* z_set_font */
 
+
 /*
  * z_set_cursor, set the cursor position or turn the cursor on/off.
  *
@@ -1406,7 +1389,6 @@ void z_set_font (void)
  *	zargs[2] = window (-3 is the current one, optional)
  *
  */
-
 void z_set_cursor (void)
 {
     zword win = (h_version == V6) ? winarg2 () : 1;
@@ -1465,6 +1447,7 @@ void z_set_cursor (void)
 
 }/* z_set_cursor */
 
+
 /*
  * z_set_margins, set the left and right margins of a window.
  *
@@ -1473,7 +1456,6 @@ void z_set_cursor (void)
  *	zargs[2] = window (-3 is the current one, optional)
  *
  */
-
 void z_set_margins (void)
 {
     zword win = winarg2 ();
@@ -1496,13 +1478,13 @@ void z_set_margins (void)
 
 }/* z_set_margins */
 
+
 /*
  * z_set_text_style, set the style for text output.
  *
  * 	zargs[0] = style flags to set or 0 to reset text style
  *
  */
-
 void z_set_text_style (void)
 {
     zword win = (h_version == V6) ? cwin : 0;
@@ -1517,19 +1499,19 @@ void z_set_text_style (void)
 
 }/* z_set_text_style */
 
+
 /*
  * z_set_window, select the current window.
  *
  *	zargs[0] = window to be selected (-3 is the current one)
  *
  */
-
 void z_set_window (void)
 {
-
     set_window (winarg0 ());
 
 }/* z_set_window */
+
 
 /*
  * pad_status_line
@@ -1537,7 +1519,6 @@ void z_set_window (void)
  * Pad the status line with spaces up to the given position.
  *
  */
-
 static void pad_status_line (int column)
 {
     int spaces;
@@ -1553,13 +1534,13 @@ static void pad_status_line (int column)
 
 }/* pad_status_line */
 
+
 /*
  * z_show_status, display the status line for V1 to V3 games.
  *
  *	no zargs used
  *
  */
-
 void z_show_status (void)
 {
     zword global0;
@@ -1654,19 +1635,19 @@ void z_show_status (void)
 
 }/* z_show_status */
 
+
 /*
  * z_split_window, split the screen into an upper (1) and lower (0) window.
  *
  *	zargs[0] = height of upper window in screen units (V6) or #lines
  *
  */
-
 void z_split_window (void)
 {
-
     split_window (zargs[0]);
 
 }/* z_split_window */
+
 
 /*
  * z_window_size, change the width and height of a window.
@@ -1676,7 +1657,6 @@ void z_split_window (void)
  *	zargs[2] = new width in screen units
  *
  */
-
 void z_window_size (void)
 {
     zword win = winarg0 ();
@@ -1693,6 +1673,7 @@ void z_window_size (void)
 
 }/* z_window_size */
 
+
 /*
  * z_window_style, set / clear / toggle window attributes.
  *
@@ -1701,7 +1682,6 @@ void z_window_size (void)
  *	zargs[2] = operation to perform (optional, defaults to 0)
  *
  */
-
 void z_window_style (void)
 {
     zword win = winarg0 ();
@@ -1728,20 +1708,20 @@ void z_window_style (void)
 
 }/* z_window_style */
 
+
 /*
  * get_window_colours
  *
  * Get the colours for a given window.
  *
  */
-
 void get_window_colours (zword win, zbyte* fore, zbyte* back)
 {
-
     *fore = lo (wp[win].colour);
     *back = hi (wp[win].colour);
 
 }/* get_window_colours */
+
 
 /*
  * get_window_font
@@ -1749,12 +1729,11 @@ void get_window_colours (zword win, zbyte* fore, zbyte* back)
  * Get the font for a given window.
  *
  */
-
 zword get_window_font (zword win)
 {
     zword font = wp[win].font;
 
-    if (font == TEXT_FONT)
+    if (font == TEXT_FONT) {
 
         if (h_version != V6) {
 
@@ -1769,10 +1748,11 @@ zword get_window_font (zword win)
                 font = FIXED_WIDTH_FONT;
 
         }
-
+    }
     return font;
 
 }/* get_window_font */
+
 
 /*
  * colour_in_use
@@ -1780,26 +1760,23 @@ zword get_window_font (zword win)
  * Check if a colour is set in any window.
  *
  */
-
 int colour_in_use (zword colour)
 {
     int max = (h_version == V6) ? 8 : 2;
     int i;
 
     for (i = 0; i < max; i++) {
-
         zword bg = hi (wp[i].colour);
         zword fg = lo (wp[i].colour);
 
         if (colour == fg || colour == bg)
             return 1;
-
-
     }
 
     return 0;
 
 }/* colour_in_use */
+
 
 /*
  * get_current_window
@@ -1807,11 +1784,8 @@ int colour_in_use (zword colour)
  * Get the currently active window.
  *
  */
-
 zword get_current_window (void)
 {
-
     return cwp - wp;
 
 }/* get_current_window */
-

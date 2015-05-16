@@ -70,7 +70,3 @@ double ReadExtended(const unsigned char *bytes)
 		return -f;
 	return f;
 }
-
-
-/* /home/dave/zcode/mystory.z5 */
-/* /home/dave/zcode/mystory.blb */

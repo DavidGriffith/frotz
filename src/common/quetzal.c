@@ -131,11 +131,11 @@ static bool read_long (FILE *f, zlong *result)
     return TRUE;
 }
 
+
 /*
  * Restore a saved game using Quetzal format. Return 2 if OK, 0 if an error
  * occurred before any damage was done, -1 on a fatal error.
  */
-
 zword restore_quetzal (FILE *svf, FILE *stf)
 {
     zlong ifzslen, currlen, tmpl;
@@ -418,10 +418,10 @@ zword restore_quetzal (FILE *svf, FILE *stf)
     return (progress == GOT_ALL ? 2 : fatal);
 }
 
+
 /*
  * Save a game using Quetzal format. Return 1 if OK, 0 if failed.
  */
-
 zword save_quetzal (FILE *svf, FILE *stf)
 {
     zlong ifzslen = 0, cmemlen = 0, stkslen = 0;

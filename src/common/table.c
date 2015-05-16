@@ -20,6 +20,7 @@
 
 #include "frotz.h"
 
+
 /*
  * z_copy_table, copy a table or fill it with zeroes.
  *
@@ -31,7 +32,6 @@
  *       if zargs[1] is negative the table _must_ be copied forwards.
  *
  */
-
 void z_copy_table (void)
 {
     zword addr;
@@ -62,6 +62,7 @@ void z_copy_table (void)
 
 }/* z_copy_table */
 
+
 /*
  * z_loadb, store a value from a table of bytes.
  *
@@ -69,7 +70,6 @@ void z_copy_table (void)
  *	zargs[1] = index of table entry to store
  *
  */
-
 void z_loadb (void)
 {
     zword addr = zargs[0] + zargs[1];
@@ -81,6 +81,7 @@ void z_loadb (void)
 
 }/* z_loadb */
 
+
 /*
  * z_loadw, store a value from a table of words.
  *
@@ -88,7 +89,6 @@ void z_loadb (void)
  *	zargs[1] = index of table entry to store
  *
  */
-
 void z_loadw (void)
 {
     zword addr = zargs[0] + 2 * zargs[1];
@@ -99,6 +99,7 @@ void z_loadw (void)
     store (value);
 
 }/* z_loadw */
+
 
 /*
  * z_scan_table, find and store the address of a target within a table.
@@ -112,7 +113,6 @@ void z_loadw (void)
  *       it's a byte array. The lower bits hold the address step.
  *
  */
-
 void z_scan_table (void)
 {
     zword addr = zargs[1];
@@ -160,6 +160,7 @@ finished:
 
 }/* z_scan_table */
 
+
 /*
  * z_storeb, write a byte into a table of bytes.
  *
@@ -168,13 +169,12 @@ finished:
  *	zargs[2] = value to be written
  *
  */
-
 void z_storeb (void)
 {
-
     storeb ((zword) (zargs[0] + zargs[1]), zargs[2]);
 
 }/* z_storeb */
+
 
 /*
  * z_storew, write a word into a table of words.
@@ -184,10 +184,8 @@ void z_storeb (void)
  *	zargs[2] = value to be written
  *
  */
-
 void z_storew (void)
 {
-
     storew ((zword) (zargs[0] + 2 * zargs[1]), zargs[2]);
 
 }/* z_storew */

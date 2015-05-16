@@ -65,16 +65,14 @@ static char latin1_to_ascii[] =
  * be changed.
  *
  */
-
 int os_font_data (int font, int *height, int *width)
 {
-
     if (font == TEXT_FONT) {
       *height = 1; *width = 1; return 1; /* Truth in advertising */
     }
     return 0;
-
 }/* os_font_data */
+
 
 #ifdef COLOR_SUPPORT
 /*
@@ -83,7 +81,6 @@ int os_font_data (int font, int *height, int *width)
  * Converts frotz's (and Infocom's) color values to ncurses color values.
  *
  */
-
 static int unix_convert(int color)
 {
   switch(color) {
@@ -99,6 +96,7 @@ static int unix_convert(int color)
   return 0;
 }
 #endif
+
 
 /*
  * os_set_colour
@@ -129,7 +127,6 @@ static int unix_convert(int color)
  * remarks on os_peek_colour.
  *
  */
-
 void os_set_colour (int new_foreground, int new_background)
 {
     if (new_foreground == 1) new_foreground = h_default_foreground;
@@ -153,6 +150,7 @@ void os_set_colour (int new_foreground, int new_background)
     os_set_text_style(u_setup.current_text_style);
 }/* os_set_colour */
 
+
 /*
  * os_set_text_style
  *
@@ -164,7 +162,6 @@ void os_set_colour (int new_foreground, int new_background)
  *     FIXED_WIDTH_STYLE
  *
  */
-
 void os_set_text_style (int new_style)
 {
     int temp = 0;
@@ -176,6 +173,7 @@ void os_set_text_style (int new_style)
     attrset(temp ^ u_setup.current_color);
 }/* os_set_text_style */
 
+
 /*
  * os_set_font
  *
@@ -183,13 +181,12 @@ void os_set_text_style (int new_style)
  * choose fonts which aren't supported by the interface.
  *
  */
-
 void os_set_font (int new_font)
 {
-
     /* Not implemented */
 
 }/* os_set_font */
+
 
 /*
  * os_display_char
@@ -202,7 +199,6 @@ void os_set_font (int new_font)
  * bottom right corner.
  *
  */
-
 void os_display_char (zchar c)
 {
 
@@ -237,8 +233,8 @@ void os_display_char (zchar c)
       addch(' '); addch(' ');
       return;
     }
-
 }/* os_display_char */
+
 
 /*
  * os_display_string
@@ -246,13 +242,11 @@ void os_display_char (zchar c)
  * Pass a string of characters to os_display_char.
  *
  */
-
 void os_display_string (const zchar *s)
 {
-
     zchar c;
 
-    while ((c = (unsigned char) *s++) != 0)
+    while ((c = (unsigned char) *s++) != 0) {
 
         if (c == ZC_NEW_FONT || c == ZC_NEW_STYLE) {
 
@@ -263,9 +257,12 @@ void os_display_string (const zchar *s)
             if (c == ZC_NEW_STYLE)
                 os_set_text_style (arg);
 
-        } else os_display_char (c);
+        } else
+	    os_display_char (c);
+    }
 
 }/* os_display_string */
+
 
 /*
  * os_char_width
@@ -273,10 +270,8 @@ void os_display_string (const zchar *s)
  * Return the width of the character in screen units.
  *
  */
-
 int os_char_width (zchar c)
 {
-
     if (c >= ZC_LATIN1_MIN && c <= ZC_LATIN1_MAX && u_setup.plain_ascii) {
 
         int width = 0;
@@ -296,8 +291,8 @@ int os_char_width (zchar c)
 	return width;
     }
     return 1;
-
 }/* os_char_width*/
+
 
 /*
  * os_string_width
@@ -309,24 +304,22 @@ int os_char_width (zchar c)
  *    NEW_FONT  - next character is a new font
  *
  */
-
 int os_string_width (const zchar *s)
 {
     int width = 0;
     zchar c;
 
-    while ((c = *s++) != 0)
+    while ((c = *s++) != 0) {
 
-      if (c == ZC_NEW_STYLE || c == ZC_NEW_FONT) {
-
-	s++;
-	/* No effect */
-
-      } else width += os_char_width(c);
-
+	if (c == ZC_NEW_STYLE || c == ZC_NEW_FONT) {
+	    s++;
+	    /* No effect */
+	} else
+	    width += os_char_width(c);
+    }
     return width;
-
 }/* os_string_width */
+
 
 /*
  * os_set_cursor
@@ -334,14 +327,12 @@ int os_string_width (const zchar *s)
  * Place the text cursor at the given coordinates. Top left is (1,1).
  *
  */
-
 void os_set_cursor (int y, int x)
 {
-
     /* Curses thinks the top left is (0,0) */
     move(--y, --x);
-
 }/* os_set_cursor */
+
 
 /*
  * os_more_prompt
@@ -350,7 +341,6 @@ void os_set_cursor (int y, int x)
  * prompt from the screen.
  *
  */
-
 void os_more_prompt (void)
 {
     int saved_style, saved_x, saved_y;
@@ -367,5 +357,4 @@ void os_more_prompt (void)
     addstr("      ");
     move(saved_y, saved_x);
     os_set_text_style(saved_style);
-
 }/* os_more_prompt */

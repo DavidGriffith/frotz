@@ -259,7 +259,7 @@ static void parse_options (int argc, char **argv)
 
 	int num = 0;
 
-	c = getopt (argc, argv, "aAb:B:c:d:e:f:F:g:h:il:oOpQr:s:S:tTu:w:xZ:");
+	c = getopt (argc, argv, "aAb:B:c:d:e:f:F:g:h:il:oOpr:s:S:tTu:w:xZ:");
 
 	if (optarg != NULL)
 	    num = dectoi (optarg);

@@ -17,7 +17,6 @@ typedef struct frotz_setup_struct {
 	int undo_slots;			/* done */
 	int expand_abbreviations;	/* done */
 	int script_cols;		/* done */
-	int save_quetzal;		/* done */
 	int sound;			/* done */
 	int err_report_mode;		/* done */
 

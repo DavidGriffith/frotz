@@ -56,14 +56,14 @@ Syntax: frotz [options] story-file\n\
   -A   watch attribute testing  \t -p   plain ASCII output only\n\
   -b # background color         \t -P   alter piracy opcode\n\
   -c # context lines            \t -q   quiet (disable sound effects)\n\
-  -d   disable color            \t -Q   use old-style save format\n\
-  -e   enable sound             \t -r # right margin\n\
-  -f # foreground color         \t -s # random number seed value\n\
-  -F   Force color mode         \t -S # transcript width\n\
-  -h # screen height            \t -t   set Tandy bit\n\
-  -i   ignore fatal errors      \t -u # slots for multiple undo\n\
-  -l # left margin              \t -w # screen width\n\
-  -o   watch object movement    \t -x   expand abbreviations g/x/z"
+  -d   disable color            \t -r # right margin\n\
+  -e   enable sound             \t -s # random number seed value\n\
+  -f # foreground color         \t -S # transcript width\n\
+  -F   Force color mode         \t -t   set Tandy bit\n\
+  -h # screen height            \t -u # slots for multiple undo\n\
+  -i   ignore fatal errors      \t -w # screen width\n\
+  -l # left margin              \t -x   expand abbreviations g/x/z\n\
+  -o   watch object movement"
 
 /*
 char stripped_story_name[FILENAME_MAX+1];
@@ -230,7 +230,7 @@ void os_process_arguments (int argc, char *argv[])
 
     /* Parse the options */
     do {
-	c = zgetopt(argc, argv, "aAb:c:def:Fh:il:oOpPQqr:s:S:tu:w:xZ:");
+	c = zgetopt(argc, argv, "aAb:c:def:Fh:il:oOpPqr:s:S:tu:w:xZ:");
 	switch(c) {
 	  case 'a': f_setup.attribute_assignment = 1; break;
 	  case 'A': f_setup.attribute_testing = 1; break;
@@ -263,7 +263,6 @@ void os_process_arguments (int argc, char *argv[])
 	  case 'p': u_setup.plain_ascii = 1; break;
 	  case 'P': f_setup.piracy = 1; break;
 	  case 'q': f_setup.sound = 0; break;
-	  case 'Q': f_setup.save_quetzal = 0; break;
 	  case 'r': f_setup.right_margin = atoi(zoptarg); break;
 	  case 's': u_setup.random_seed = atoi(zoptarg); break;
 	  case 'S': f_setup.script_cols = atoi(zoptarg); break;
@@ -756,9 +755,6 @@ static int getconfig(char *configfile)
 		else if (strcmp(varname, "sound") == 0) {
 			f_setup.sound = getbool(value);
 		}
-		else if (strcmp(varname, "quetzal") == 0) {
-			f_setup.save_quetzal = getbool(value);
-		}
 		else if (strcmp(varname, "tandy") == 0) {
 			u_setup.tandy_bit = getbool(value);
 		}
@@ -975,7 +971,6 @@ void os_init_setup(void)
 	f_setup.undo_slots = MAX_UNDO_SLOTS;
 	f_setup.expand_abbreviations = 0;
 	f_setup.script_cols = 80;
-	f_setup.save_quetzal = 1;
 	f_setup.sound = 1;
 	f_setup.err_report_mode = ERR_DEFAULT_REPORT_MODE;
 

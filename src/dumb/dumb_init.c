@@ -14,15 +14,15 @@ An interpreter for all Infocom and other Z-Machine games.\n\
 Complies with standard 1.0 of Graham Nelson's specification.\n\
 \n\
 Syntax: dfrotz [options] story-file\n\
-  -a   watch attribute setting \t -Q   use old-style save format\n\
-  -A   watch attribute testing \t -R xxx  do runtime setting \\xxx\n\
-  -h # screen height           \t    before starting (can be used repeatedly)\n\
-  -i   ignore fatal errors     \t -s # random number seed value\n\
-  -I # interpreter number      \t -S # transcript width\n\
-  -o   watch object movement   \t -t   set Tandy bit\n\
-  -O   watch object locating   \t -u # slots for multiple undo\n\
-  -p   plain ASCII output only \t -w # screen width\n\
-  -P   alter piracy opcode     \t -x   expand abbreviations g/x/z"
+  -a   watch attribute setting \t  R xxx  do runtime setting \\xxx\n\
+  -A   watch attribute testing \t    before starting (can be used repeatedly)\n\
+  -h # screen height           \t -s # random number seed value\n\
+  -i   ignore fatal errors     \t -S # transcript width\n\
+  -I # interpreter number      \t -t   set Tandy bit\n\
+  -o   watch object movement   \t -u # slots for multiple undo\n\
+  -O   watch object locating   \t -w # screen width\n\
+  -p   plain ASCII output only \t -x   expand abbreviations g/x/z\n\
+  -P   alter piracy opcode"
 
 
 /* A unix-like getopt, but with the names changed to avoid any problems.  */
@@ -75,7 +75,7 @@ void os_process_arguments(int argc, char *argv[])
 
     /* Parse the options */
     do {
-	c = zgetopt(argc, argv, "aAh:iI:oOpPQs:R:S:tu:w:xZ:");
+	c = zgetopt(argc, argv, "aAh:iI:oOpPs:R:S:tu:w:xZ:");
 	switch(c) {
 	  case 'a': f_setup.attribute_assignment = 1; break;
 	  case 'A': f_setup.attribute_testing = 1; break;
@@ -86,7 +86,6 @@ void os_process_arguments(int argc, char *argv[])
 	  case 'O': f_setup.object_locating = 1; break;
 	  case 'P': f_setup.piracy = 1; break;
 	case 'p': plain_ascii = 1; break;
-	  case 'Q': f_setup.save_quetzal = 0; break;
 	case 'R': dumb_handle_setting(zoptarg, FALSE, TRUE); break;
 	case 's': user_random_seed = atoi(zoptarg); break;
 	  case 'S': f_setup.script_cols = atoi(zoptarg); break;
@@ -206,7 +205,6 @@ void os_init_setup(void)
 	f_setup.undo_slots = MAX_UNDO_SLOTS;
 	f_setup.expand_abbreviations = 0;
 	f_setup.script_cols = 80;
-	f_setup.save_quetzal = 1;
 	f_setup.sound = 1;
 	f_setup.err_report_mode = ERR_DEFAULT_REPORT_MODE;
 

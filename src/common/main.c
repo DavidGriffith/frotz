@@ -132,7 +132,6 @@ int option_piracy = 0;
 int option_undo_slots = MAX_UNDO_SLOTS;
 int option_expand_abbreviations = 0;
 int option_script_cols = 80;
-int option_save_quetzal = 1;
 */
 
 int option_sound = 1;

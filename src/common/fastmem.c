@@ -660,60 +660,7 @@ void z_restore (void)
 	if ((gfp = fopen (new_name, "rb")) == NULL)
 	    goto finished;
 
-	if (f_setup.save_quetzal) {
-	    success = restore_quetzal (gfp, story_fp);
-
-	} else {
-	    /* Load game file */
-
-	    release = (unsigned) fgetc (gfp) << 8;
-	    release |= fgetc (gfp);
-
-	    (void) fgetc (gfp);
-	    (void) fgetc (gfp);
-
-	    /* Check the release number */
-
-	    if (release == h_release) {
-
-		pc = (long) fgetc (gfp) << 16;
-		pc |= (unsigned) fgetc (gfp) << 8;
-		pc |= fgetc (gfp);
-
-		SET_PC (pc);
-
-		sp = stack + (fgetc (gfp) << 8);
-		sp += fgetc (gfp);
-		fp = stack + (fgetc (gfp) << 8);
-		fp += fgetc (gfp);
-
-		for (i = (int) (sp - stack); i < STACK_SIZE; i++) {
-		    stack[i] = (unsigned) fgetc (gfp) << 8;
-		    stack[i] |= fgetc (gfp);
-		}
-
-		os_storyfile_seek (story_fp, 0, SEEK_SET);
-
-		for (addr = 0; addr < h_dynamic_size; addr++) {
-		    int skip = fgetc (gfp);
-		    for (i = 0; i < skip; i++)
-			zmp[addr++] = fgetc (story_fp);
-		    zmp[addr] = fgetc (gfp);
-		    (void) fgetc (story_fp);
-		}
-
-		/* Check for errors */
-
-		if (ferror (gfp) || ferror (story_fp) || addr != h_dynamic_size)
-		    success = -1;
-		else
-
-		    /* Success */
-
-		    success = 2;
-
-	    } else print_string ("Invalid save file\n");
-	}
+	success = restore_quetzal (gfp, story_fp);
 
 	if ((short) success >= 0) {
 
@@ -952,44 +899,7 @@ void z_save (void)
 	if ((gfp = fopen (new_name, "wb")) == NULL)
 	    goto finished;
 
-	if (f_setup.save_quetzal) {
-	    success = save_quetzal (gfp, story_fp);
-	} else {
-	    /* Write game file */
-
-	    fputc ((int) hi (h_release), gfp);
-	    fputc ((int) lo (h_release), gfp);
-	    fputc ((int) hi (h_checksum), gfp);
-	    fputc ((int) lo (h_checksum), gfp);
-
-	    GET_PC (pc);
-
-	    fputc ((int) (pc >> 16) & 0xff, gfp);
-	    fputc ((int) (pc >> 8) & 0xff, gfp);
-	    fputc ((int) (pc) & 0xff, gfp);
-
-	    nsp = (int) (sp - stack);
-	    nfp = (int) (fp - stack);
-
-	    fputc ((int) hi (nsp), gfp);
-	    fputc ((int) lo (nsp), gfp);
-	    fputc ((int) hi (nfp), gfp);
-	    fputc ((int) lo (nfp), gfp);
-
-	    for (i = nsp; i < STACK_SIZE; i++) {
-		fputc ((int) hi (stack[i]), gfp);
-		fputc ((int) lo (stack[i]), gfp);
-	    }
-
-	    os_storyfile_seek (story_fp, 0, SEEK_SET);
-
-	    for (addr = 0, skip = 0; addr < h_dynamic_size; addr++)
-		if (zmp[addr] != fgetc (story_fp) || skip == 255 || addr + 1 == h_dynamic_size) {
-		    fputc (skip, gfp);
-		    fputc (zmp[addr], gfp);
-		    skip = 0;
-		} else skip++;
-	}
+	success = save_quetzal (gfp, story_fp);
 
 	/* Close game file and check for errors */
 

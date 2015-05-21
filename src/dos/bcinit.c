@@ -24,17 +24,16 @@ static char information[] =
 "  -a   watch attribute setting  \t -o   watch object movement\n"
 "  -A   watch attribute testing  \t -O   watch object locating\n"
 "  -b # background colour        \t -p   alter piracy opcode\n"
-"  -B # reverse background colour\t -Q   use old-style save format\n"
-"  -c # context lines            \t -r # right margin\n"
-"  -d # display mode (see below) \t -s # random number seed value\n"
-"  -e # emphasis colour [mode 1] \t -S # transscript width\n"
-"  -f # foreground colour        \t -t   set Tandy bit\n"
-"  -F # reverse foreground colour\t -T   bold typing [modes 2+4+5]\n"
-"  -g # font [mode 5] (see below)\t -u # slots for multiple undo\n"
-"  -h # screen height            \t -w # screen width\n"
-"  -i   ignore runtime errors    \t -x   expand abbreviations g/x/z\n"
+"  -B # reverse background colour\t -r # right margin\n"
+"  -c # context lines            \t -s # random number seed value\n"
+"  -d # display mode (see below) \t -S # transscript width\n"
+"  -e # emphasis colour [mode 1] \t -t   set Tandy bit\n"
+"  -f # foreground colour        \t -T   bold typing [modes 2+4+5]\n"
+"  -F # reverse foreground colour\t -u # slots for multiple undo\n"
+"  -g # font [mode 5] (see below)\t -w # screen width\n"
+"  -h # screen height            \t -x   expand abbreviations g/x/z\n"
+"  -i   ignore runtime errors    \t -Z # error checking (see below)\n"
 "  -l # left margin"
-"              \t -Z # error checking (see below)"
 "\n"
 "Fonts are 0 (fixed), 1 (sans serif), 2 (comic), 3 (times), 4 (serif).\n"
 "Display modes are 0 (mono), 1 (text), 2 (CGA), 3 (MCGA), 4 (EGA), 5 (Amiga)."
@@ -105,7 +104,6 @@ void os_init_setup(void)
 	f_setup.undo_slots = MAX_UNDO_SLOTS;
 	f_setup.expand_abbreviations = 0;
 	f_setup.script_cols = 80;
-	f_setup.save_quetzal = 1;
 	f_setup.sound = 1;
 	f_setup.err_report_mode = ERR_DEFAULT_REPORT_MODE;
 
@@ -261,7 +259,7 @@ static void parse_options (int argc, char **argv)
 
 	int num = 0;
 
-	c = getopt (argc, argv, "aAb:B:c:d:e:f:F:g:h:il:oOpQr:s:S:tTu:w:xZ:");
+	c = getopt (argc, argv, "aAb:B:c:d:e:f:F:g:h:il:oOpr:s:S:tTu:w:xZ:");
 
 	if (optarg != NULL)
 	    num = dectoi (optarg);
@@ -307,8 +305,6 @@ static void parse_options (int argc, char **argv)
 	    f_setup.object_locating = 1;
 	if (c == 'p')
 	    f_setup.piracy = 1;
-	if (c == 'Q')
-	    f_setup.save_quetzal = 0;
 	if (c == 'r')
 	    f_setup.right_margin = num;
 	if (c == 's')

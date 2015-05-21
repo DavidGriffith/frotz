@@ -82,7 +82,7 @@ DEFAULT_CONVERTER = SRC_SINC_MEDIUM_QUALITY
 #########################################################################
 
 SRCDIR = src
-VERSION = 2.44
+VERSION = 2.45pre
 NAME = frotz
 BINNAME = $(NAME)
 DISTFILES = bugtest

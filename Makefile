@@ -90,7 +90,7 @@ CURSES = -lcurses
 #MEMMOVE_DEF = -DNO_MEMMOVE
 
 # Uncomment this if for some wacky reason you want to compile Unix Frotz
-# under Cygwin under Windoze.  This sort of thing is not reccomended.
+# under Cygwin under Windoze.  This sort of thing is not recomended.
 #
 #EXTENSION = .exe
 
@@ -323,13 +323,14 @@ dist: distclean
 
 clean:
 	rm -f $(SRCDIR)/*.h $(SRCDIR)/*.a
-	find . -name *.o -exec rm -f {} \;
-	find . -name *.O -exec rm -f {} \;
+	find . -iname *.o -exec rm -f {} \;
+	find . -iname *.obj -exec rm -f {} \;
 
 distclean: clean
 	rm -f $(BINNAME)$(EXTENSION) d$(BINNAME)$(EXTENSION) s$(BINNAME)
-	rm -f *.EXE *.BAK *.LIB
-	rm -f *.exe *.bak *.lib
+	find . -iname *.exe -exec rm -f {} \;
+	find . -iname *.bak -exec rm -f {} \;
+	find . -iname *.lib -exec rm -f {} \;
 	rm -f *core $(SRCDIR)/*core
 	-rm -rf $(distdir)
 	-rm -f $(distdir).tar $(distdir).tar.gz

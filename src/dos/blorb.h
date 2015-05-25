@@ -65,7 +65,7 @@ typedef struct bb_result_struct {
     int chunknum; /* The chunk number (for use in bb_unload_chunk(), etc.) */
     union {
         void *ptr; /* A pointer to the data (if you used bb_method_Memory) */
-        uint32 startpos; /* The position in the file (if you used bb_method_FilePos) */
+	uint32 startpos; /* The position in the file (if you used bb_method_FilePos) */
     } data;
     uint32 length; /* The length of the data */
 } bb_result_t;
@@ -98,7 +98,7 @@ typedef struct bb_color_struct {
 typedef struct bb_palette_struct {
     int isdirect;
     union {
-        int depth; /* The depth (if isdirect is TRUE). Either 16 or 32. */
+	int depth; /* The depth (if isdirect is TRUE). Either 16 or 32. */
         struct {
             int numcolors;
             bb_color_t *colors;

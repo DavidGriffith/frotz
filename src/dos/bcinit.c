@@ -109,6 +109,7 @@ void os_init_setup(void)
 
 }/* os_init_setup */
 
+
 /*
  * dectoi
  *
@@ -116,7 +117,6 @@ void os_init_setup(void)
  * be NULL, but it must not be empty.
  *
  */
-
 int dectoi (const char *s)
 {
     int n = 0;
@@ -133,6 +133,7 @@ int dectoi (const char *s)
 
 }/* dectoi */
 
+
 /*
  * hextoi
  *
@@ -140,7 +141,6 @@ int dectoi (const char *s)
  * NULL, but it must not be empty.
  *
  */
-
 int hextoi (const char *s)
 {
     int n = 0;
@@ -159,6 +159,7 @@ int hextoi (const char *s)
     return n;
 
 }/* hextoi */
+
 
 /*
  * basename
@@ -188,7 +189,6 @@ char *basename(const char *path)
  * interrupt pointers and return to the previous video mode.
  *
  */
-
 static void cleanup (void)
 {
 
@@ -205,19 +205,20 @@ static void cleanup (void)
 
 }/* cleanup */
 
+
 /*
  * fast_exit
  *
  * Handler routine to be called when the crtl-break key is pressed.
  *
  */
-
 static void interrupt fast_exit ()
 {
 
     cleanup (); exit (EXIT_FAILURE);
 
 }/* fast_exit */
+
 
 /*
  * os_fatal
@@ -244,13 +245,13 @@ void os_fatal (const char *s, ...)
 
 }/* os_fatal */
 
+
 /*
  * parse_options
  *
  * Parse program options and set global flags accordingly.
  *
  */
-
 static void parse_options (int argc, char **argv)
 {
     int c;
@@ -329,6 +330,7 @@ static void parse_options (int argc, char **argv)
 
 }/* parse_options */
 
+
 /*
  * os_process_arguments
  *
@@ -351,7 +353,6 @@ static void parse_options (int argc, char **argv)
  * The global pointer "story_name" is set to the story file name.
  *
  */
-
 void os_process_arguments (int argc, char *argv[])
 {
     const char *p;
@@ -416,6 +417,7 @@ void os_process_arguments (int argc, char *argv[])
     }
 }/* os_process_arguments */
 
+
 /*
  * standard_palette
  *
@@ -423,7 +425,6 @@ void os_process_arguments (int argc, char *argv[])
  * use DAC registers #0 to #63.
  *
  */
-
 static void standard_palette (void)
 {
 
@@ -446,6 +447,7 @@ static void standard_palette (void)
 
 }/* standard_palette */
 
+
 /*
  * special_palette
  *
@@ -453,7 +455,6 @@ static void standard_palette (void)
  * registers #64 to #127.
  *
  */
-
 static void special_palette (void)
 {
 
@@ -475,6 +476,7 @@ static void special_palette (void)
     }
 
 }/* special_palette */
+
 
 /*
  * os_init_screen
@@ -501,7 +503,6 @@ static void special_palette (void)
  * should not be used for multiple undo and reserved for later use.
  *
  */
-
 void os_init_screen (void)
 {
     static byte zcolour[] = {
@@ -756,13 +757,13 @@ void os_init_screen (void)
 
 }/* os_init_screen */
 
+
 /*
  * os_reset_screen
  *
  * Reset the screen before the program stops.
  *
  */
-
 void os_reset_screen (void)
 {
 
@@ -775,6 +776,7 @@ void os_reset_screen (void)
 
 }/* os_reset_screen */
 
+
 /*
  * os_restart_game
  *
@@ -786,7 +788,6 @@ void os_reset_screen (void)
  *     RESTART_END - restart is complete
  *
  */
-
 void os_restart_game (int stage)
 {
     int x, y;
@@ -821,6 +822,7 @@ void os_restart_game (int stage)
 
 }/* os_restart_game */
 
+
 /*
  * os_random_seed
  *
@@ -828,10 +830,8 @@ void os_restart_game (int stage)
  * 32767, possibly by using the current system time.
  *
  */
-
 int os_random_seed (void)
 {
-
     if (user_random_seed == -1) {
 
 	/* Use the time of day as seed value */
@@ -846,7 +846,6 @@ int os_random_seed (void)
 }/* os_random_seed */
 
 
-
 /*
  * os_path_open
  *
@@ -855,7 +854,6 @@ int os_random_seed (void)
  * if it is defined, otherwise search INFOCOM_PATH.
  *
  */
-
 FILE *os_path_open (const char *name, const char *mode)
 {
     FILE *fp;
@@ -883,6 +881,7 @@ FILE *os_path_open (const char *name, const char *mode)
     return NULL;
 }/* os_path_open */
 
+
 /*
  * os_load_story
  *
@@ -895,7 +894,6 @@ FILE *os_path_open (const char *name, const char *mode)
  * defined, search INFOCOM_PATH.
  *
  */
-
 FILE *os_load_story(void)
 {
     FILE *fp;
@@ -909,6 +907,7 @@ FILE *os_load_story(void)
     }
     return fp;
 }
+
 
 int dos_init_blorb(void)
 {
@@ -945,51 +944,43 @@ int dos_init_blorb(void)
     return 0;
 }
 
+
 /*
- * Seek into a storyfile, either a standalone file or the 
+ * Seek into a storyfile, either a standalone file or the
  * ZCODE chunk of a blorb file
  */
 int os_storyfile_seek(FILE * fp, long offset, int whence)
 {
+    int retval;
     /* Is this a Blorb file containing Zcode? */
-    if (exec_in_blorb)
-    {
-       switch (whence)
-       {
-           case SEEK_END:
-               return fseek(fp, blorb_res.data.startpos + blorb_res.length + offset, SEEK_SET);
-               break;
-           case SEEK_CUR:
-               return fseek(fp, offset, SEEK_CUR);
-               break;
-           case SEEK_SET:
-           default:
-               return fseek(fp, blorb_res.data.startpos + offset, SEEK_SET);
-               break;
-       }
+    if (exec_in_blorb) {
+	switch (whence) {
+	    case SEEK_END:
+		retval = fseek(fp, blorb_res.data.startpos + blorb_res.length + offset, SEEK_SET);
+		break;
+	    case SEEK_CUR:
+		retval = fseek(fp, offset, SEEK_CUR);
+		break;
+	    case SEEK_SET:
+	    default:
+		retval = fseek(fp, blorb_res.data.startpos + offset, SEEK_SET);
+		break;
+	}
+	return retval;
     }
-    else
-    {
-       return fseek(fp, offset, whence);
-    }
-
+    return fseek(fp, offset, whence);
 }
 
+
 /*
- * Tell the position in a storyfile, either a standalone file 
+ * Tell the position in a storyfile, either a standalone file
  * or the ZCODE chunk of a blorb file
  */
 int os_storyfile_tell(FILE * fp)
 {
     /* Is this a Blorb file containing Zcode? */
     if (exec_in_blorb)
-    {
        return ftell(fp) - blorb_res.data.startpos;
-    }
-    else
-    {
-       return ftell(fp);
-    }
 
+    return ftell(fp);
 }
-

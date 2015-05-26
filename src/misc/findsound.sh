@@ -14,6 +14,7 @@
 INCLUDE1="/usr/include/sys"
 INCLUDE2="/usr/include"
 INCLUDE3="/usr/include/machine"
+INCLUDE4="/usr/include/linux"
 
 SOUNDCARD_H="soundcard.h"
 OUTFILE="$1/soundcard.h"
@@ -88,3 +89,18 @@ if [ -f $FILE ] ; then
 fi
 
 
+
+FILE=$INCLUDE4/$SOUNDCARD_H
+if [ -f $FILE ] ; then
+	echo "I see we have $FILE..."
+	echo
+	if [ -r $FILE ] ; then
+		echo '#include <linux/soundcard.h>' >> $OUTFILE
+	else
+		echo "====================================="
+		echo "Oops...  Can't read $FILE!"
+		echo "====================================="
+		exit 3
+	fi
+	exit 0
+fi

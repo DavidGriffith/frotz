@@ -47,7 +47,7 @@ COLOR_DEFS = -DCOLOR_SUPPORT
 # Define your sound device
 # This should probably be a command-line/config-file option.
 #
-#SOUND_DEV = /dev/dsp
+SOUND_DEV = /dev/dsp
 #SOUND_DEV = /dev/sound
 #SOUND_DEV = /dev/audio
 
@@ -184,7 +184,7 @@ BLORB_OBJECT =  $(BLORB_DIR)/blorblib.o
 TARGETS = $(COMMON_TARGET) $(CURSES_TARGET) $(BLORB_TARGET)
 
 OPT_DEFS = -DCONFIG_DIR="\"$(CONFIG_DIR)\"" $(CURSES_DEF) \
-	-DVERSION="\"$(VERSION)\""
+	-DVERSION="\"$(VERSION)\"" -DSOUND_DEV="\"$(SOUND_DEV)\""
 
 CURSES_DEFS = $(OPT_DEFS) $(COLOR_DEFS) $(SOUND_DEFS) $(SOUNDCARD) \
 	$(MEMMOVE_DEF)

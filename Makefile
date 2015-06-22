@@ -138,7 +138,7 @@ TARGETS = $(COMMON_TARGET) $(CURSES_TARGET) $(BLORB_TARGET)
 
 FLAGS = $(OPTS) $(INCL)
 
-SOUND_LIB = -lao -ldl -lm -lsndfile -lvorbisfile -lmodplug -lsamplerate
+SOUND_LIB = -lao -ldl -lpthread -lm -lsndfile -lvorbisfile -lmodplug -lsamplerate
 
 #########################################################################
 #########################################################################

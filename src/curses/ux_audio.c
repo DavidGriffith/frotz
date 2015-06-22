@@ -57,7 +57,7 @@ typedef struct {
 } EFFECT;
 
 static void *playaiff(EFFECT *);
-static int playmod(EFFECT);
+static void *playmod(EFFECT *);
 static int playogg(EFFECT);
 static void floattopcm16(short *, float *, int);
 static void pcm16tofloat(float *, short *, int);
@@ -69,10 +69,12 @@ static void *mixer(void *);
 
 static pthread_t	mixer_id;
 static pthread_t	playaiff_id;
+static pthread_t	playmod_id;
 static pthread_mutex_t	mutex;
 static sem_t		audio_full;
 static sem_t		audio_empty;
 static sem_t		playaiff_okay;
+static sem_t		playmod_okay;
 
 bool    bleep_playing = FALSE;
 bool	bleep_stop = FALSE;
@@ -82,9 +84,12 @@ int	bleepsamples;
 int	bleepcount;
 int	bleepnum;
 
-float	*musicbuffer;
-int	musiccount;
+bool    music_playing = FALSE;
+bool	music_stop = FALSE;
 
+float	*musicbuffer;
+int	musicsamples;
+int	musicnum;
 
 
 /*
@@ -103,6 +108,7 @@ void os_init_sound(void)
     sem_init(&audio_empty, 0, 1);
     sem_init(&audio_full, 0, 0);
     sem_init(&playaiff_okay, 0, 0);
+    sem_init(&playmod_okay, 0, 0);
 
     musicbuffer = malloc(BUFFSIZE * 2 * sizeof(float));
     if (musicbuffer == NULL) {
@@ -198,7 +204,16 @@ void os_start_sample (int number, int volume, int repeats, zword eos)
 	}
 	sem_wait(&playaiff_okay);
     } else if (blorb_map->chunks[resource.chunknum].type == bb_make_id('M','O','D',' ')) {
-	playmod(myeffect);
+	if (music_playing) {
+	    music_playing = FALSE;
+	    pthread_join(playmod_id, NULL);
+	}
+	err = pthread_create(&playmod_id, &attr, (void *) &playmod, &myeffect);
+	if (err != 0) {
+	    printf("Can't create playmod thread :[%s]", strerror(err));
+	    exit(1);
+	}
+	sem_wait(&playmod_okay);
     } else if (blorb_map->chunks[resource.chunknum].type == bb_make_id('O','G','G','V')) {
 	playogg(myeffect);
     } else {
@@ -219,6 +234,12 @@ void os_stop_sample (int number)
 	bleep_playing = FALSE;
 	while(pthread_kill(playaiff_id, 0) == 0);
     }
+
+    if (music_playing && (number == musicnum || number == 0)) {
+	music_playing = FALSE;
+	while(pthread_kill(playmod_id, 0) == 0);
+    }
+
     return;
 }/* os_stop_sample */
 
@@ -296,19 +317,28 @@ static void *mixer(void *arg)
         sem_wait(&audio_full);          /* Wait until output buffer is full */
         pthread_mutex_lock(&mutex);     /* Acquire mutex */
 
-	if (bleep_playing && device == NULL) {
+	if (device == NULL) {
 	    device = ao_open_live(default_driver, &format, NULL);
 	    if (device == NULL) {
 	        printf(" Error opening sound device.\n");
 	    }
 	}
 
-	floattopcm16(shortbuffer, bleepbuffer, bleepsamples);
-        ao_play(device, (char *) shortbuffer, bleepsamples * sizeof(short));
-	memset(shortbuffer, 0, BUFFSIZE * sizeof(short) * 2);
-	memset(bleepbuffer, 0, BUFFSIZE * sizeof(float) * 2);
+	if (bleep_playing) {
+	    floattopcm16(shortbuffer, bleepbuffer, bleepsamples);
+            ao_play(device, (char *) shortbuffer, bleepsamples * sizeof(short));
+	    memset(shortbuffer, 0, BUFFSIZE * sizeof(short) * 2);
+	    memset(bleepbuffer, 0, BUFFSIZE * sizeof(float) * 2);
+	}
 
-	if (!bleep_playing) {
+	if (music_playing) {
+	    floattopcm16(shortbuffer, musicbuffer, musicsamples);
+            ao_play(device, (char *) shortbuffer, musicsamples * sizeof(short));
+	    memset(shortbuffer, 0, BUFFSIZE * sizeof(short) * 2);
+	    memset(musicbuffer, 0, BUFFSIZE * sizeof(float) * 2);
+	}
+
+	if (!bleep_playing && !music_playing) {
 	    ao_close(device);
 	    device = NULL;
 	}
@@ -528,40 +558,30 @@ void *playaiff(EFFECT *raw_effect)
  * handled here.
  *
  */
-static int playmod(EFFECT myeffect)
+static void *playmod(EFFECT *raw_effect)
 {
-    unsigned char *buffer;
-    unsigned char *mixbuffer;
+    short *shortbuffer;
 
     int modlen;
     int count;
-
-    int default_driver;
-    ao_device *device;
-    ao_sample_format format;
 
     char *filedata;
     long size;
     ModPlugFile *mod;
     ModPlug_Settings settings;
 
-    long original_offset;
+    long filestart;
 
+    EFFECT myeffect = *raw_effect;
 
-    original_offset = ftell(myeffect.fp);
+    sem_post(&playmod_okay);
+
+    musicnum = myeffect.number;
+
+    filestart = ftell(myeffect.fp);
     fseek(myeffect.fp, myeffect.result.data.startpos, SEEK_SET);
 
-    ao_initialize();
-    default_driver = ao_default_driver_id();
-
     ModPlug_GetSettings(&settings);
-
-    memset(&format, 0, sizeof(ao_sample_format));
-
-    format.byte_format = AO_FMT_NATIVE;
-    format.bits = 16;
-    format.channels = 2;
-    format.rate = 44100;
 
     /* Note: All "Basic Settings" must be set before ModPlug_Load. */
     settings.mResamplingMode = MODPLUG_RESAMPLE_FIR; /* RESAMP */
@@ -578,44 +598,40 @@ static int playmod(EFFECT myeffect)
     filedata = getfiledata(myeffect.fp, &size);
 
     mod = ModPlug_Load(filedata, size);
+    fseek(myeffect.fp, filestart, SEEK_SET);
     if (!mod) {
-//	printf("Unable to load module\n");
-	free(filedata);
-	return 1;
-    }
-
-    device = ao_open_live(default_driver, &format, NULL /* no options */);
-    if (device == NULL) {
-//        printf("Error opening sound device.\n");
-        return 1;
+	printf("Unable to load module\n");
+	exit(1);
     }
 
     if (myeffect.vol < 1) myeffect.vol = 1;
     if (myeffect.vol > 8) myeffect.vol = 8;
-
     ModPlug_SetMasterVolume(mod, mypower(2, myeffect.vol));
 
-    buffer = malloc(BUFFSIZE * sizeof(char));
-    mixbuffer = malloc(BUFFSIZE * sizeof(char));
+    shortbuffer = malloc(BUFFSIZE * sizeof(char) * 2);
 
-    modlen = 1;
-    while (modlen != 0) {
-	if (modlen == 0) break;
-	modlen = ModPlug_Read(mod, buffer, BUFFSIZE * sizeof(char));
-	if (modlen > 0) {
-	    if (ao_play(device, (char *) buffer, modlen * sizeof(char)) == 0) {
-		perror("audio write");
-		exit(1);
-	    }
+    music_playing = TRUE;
+
+    while (1) {
+	sem_wait(&audio_empty);
+	pthread_mutex_lock(&mutex);
+	if (!music_playing) {
+	    break;
 	}
+	musicsamples = ModPlug_Read(mod, shortbuffer, BUFFSIZE);
+	if (musicsamples == 0) break;
+	pcm16tofloat(musicbuffer, shortbuffer, musicsamples);
+	pthread_mutex_unlock(&mutex);
+	sem_post(&audio_full);
     }
-    free(buffer);
-    ao_close(device);
-    ao_shutdown();
 
-    fseek(myeffect.fp, original_offset, SEEK_SET);
+    music_playing = FALSE;
 
-    return(2);
+    ModPlug_Unload(mod);
+    free(shortbuffer);
+    free(filedata);
+
+    pthread_exit(NULL);
 }
 
 

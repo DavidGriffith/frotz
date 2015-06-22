@@ -46,9 +46,6 @@ tandy		no
 # Alter piracy opcode		(default "no")
 piracy		no
 
-# Use Quetzal save format	(default "yes")
-quetzal		yes
-
 # Expand abbreviations		(default "no")
 expand_abb	no
 

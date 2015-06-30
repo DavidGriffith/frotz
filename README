@@ -10,7 +10,6 @@ Reference code and Unix port currently maintained by David Griffith.
 - Old-style sound support through OSS driver.
 - Config files.
 - Configurable error checking.
-- Quetzal save file format.
 - Distributed under the GNU Public License.
 
 

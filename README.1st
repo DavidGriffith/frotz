@@ -11,13 +11,10 @@ HOW_TO_PLAY	How to play Interactive Fiction.
 INSTALL		How to build and install Frotz.
 Makefile	The Makefile (the INSTALL file tells you about this).
 Makefile.tc	Makefile for building Frotz for DOS.
-PACKAGING	Putting Frotz into a binary package or port tree.
 PORTING		Notes about porting Frotz to new machines and operating systems.
 README		An overview of Frotz.
 README.1st	This file.
-SPEECH		Notes about speech synthesis and voice-recognition in Frotz.
 TODO		Stuff to do in no particular order.
-frotz.lsm	An LSM file for Frotz.
 
 doc/		Manpages and sample config files.
 src/		Source code to Frotz.

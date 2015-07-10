@@ -99,7 +99,7 @@ void os_stop_sample (int number)
  *
  */
 
-void os_finish_with_sample (number)
+void os_finish_with_sample (int number)
 {
 
     /* Not implemented */

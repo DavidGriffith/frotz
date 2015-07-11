@@ -49,6 +49,8 @@
 #include "ux_frotz.h"
 #include "ux_blorb.h"
 
+#include "ux_init.h"
+
 f_setup_t f_setup;
 u_setup_t u_setup;
 

@@ -449,7 +449,7 @@ zchar os_read_line (int max, zchar *buf, int timeout, int width, int continued)
 	    }
 	    break;
 	case ZC_DEL_WORD:
-		if (scrpos != 0) {
+		if (scrpos != 0 && scrpos == len) {
 			/* Search for start of preceding word */
 			int i = len;
 			while (i > 0 && buf[i] != ' ') {

@@ -451,18 +451,20 @@ zchar os_read_line (int max, zchar *buf, int timeout, int width, int continued)
 	case ZC_DEL_WORD:
 		if (scrpos != 0) {
 			/* Search for start of preceding word */
-			int i = len;
-			while (i > 0 && buf[i] != ' ') {
-				mvaddch(y, x + i, ' ');
-				i--;
-			}
+			int i;
+			for (i = scrpos - 1; i > 0 && buf[i] != ' '; i--) {}
 
 			searchpos = -1;
 			int delta = scrpos - i;
+			int oldlen = len;
+			int oldscrpos = scrpos;
 			len -= delta;
 			scrpos -= delta;
-			scrnmove(x + scrpos, x + scrpos + delta, delta);
-			memmove(buf + scrpos, buf + scrpos + delta, delta);
+			scrnmove(x + scrpos, x + oldscrpos, len - scrpos);
+			memmove(buf + scrpos, buf + oldscrpos, len - scrpos);
+			for (i = len; i <= oldlen ; i++) {
+				mvaddch(y, x + i, ' ');
+			}
 		}
 		break;
 	case CHR_DEL:

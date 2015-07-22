@@ -235,6 +235,7 @@ static int unix_read_char(int extkeys)
 	case MOD_CTRL ^ 'E': c = KEY_END; break;
 	case MOD_CTRL ^ 'D': c = KEY_DC; break;
 	case MOD_CTRL ^ 'K': c = KEY_EOL; break;
+	case MOD_CTRL ^ 'W': c = ZC_DEL_WORD; break;
 
 	default: break; /* Who knows? */
 	}
@@ -447,6 +448,23 @@ zchar os_read_line (int max, zchar *buf, int timeout, int width, int continued)
 		memmove(buf + scrpos, buf + scrpos + 1, len - scrpos);
 	    }
 	    break;
+	case ZC_DEL_WORD:
+		if (scrpos != 0) {
+			/* Search for start of preceding word */
+			int i = len;
+			while (i > 0 && buf[i] != ' ') {
+				mvaddch(y, x + i, ' ');
+				i--;
+			}
+
+			searchpos = -1;
+			int delta = scrpos - i;
+			len -= delta;
+			scrpos -= delta;
+			scrnmove(x + scrpos, x + scrpos + delta, delta);
+			memmove(buf + scrpos, buf + scrpos + delta, delta);
+		}
+		break;
 	case CHR_DEL:
 	case KEY_DC:		/* Delete following character */
 	    if (scrpos < len) {

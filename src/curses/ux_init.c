@@ -980,20 +980,14 @@ does nothing.
 
 }
 
-/*
- * sigint_handler
- * Sometimes the screen will be left in a weird state if the following
- * is not done.
- *
- */
 void sigint_handler(int dummy)
 {
-    signal(SIGINT, sigint_handler);
-
-    scrollok(stdscr, TRUE); scroll(stdscr);
-    refresh(); endwin();
-
-    exit(1);
+	/*
+	 * Ignore SIGINT for now. We don't want the player to accidentally quit the
+	 * game with no warning if ctrl-c is hit.
+	 *
+	 * TODO: make ctrl-c delete the current input line?
+	 * */
 }
 
 void redraw(void)

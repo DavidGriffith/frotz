@@ -450,18 +450,16 @@ zchar os_read_line (int max, zchar *buf, int timeout, int width, int continued)
 	    break;
 	case ZC_DEL_WORD:
 		if (scrpos != 0) {
-			/* Search for start of preceding word */
-			int i;
-			for (i = scrpos - 1; i > 0 && buf[i] != ' '; i--) {}
-
+			int newoffset = start_of_prev_word(scrpos, buf);
 			searchpos = -1;
-			int delta = scrpos - i;
+			int delta = scrpos - newoffset;
 			int oldlen = len;
 			int oldscrpos = scrpos;
 			len -= delta;
 			scrpos -= delta;
 			scrnmove(x + scrpos, x + oldscrpos, len - scrpos);
 			memmove(buf + scrpos, buf + oldscrpos, len - scrpos);
+			int i = newoffset;
 			for (i = len; i <= oldlen ; i++) {
 				mvaddch(y, x + i, ' ');
 			}
@@ -698,3 +696,21 @@ void *memmove(void *s, void *t, size_t n)
 }
 
 #endif /* NO_MEMMOVE */
+
+
+/*
+ * Search for start of preceding word
+ * param currpos marker position
+ * param buf input buffer
+ * returns new position
+ */
+int start_of_prev_word(int currpos, const zchar* buf) {
+	int i, j;
+	for (i = currpos - 1; i > 0 && buf[i] == ' '; i--) {}
+	j = i;
+	for (; i > 0 && buf[i] != ' '; i--) {}
+	if (i < j && i != 0) {
+		i += 1;
+	}
+	return i;
+}

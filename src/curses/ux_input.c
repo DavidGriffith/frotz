@@ -187,6 +187,8 @@ static int unix_read_char(int extkeys)
 	    case 'x': return ZC_HKEY_QUIT;
 	    case 'd': return ZC_HKEY_DEBUG;
 	    case 'h': return ZC_HKEY_HELP;
+	    case 'f': return ZC_WORD_RIGHT;
+	    case 'b': return ZC_WORD_LEFT;
 	    default: continue;	/* Ignore unknown combinations. */
 	    }
 	/* The standard function key block. */
@@ -225,6 +227,8 @@ static int unix_read_char(int extkeys)
 	case MOD_META | 'x': return ZC_HKEY_QUIT;
 	case MOD_META | 'd': return ZC_HKEY_DEBUG;
 	case MOD_META | 'h': return ZC_HKEY_HELP;
+	case MOD_META | 'f': return ZC_WORD_RIGHT;
+	case MOD_META | 'b': return ZC_WORD_LEFT;
 
 /* these are the emacs-editing characters */
 	case MOD_CTRL ^ 'B': return ZC_ARROW_LEFT;
@@ -491,7 +495,16 @@ zchar os_read_line (int max, zchar *buf, int timeout, int width, int continued)
 	case ZC_ARROW_RIGHT: if (scrpos < len) scrpos++; continue;
 	case KEY_HOME: scrpos = 0; continue;
 	case KEY_END: scrpos = len; continue;
-
+	case ZC_WORD_RIGHT:
+		if (scrpos < len) {
+			scrpos = end_of_next_word(scrpos, buf, len);
+		}
+		continue;
+	case ZC_WORD_LEFT:
+		if (scrpos > 0) {
+			scrpos = start_of_prev_word(scrpos, buf);
+		}
+		continue;
 	case KEY_IC:		/* Insert Character */
 	    insert_flag = !insert_flag;
 	    continue;
@@ -712,5 +725,20 @@ int start_of_prev_word(int currpos, const zchar* buf) {
 	if (i < j && i != 0) {
 		i += 1;
 	}
+	return i;
+}
+
+/*
+ * Search for end of next word
+ * param currpos marker position
+ * param buf input buffer
+ * param len length of buf
+ * returns new position
+ */
+int end_of_next_word(int currpos, const zchar* buf, int len) {
+	int i, j;
+	for (i = currpos; i < len && buf[i] == ' '; i++) {}
+	j = i;
+	for (; i < len && buf[i] != ' '; i++) {}
 	return i;
 }

@@ -8,4 +8,5 @@ dfrotz
 *.DSK
 *.a
 defines.h
-
+/tags
+/tmp

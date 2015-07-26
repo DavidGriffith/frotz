@@ -93,17 +93,7 @@ void unix_init_scrollback(void);	/* ux_screen.c */
 void unix_save_screen(int);		/* ux_screen.c */
 void unix_do_scrollback(void);		/* ux_screen.c */
 
-
-
-int     getconfig(char *);
-int     geterrmode(char *);
-int     getcolor(char *);
-int     getbool(char *);
 FILE	*pathopen(const char *, const char *, const char *, char *);
-void	sigwinch_handler(int);
-void    sigint_handler(int);
-void	redraw(void);
-
 
 #ifdef NO_MEMMOVE
 void *memmove(void *, void *);

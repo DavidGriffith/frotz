@@ -52,6 +52,16 @@
 f_setup_t f_setup;
 u_setup_t u_setup;
 
+static int getconfig(char *);
+static int geterrmode(char *);
+static int getcolor(char *);
+static int getbool(char *);
+
+static void sigwinch_handler(int);
+static void sigint_handler(int);
+static void redraw(void);
+
+
 #define INFORMATION "\
 An interpreter for all Infocom and other Z-Machine games.\n\
 Complies with standard 1.0 of Graham Nelson's specification.\n\
@@ -716,7 +726,7 @@ FILE *pathopen(const char *name, const char *p, const char *mode, char *fullname
  * compile targets to have those two tools installed.
  *
  */
-int getconfig(char *configfile)
+static int getconfig(char *configfile)
 {
 	FILE	*fp;
 
@@ -865,7 +875,7 @@ int getconfig(char *configfile)
  * Otherwise return FALSE.
  *
  */
-int getbool(char *value)
+static int getbool(char *value)
 {
 	int num;
 
@@ -893,7 +903,7 @@ int getbool(char *value)
  * corresponding to the color macros defined in frotz.h.
  *
  */
-int getcolor(char *value)
+static int getcolor(char *value)
 {
 	int num;
 
@@ -939,7 +949,7 @@ int getcolor(char *value)
  * defined in ux_frotz.h related to the error reporting mode.
  *
  */
-int geterrmode(char *value)
+static int geterrmode(char *value)
 {
 	int num;
 
@@ -968,7 +978,7 @@ int geterrmode(char *value)
  *
  */
 
-void sigwinch_handler(int sig)
+static void sigwinch_handler(int sig)
 {
 /*
 There are some significant problems involved in getting resizes to work
@@ -986,7 +996,7 @@ does nothing.
  * is not done.
  *
  */
-void sigint_handler(int dummy)
+static void sigint_handler(int dummy)
 {
     signal(SIGINT, sigint_handler);
 

@@ -83,7 +83,7 @@ void os_process_arguments(int argc, char *argv[])
 	case 'h': user_screen_height = atoi(zoptarg); break;
 	  case 'i': f_setup.ignore_errors = 1; break;
 	  case 'I': f_setup.interpreter_number = atoi(zoptarg); break;
-	  case 'm': do_more_prompts = FALSE;
+	  case 'm': do_more_prompts = FALSE; break;
 	  case 'o': f_setup.object_movement = 1; break;
 	  case 'O': f_setup.object_locating = 1; break;
 	  case 'P': f_setup.piracy = 1; break;

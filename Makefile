@@ -189,8 +189,6 @@ OPT_DEFS = -DCONFIG_DIR="\"$(CONFIG_DIR)\"" $(CURSES_DEF) \
 CURSES_DEFS = $(OPT_DEFS) $(COLOR_DEFS) $(SOUND_DEFS) $(SOUNDCARD) \
 	$(MEMMOVE_DEF)
 
-FLAGS = $(OPTS) $(CURSES_DEFS) $(INCL)
-
 
 $(NAME): $(NAME)-curses
 curses:  $(NAME)-curses
@@ -223,10 +221,10 @@ $(DUMB_OBJECT): %.o: %.c
 	$(CC) $(OPTS) -o $@ -c $<
 
 $(CURSES_OBJECT): %.o: %.c
-	$(CC) $(OPTS) $(CURSES_DEFS) -o $@ -c $<
+	$(CC) $(OPTS) $(CURSES_DEFS) $(INCL) -o $@ -c $<
 
 $(SDL_OBJECT): %.o: %.c
-	$(CC) $(OPTS) $(SDL_DEFS) -o $@ -c $<
+	$(CC) $(OPTS) $(SDL_DEFS) $(INCL) -o $@ -c $<
 
 
 # If you're going to make this target manually, you'd better know which

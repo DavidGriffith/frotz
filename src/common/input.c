@@ -27,6 +27,8 @@ extern zchar stream_read_input (int, zchar *, zword, zword, bool, bool);
 
 extern void tokenise_line (zword, zword, zword, bool);
 
+static bool truncate_question_mark(void);
+
 /*
  * is_terminator
  *
@@ -233,12 +235,16 @@ void z_read (void)
     for (i = 0; buffer[i] != 0; i++) {
 
 	if (key == ZC_RETURN) {
-
 	    if (buffer[i] >= 'A' && buffer[i] <= 'Z')
 		buffer[i] += 'a' - 'A';
 	    if (buffer[i] >= 0xc0 && buffer[i] <= 0xde && buffer[i] != 0xd7)
 		buffer[i] += 0x20;
 
+	}
+
+	if (truncate_question_mark()) {
+	    if (buffer[i] == '?')
+		buffer[i] = ' ';
 	}
 
 	storeb ((zword) (zargs[0] + ((h_version <= V4) ? 1 : 2) + i), translate_to_zscii (buffer[i]));
@@ -330,3 +336,43 @@ void z_read_mouse (void)
     storew ((zword) (zargs[0] + 6), 0);		/* menu selection */
 
 }/* z_read_mouse */
+
+/*
+ * truncate_question_mark
+ *
+ * check if this game is one that expects theinterpreter to truncate a
+ * trailing question mark from the input buffer.
+ *
+ * For some games, Infocom modified the interpreter to truncate trailing
+ * question marks.  Presumably this was to make it easier to deal with
+ * questions asked of the narrator or interpreter, such as "WHAT IS A
+ * GRUE?".  This is a deviation from the Z-Machine Standard (written
+ * after Infocom's demise).  Some interpreters written later
+ * incorrectly truncate aswell.  In the interest of making sure the
+ * original Infocom games play exactly as they did with Infocom's own
+ * interpreters, this function checks for those games that expect the
+ * trailing question mark to be truncated.
+ *
+ */
+static bool truncate_question_mark(void)
+{
+	if (story_id == ZORK1) return TRUE;
+	if (story_id == ZORK2) return TRUE;
+	if (story_id == ZORK3) return TRUE;
+	if (story_id == MINIZORK) return TRUE;
+	if (story_id == SAMPLER1) return TRUE;
+	if (story_id == SAMPLER2) return TRUE;
+	if (story_id == ENCHANTER) return TRUE;
+	if (story_id == SORCERER) return TRUE;
+	if (story_id == SPELLBREAKER) return TRUE;
+	if (story_id == PLANETFALL) return TRUE;
+	if (story_id == STATIONFALL) return TRUE;
+	if (story_id == BALLYHOO) return TRUE;
+	if (story_id == BORDER_ZONE) return TRUE;
+	if (story_id == AMFV) return TRUE;
+	if (story_id == HHGG) return TRUE;
+	if (story_id == LGOP) return TRUE;
+	if (story_id == SUSPECT) return TRUE;
+
+	return FALSE;
+}

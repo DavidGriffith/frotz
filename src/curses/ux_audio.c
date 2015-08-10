@@ -587,7 +587,7 @@ static void *playmod(EFFECT *raw_effect)
     settings.mResamplingMode = MODPLUG_RESAMPLE_FIR; /* RESAMP */
     settings.mChannels = 2;
     settings.mBits = 16;
-    settings.mFrequency = 44100;
+    settings.mFrequency = SAMPLERATE;
     settings.mStereoSeparation = 128;
     settings.mMaxMixChannels = 256;
 
@@ -618,9 +618,9 @@ static void *playmod(EFFECT *raw_effect)
 	if (!music_playing) {
 	    break;
 	}
-	musicsamples = ModPlug_Read(mod, shortbuffer, BUFFSIZE);
-	if (musicsamples == 0) break;
+	musicsamples = ModPlug_Read(mod, shortbuffer, BUFFSIZE) / 2;
 	pcm16tofloat(musicbuffer, shortbuffer, musicsamples);
+	if (musicsamples == 0) break;
 	pthread_mutex_unlock(&mutex);
 	sem_post(&audio_full);
     }

@@ -295,6 +295,8 @@ static void *mixer(void *arg)
     ao_device *device;
     ao_sample_format format;
 
+    int i;
+
     ao_initialize();
     default_driver = ao_default_driver_id();
 
@@ -324,18 +326,29 @@ static void *mixer(void *arg)
 	    }
 	}
 
-	if (bleep_playing) {
+	if (bleep_playing && !music_playing) {
 	    floattopcm16(shortbuffer, bleepbuffer, bleepsamples);
             ao_play(device, (char *) shortbuffer, bleepsamples * sizeof(short));
-	    memset(shortbuffer, 0, BUFFSIZE * sizeof(short) * 2);
-	    memset(bleepbuffer, 0, BUFFSIZE * sizeof(float) * 2);
+//	    memset(shortbuffer, 0, BUFFSIZE * sizeof(short) * 2);
+//	    memset(bleepbuffer, 0, BUFFSIZE * sizeof(float) * 2);
 	}
 
-	if (music_playing) {
+	if (music_playing && !bleep_playing) {
 	    floattopcm16(shortbuffer, musicbuffer, musicsamples);
             ao_play(device, (char *) shortbuffer, musicsamples * sizeof(short));
-	    memset(shortbuffer, 0, BUFFSIZE * sizeof(short) * 2);
-	    memset(musicbuffer, 0, BUFFSIZE * sizeof(float) * 2);
+//	    memset(shortbuffer, 0, BUFFSIZE * sizeof(short) * 2);
+//	    memset(musicbuffer, 0, BUFFSIZE * sizeof(float) * 2);
+	}
+
+	if (music_playing && bleep_playing) {
+	    for (i = 0; i == BUFFSIZE; i++) {
+		bleepbuffer[i] += musicbuffer[i];
+	    }
+	    floattopcm16(shortbuffer, bleepbuffer, MAX(musicsamples, bleepsamples));
+	    ao_play(device, (char *) shortbuffer, MAX(musicsamples, bleepsamples) * sizeof(short));
+//	    memset(shortbuffer, 0, BUFFSIZE * sizeof(short) * 2);
+//	    memset(musicbuffer, 0, BUFFSIZE * sizeof(float) * 2);
+//	    memset(bleepbuffer, 0, BUFFSIZE * sizeof(float) * 2);
 	}
 
 	if (!bleep_playing && !music_playing) {
@@ -465,6 +478,7 @@ void *playaiff(EFFECT *raw_effect)
 
     floatbuffer = malloc(BUFFSIZE * sf_info.channels * sizeof(float));
     floatbuffer2 = malloc(BUFFSIZE * 2 * sizeof(float));
+    memset(bleepbuffer, 0, BUFFSIZE * sizeof(float) * 2);
 
     /* Set up for conversion */
     if ((src_state = src_new(DEFAULT_CONVERTER, sf_info.channels, &error)) == NULL) {
@@ -539,6 +553,8 @@ void *playaiff(EFFECT *raw_effect)
      */
 
     bleep_playing = FALSE;
+    pthread_mutex_unlock(&mutex);
+//    sem_post(&audio_empty);
 
     fseek(myeffect.fp, filestart, SEEK_SET);
     sf_close(sndfile);
@@ -615,6 +631,7 @@ static void *playmod(EFFECT *raw_effect)
     while (1) {
 	sem_wait(&audio_empty);
 	pthread_mutex_lock(&mutex);
+	memset(musicbuffer, 0, BUFFSIZE * sizeof(float) * 2);
 	if (!music_playing) {
 	    break;
 	}
@@ -626,6 +643,10 @@ static void *playmod(EFFECT *raw_effect)
     }
 
     music_playing = FALSE;
+    memset(musicbuffer, 0, BUFFSIZE * sizeof(float) * 2);
+
+    pthread_mutex_unlock(&mutex);
+    sem_post(&audio_empty);
 
     ModPlug_Unload(mod);
     free(shortbuffer);

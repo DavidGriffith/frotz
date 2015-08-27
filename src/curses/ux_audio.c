@@ -48,17 +48,25 @@
 #define MAX(x,y) ((x)>(y)) ? (x) : (y)
 #define MIN(x,y) ((x)<(y)) ? (x) : (y)
 
+enum sound_type {
+    FORM,
+    OGGV,
+    MOD
+};
+
 typedef struct {
     FILE *fp;
     bb_result_t result;
+    enum sound_type type;
     int number;
     int vol;
     int repeats;
 } EFFECT;
 
 static void *playaiff(EFFECT *);
+static void *playmusic(EFFECT *);
 static void *playmod(EFFECT *);
-static int playogg(EFFECT);
+static void *playogg(EFFECT *);
 static void floattopcm16(short *, float *, int);
 static void pcm16tofloat(float *, short *, int);
 static void stereoize(float *, float *, size_t);
@@ -69,12 +77,12 @@ static void *mixer(void *);
 
 static pthread_t	mixer_id;
 static pthread_t	playaiff_id;
-static pthread_t	playmod_id;
+static pthread_t	playmusic_id;
 static pthread_mutex_t	mutex;
 static sem_t		audio_full;
 static sem_t		audio_empty;
 static sem_t		playaiff_okay;
-static sem_t		playmod_okay;
+static sem_t		playmusic_okay;
 
 bool    bleep_playing = FALSE;
 bool	bleep_stop = FALSE;
@@ -108,7 +116,7 @@ void os_init_sound(void)
     sem_init(&audio_empty, 0, 1);
     sem_init(&audio_full, 0, 0);
     sem_init(&playaiff_okay, 0, 0);
-    sem_init(&playmod_okay, 0, 0);
+    sem_init(&playmusic_okay, 0, 0);
 
     musicbuffer = malloc(BUFFSIZE * 2 * sizeof(float));
     if (musicbuffer == NULL) {
@@ -192,7 +200,14 @@ void os_start_sample (int number, int volume, int repeats, zword eos)
 
     pthread_attr_init(&attr);
 
-    if (blorb_map->chunks[resource.chunknum].type == bb_make_id('F','O','R','M')) {
+    if (blorb_map->chunks[resource.chunknum].type == bb_make_id('F','O','R','M'))
+	myeffect.type = FORM;
+    else if (blorb_map->chunks[resource.chunknum].type == bb_make_id('M','O','D',' '))
+	myeffect.type = MOD;
+    else if (blorb_map->chunks[resource.chunknum].type == bb_make_id('O','G','G','V'))
+	myeffect.type = OGGV;
+
+    if (myeffect.type == FORM) {
 	if (bleep_playing) {
 	    bleep_playing = FALSE;
 	    pthread_join(playaiff_id, NULL);
@@ -203,19 +218,17 @@ void os_start_sample (int number, int volume, int repeats, zword eos)
 	    exit(1);
 	}
 	sem_wait(&playaiff_okay);
-    } else if (blorb_map->chunks[resource.chunknum].type == bb_make_id('M','O','D',' ')) {
+    } else if (myeffect.type == MOD || myeffect.type == OGGV) {
 	if (music_playing) {
 	    music_playing = FALSE;
-	    pthread_join(playmod_id, NULL);
+	    pthread_join(playmusic_id, NULL);
 	}
-	err = pthread_create(&playmod_id, &attr, (void *) &playmod, &myeffect);
+	err = pthread_create(&playmusic_id, &attr, (void *) &playmusic, &myeffect);
 	if (err != 0) {
-	    printf("Can't create playmod thread :[%s]", strerror(err));
+	    printf("Can't create playmusic thread :[%s]", strerror(err));
 	    exit(1);
 	}
-	sem_wait(&playmod_okay);
-    } else if (blorb_map->chunks[resource.chunknum].type == bb_make_id('O','G','G','V')) {
-	playogg(myeffect);
+	sem_wait(&playmusic_okay);
     } else {
 	/* Something else was presented as an audio chunk.  Ignore it. */
     }
@@ -237,7 +250,7 @@ void os_stop_sample (int number)
 
     if (music_playing && (number == musicnum || number == 0)) {
 	music_playing = FALSE;
-	while(pthread_kill(playmod_id, 0) == 0);
+	while(pthread_kill(playmusic_id, 0) == 0);
     }
 
     return;
@@ -359,7 +372,7 @@ static void *mixer(void *arg)
         pthread_mutex_unlock(&mutex);   /* release the mutex lock */
         sem_post(&audio_empty);         /* signal empty */
     }
-}
+} /* mixer */
 
 
 /* Convert back to shorts */
@@ -562,8 +575,32 @@ void *playaiff(EFFECT *raw_effect)
     free(floatbuffer2);
 
     pthread_exit(NULL);
-}
+} /* playaiff */
 
+
+/*
+ * playmusic
+ *
+ * To more easily make sure only one of MOD or OGGV plays at one time.
+ *
+ */
+static void *playmusic(EFFECT *raw_effect)
+{
+    EFFECT myeffect = *raw_effect;
+
+    sem_post(&playmusic_okay);
+
+    if (myeffect.type == MOD) {
+	playmod(&myeffect);
+	printf("  mod done\n\r");
+    } else if (myeffect.type == OGGV) {
+	playogg(&myeffect);
+	printf("  ogg done\n\r");
+    } else;
+
+    pthread_exit(NULL);
+
+} /* playmusic */
 
 /*
  * playmod
@@ -589,8 +626,6 @@ static void *playmod(EFFECT *raw_effect)
     long filestart;
 
     EFFECT myeffect = *raw_effect;
-
-    sem_post(&playmod_okay);
 
     musicnum = myeffect.number;
 
@@ -652,8 +687,8 @@ static void *playmod(EFFECT *raw_effect)
     free(shortbuffer);
     free(filedata);
 
-    pthread_exit(NULL);
-}
+    return;
+} /* playmod */
 
 
 /*
@@ -675,7 +710,7 @@ static char *getfiledata(FILE *fp, long *size)
     fread(data, *size, sizeof(char), fp);
     fseek(fp, offset, SEEK_SET);
     return(data);
-}
+} /* getfiledata */
 
 
 /*
@@ -691,83 +726,123 @@ static char *getfiledata(FILE *fp, long *size)
  * to load an OGG file that's embedded in a Blorb file.
  *
  */
-static int playogg(EFFECT myeffect)
+void *playogg(EFFECT *raw_effect)
 {
-    ogg_int64_t toread;
-    ogg_int64_t frames_read;
-    ogg_int64_t count;
-
-    vorbis_info *info;
-
-    OggVorbis_File vf;
-    int current_section;
-    short *buffer;
-    float *floatbuffer;
-    float *floatbuffer2;
-
-    int default_driver;
-    ao_device *device;
-    ao_sample_format format;
+    long filestart;
 
     int volcount;
     int volfactor;
 
-    ao_initialize();
-    default_driver = ao_default_driver_id();
+    float *floatbuffer;
+    float *floatbuffer2;
 
-    fseek(myeffect.fp, myeffect.result.data.startpos, SEEK_SET);
+    SNDFILE     *sndfile;
+    SF_INFO     sf_info;
 
-    memset(&format, 0, sizeof(ao_sample_format));
+    SRC_STATE	*src_state;
+    SRC_DATA	src_data;
+    int		error;
+    sf_count_t	output_count = 0;
 
-    if (ov_open_callbacks(myeffect.fp, &vf, NULL, 0, OV_CALLBACKS_NOCLOSE) < 0) {
-	exit(1);
-    }
+    EFFECT myeffect = *raw_effect;
 
-    info = ov_info(&vf, -1);
+    sf_info.format = 0;
+    musicnum = myeffect.number;
 
-    format.byte_format = AO_FMT_LITTLE;
-    format.bits = 16;
-    format.channels = info->channels;
-    format.rate = info->rate;
-
-    device = ao_open_live(default_driver, &format, NULL /* no options */);
-    if (device == NULL) {
-//        printf("Error opening sound device.\n");
-	ov_clear(&vf);
-        return 1;
-    }
+    filestart = ftell(myeffect.fp);
+    lseek(fileno(myeffect.fp), myeffect.result.data.startpos, SEEK_SET);
+    sndfile = sf_open_fd(fileno(myeffect.fp), SFM_READ, &sf_info, 0);
 
     if (myeffect.vol < 1) myeffect.vol = 1;
     if (myeffect.vol > 8) myeffect.vol = 8;
     volfactor = mypower(2, -myeffect.vol + 8);
 
-    buffer = malloc(BUFFSIZE * format.channels * sizeof(short));
-    floatbuffer = malloc(BUFFSIZE * format.channels * sizeof(float));
-    floatbuffer2 = malloc(BUFFSIZE * format.channels * sizeof(float));
+    floatbuffer = malloc(BUFFSIZE * sf_info.channels * sizeof(float));
+    floatbuffer2 = malloc(BUFFSIZE * 2 * sizeof(float));
+    memset(bleepbuffer, 0, BUFFSIZE * sizeof(float) * 2);
 
-    frames_read = 0;
-    toread = ov_pcm_total(&vf, -1) * 2 * format.channels;
-    count = 0;
+    /* Set up for conversion */
+    if ((src_state = src_new(DEFAULT_CONVERTER, sf_info.channels, &error)) == NULL) {
+	printf("Error: src_new() failed: %s.\n", src_strerror(error));
+	exit(1);
+    }
+    src_data.end_of_input = 0;
+    src_data.input_frames = 0;
+    src_data.data_in = floatbuffer;
+    src_data.src_ratio = (1.0 * SAMPLERATE) / sf_info.samplerate;
+    src_data.data_out = floatbuffer2;
+    src_data.output_frames = BUFFSIZE / sf_info.channels;
 
-    while (count < toread) {
-	frames_read = ov_read(&vf, (char *)buffer, BUFFSIZE, 0,2,1,&current_section);
-	pcm16tofloat(floatbuffer, buffer, frames_read);
-	for (volcount = 0; volcount <= frames_read / 2; volcount++) {
-	    ((float *) floatbuffer)[volcount] /= volfactor;
+    music_playing = TRUE;
+
+    while (1) {
+	/* Check if we're being told to stop. */
+	if (!bleep_playing) break;
+	sem_wait(&audio_empty);
+	pthread_mutex_lock(&mutex);
+
+	/* If floatbuffer is empty, refill it. */
+	if (src_data.input_frames == 0) {
+	    src_data.input_frames = sf_readf_float(sndfile, floatbuffer, BUFFSIZE / sf_info.channels);
+	    src_data.data_in = floatbuffer;
+	    /* Mark end of input. */
+	    if (src_data.input_frames < BUFFSIZE / sf_info.channels)
+		src_data.end_of_input = SF_TRUE;
 	}
-	floattopcm16(buffer, floatbuffer, frames_read);
 
-	ao_play(device, (char *)buffer, frames_read * sizeof(char));
-	count += frames_read;
+	/* Do the sample rate conversion. */
+	if ((error = src_process(src_state, &src_data))) {
+	    printf("Error: %s\n", src_strerror(error));
+	    exit(1);
+	}
+
+	musicsamples = src_data.output_frames_gen * 2;
+
+	/* Stereoize monaural sound-effects. */
+	if (sf_info.channels == 1) {
+	    /* Remember that each monaural frame contains just one sample. */
+	    stereoize(musicbuffer, floatbuffer2, src_data.output_frames_gen);
+	} else {
+	    /* It's already stereo.  Just copy the buffer. */
+	    memcpy(musicbuffer, floatbuffer2, sizeof(float) * src_data.output_frames_gen * 2);
+	}
+
+	/* Adjust volume. */
+	for (volcount = 0; volcount <= musicsamples; volcount++)
+	    musicbuffer[volcount] /= volfactor;
+
+	/* If that's all, terminate and signal that we're done. */
+	if (src_data.end_of_input && src_data.output_frames_gen == 0) {
+	    pthread_mutex_unlock(&mutex);
+	    sem_post(&audio_full);
+	    break;
+	}
+
+	/* Get ready for the next chunk. */
+        output_count += src_data.output_frames_gen;
+        src_data.data_in += src_data.input_frames_used * sf_info.channels;
+        src_data.input_frames -= src_data.input_frames_used;
+
+	/* By this time, the buffer is full.  Signal the mixer to play it. */
+	pthread_mutex_unlock(&mutex);
+	sem_post(&audio_full);
     }
 
-    ao_close(device);
-    ao_shutdown();
-    ov_clear(&vf);
+    /* The two ways to exit the above loop are to process all the
+     * samples in the AIFF file or else get told to stop early.
+     * Whichever, we need to clean up and terminate this thread.
+     */
 
-    free(buffer);
+    music_playing = FALSE;
+    pthread_mutex_unlock(&mutex);
+//    sem_post(&audio_empty);
 
-    return(2);
-}
+    fseek(myeffect.fp, filestart, SEEK_SET);
+    sf_close(sndfile);
+    free(floatbuffer);
+    free(floatbuffer2);
+
+    pthread_exit(NULL);
+} /* playmod */
 
 #endif /* NO_SOUND */

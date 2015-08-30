@@ -292,7 +292,7 @@ void os_process_arguments (int argc, char *argv[])
     f_setup.story_name = strdup(basename(argv[optind]));
 
     /* Now strip off the extension. */
-    p = rindex(f_setup.story_name, '.');
+    p = strrchr(f_setup.story_name, '.');
     if ((p != NULL) &&
         ((strcmp(p,EXT_BLORB2) == 0) ||
          (strcmp(p,EXT_BLORB3) == 0) ||

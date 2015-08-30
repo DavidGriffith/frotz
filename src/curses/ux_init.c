@@ -1087,3 +1087,23 @@ int ux_init_blorb(void)
 	return blorb_err;
     }
 }
+
+#ifdef NO_STRRCHR
+/*
+ * This is for operating systems that lack strrchr(3).
+ *
+ */
+char *strrchr(const char *s, int c)
+{
+    const char *save;
+
+    if (c == 0) return (char *)s + strlen(s);
+    save = 0;
+    while (*s) {
+	if (*s == c)
+	    save = s;
+	s++;
+    }
+    return (char *)save;
+}
+#endif

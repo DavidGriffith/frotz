@@ -95,6 +95,10 @@ void unix_do_scrollback(void);		/* ux_screen.c */
 
 FILE	*pathopen(const char *, const char *, const char *, char *);
 
+#ifdef NO_STRRCHR
+char *strrchr(const char *, int);
+#endif
+
 #ifdef NO_MEMMOVE
 void *memmove(void *, void *);
 #endif

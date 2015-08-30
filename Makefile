@@ -83,6 +83,12 @@ CURSES = -lcurses
 #
 #CURSES_DEF = -DUSE_NCURSES_H
 
+# Uncomment this if youy're compiling Unix Frotz on a machine that lacks 
+# the strrchr() libc library call.  If you don't know what this means,
+# leave it alone.
+#
+#STRRCHR_DEF = -DNO_STRRCHR
+
 # Uncomment this if you're compiling Unix Frotz on a machine that lacks
 # the memmove(3) system call.  If you don't know what this means, leave it
 # alone.
@@ -187,7 +193,7 @@ OPT_DEFS = -DCONFIG_DIR="\"$(CONFIG_DIR)\"" $(CURSES_DEF) \
 	-DVERSION="\"$(VERSION)\"" -DSOUND_DEV="\"$(SOUND_DEV)\""
 
 CURSES_DEFS = $(OPT_DEFS) $(COLOR_DEFS) $(SOUND_DEFS) $(SOUNDCARD) \
-	$(MEMMOVE_DEF)
+	$(MEMMOVE_DEF) $(STRRCHR_DEF)
 
 
 $(NAME): $(NAME)-curses

@@ -216,7 +216,7 @@ void os_start_sample (int number, int volume, int repeats, zword eos)
 	err = pthread_create(&playaiff_id, &attr, (void *) &playaiff, &myeffect);
 	if (err != 0) {
 	    printf("Can't create playaiff thread :[%s]", strerror(err));
-	    exit(1);
+	    return;
 	}
 	sem_wait(&playaiff_okay);
     } else if (myeffect.type == MOD || myeffect.type == OGGV) {
@@ -227,7 +227,7 @@ void os_start_sample (int number, int volume, int repeats, zword eos)
 	err = pthread_create(&playmusic_id, &attr, (void *) &playmusic, &myeffect);
 	if (err != 0) {
 	    printf("Can't create playmusic thread :[%s]", strerror(err));
-	    exit(1);
+	    return;
 	}
 	sem_wait(&playmusic_okay);
     } else {
@@ -649,8 +649,8 @@ static void *playmod(EFFECT *raw_effect)
     mod = ModPlug_Load(filedata, size);
     fseek(myeffect.fp, filestart, SEEK_SET);
     if (!mod) {
-	printf("Unable to load module\n");
-	exit(1);
+	printf("Unable to load MOD chunk.\n\r");
+	return;
     }
 
     if (myeffect.vol < 1) myeffect.vol = 1;
@@ -749,13 +749,13 @@ static void *playogg(EFFECT *raw_effect)
     fseek(myeffect.fp, myeffect.result.data.startpos, SEEK_SET);
 
     if (ov_open_callbacks(myeffect.fp, &vf, NULL, 0, OV_CALLBACKS_NOCLOSE) < 0) {
-	printf("Unable to open OGGV stream.\n\r");
+	printf("Unable to load OGGV chunk.\n\r");
 	return;
     }
 
     info = ov_info(&vf, -1);
     if (info == NULL) {
-	printf("Unable to get info on OGGV stream.\n\r");
+	printf("Unable to get info on OGGV chunk.\n\r");
 	return;
     }
 

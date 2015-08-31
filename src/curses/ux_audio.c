@@ -67,6 +67,7 @@ static void *playaiff(EFFECT *);
 static void *playmusic(EFFECT *);
 static void *playmod(EFFECT *);
 static void *playogg(EFFECT *);
+
 static void floattopcm16(short *, float *, int);
 static void pcm16tofloat(float *, short *, int);
 static void stereoize(float *, float *, size_t);
@@ -590,17 +591,14 @@ static void *playmusic(EFFECT *raw_effect)
 
     sem_post(&playmusic_okay);
 
-    if (myeffect.type == MOD) {
-	playmod(&myeffect);
-	printf("  mod done\n\r");
-    } else if (myeffect.type == OGGV) {
-	playogg(&myeffect);
-	printf("  ogg done\n\r");
-    } else;
+    if (myeffect.type == MOD)		playmod(&myeffect);
+    else if (myeffect.type == OGGV)	playogg(&myeffect);
+    else;
 
     pthread_exit(NULL);
 
 } /* playmusic */
+
 
 /*
  * playmod
@@ -721,128 +719,90 @@ static char *getfiledata(FILE *fp, long *size)
  * sure that an OGG chunk is to be played.  Volume and repeats are also
  * handled here.
  *
- * This function invoked libvorbisfile directly rather than going
- * through libsndfile.  The reason for this is that libsndfile refuses
- * to load an OGG file that's embedded in a Blorb file.
+ * Libsndfile is capable of reading OGG files, but not if the file is
+ * embedded in another file.  That's why we're using libvorbisfile
+ * directly instead of going through libsndfile.  Erikd, main developer
+ * of libsndfile is working on a fix.
  *
  */
-void *playogg(EFFECT *raw_effect)
+static void *playogg(EFFECT *raw_effect)
 {
-    long filestart;
+    ogg_int64_t toread;
+    ogg_int64_t frames_read;
+    ogg_int64_t count;
 
-    int volcount;
-    int volfactor;
+    vorbis_info *info;
 
+    OggVorbis_File vf;
+
+    int current_section;
+    short *shortbuffer;
     float *floatbuffer;
     float *floatbuffer2;
 
-    SNDFILE     *sndfile;
-    SF_INFO     sf_info;
-
-    SRC_STATE	*src_state;
-    SRC_DATA	src_data;
-    int		error;
-    sf_count_t	output_count = 0;
+    long filestart;
+    int volcount;
+    int volfactor;
 
     EFFECT myeffect = *raw_effect;
 
-    sf_info.format = 0;
-    musicnum = myeffect.number;
+    fseek(myeffect.fp, myeffect.result.data.startpos, SEEK_SET);
 
-    filestart = ftell(myeffect.fp);
-    lseek(fileno(myeffect.fp), myeffect.result.data.startpos, SEEK_SET);
-    sndfile = sf_open_fd(fileno(myeffect.fp), SFM_READ, &sf_info, 0);
+    if (ov_open_callbacks(myeffect.fp, &vf, NULL, 0, OV_CALLBACKS_NOCLOSE) < 0) {
+	printf("Unable to open OGGV stream.\n\r");
+	return;
+    }
+
+    info = ov_info(&vf, -1);
+    if (info == NULL) {
+	printf("Unable to get info on OGGV stream.\n\r");
+	return;
+    }
 
     if (myeffect.vol < 1) myeffect.vol = 1;
     if (myeffect.vol > 8) myeffect.vol = 8;
     volfactor = mypower(2, -myeffect.vol + 8);
 
-    floatbuffer = malloc(BUFFSIZE * sf_info.channels * sizeof(float));
-    floatbuffer2 = malloc(BUFFSIZE * 2 * sizeof(float));
-    memset(bleepbuffer, 0, BUFFSIZE * sizeof(float) * 2);
+    shortbuffer = malloc(BUFFSIZE * info->channels * sizeof(short));
+    floatbuffer = malloc(BUFFSIZE * info->channels * sizeof(float));
 
-    /* Set up for conversion */
-    if ((src_state = src_new(DEFAULT_CONVERTER, sf_info.channels, &error)) == NULL) {
-	printf("Error: src_new() failed: %s.\n", src_strerror(error));
-	exit(1);
-    }
-    src_data.end_of_input = 0;
-    src_data.input_frames = 0;
-    src_data.data_in = floatbuffer;
-    src_data.src_ratio = (1.0 * SAMPLERATE) / sf_info.samplerate;
-    src_data.data_out = floatbuffer2;
-    src_data.output_frames = BUFFSIZE / sf_info.channels;
+    frames_read = 0;
+    toread = ov_pcm_total(&vf, -1) * 2 * info->channels;
+    count = 0;
 
     music_playing = TRUE;
 
-    while (1) {
-	/* Check if we're being told to stop. */
-	if (!bleep_playing) break;
+    while (count < toread) {
 	sem_wait(&audio_empty);
 	pthread_mutex_lock(&mutex);
+	memset(musicbuffer, 0, BUFFSIZE * sizeof(float) * 2);
+	if (!music_playing) break;
 
-	/* If floatbuffer is empty, refill it. */
-	if (src_data.input_frames == 0) {
-	    src_data.input_frames = sf_readf_float(sndfile, floatbuffer, BUFFSIZE / sf_info.channels);
-	    src_data.data_in = floatbuffer;
-	    /* Mark end of input. */
-	    if (src_data.input_frames < BUFFSIZE / sf_info.channels)
-		src_data.end_of_input = SF_TRUE;
-	}
+        frames_read = ov_read(&vf, (char *)shortbuffer, BUFFSIZE, 0,2,1,&current_section);
+        pcm16tofloat(floatbuffer, shortbuffer, frames_read);
+        for (volcount = 0; volcount <= frames_read / 2; volcount++) {
+            ((float *) floatbuffer)[volcount] /= volfactor;
+        }
 
-	/* Do the sample rate conversion. */
-	if ((error = src_process(src_state, &src_data))) {
-	    printf("Error: %s\n", src_strerror(error));
-	    exit(1);
-	}
+	musicsamples = frames_read;
+	memcpy(musicbuffer, floatbuffer, musicsamples);
+        count += frames_read;
 
-	musicsamples = src_data.output_frames_gen * 2;
-
-	/* Stereoize monaural sound-effects. */
-	if (sf_info.channels == 1) {
-	    /* Remember that each monaural frame contains just one sample. */
-	    stereoize(musicbuffer, floatbuffer2, src_data.output_frames_gen);
-	} else {
-	    /* It's already stereo.  Just copy the buffer. */
-	    memcpy(musicbuffer, floatbuffer2, sizeof(float) * src_data.output_frames_gen * 2);
-	}
-
-	/* Adjust volume. */
-	for (volcount = 0; volcount <= musicsamples; volcount++)
-	    musicbuffer[volcount] /= volfactor;
-
-	/* If that's all, terminate and signal that we're done. */
-	if (src_data.end_of_input && src_data.output_frames_gen == 0) {
-	    pthread_mutex_unlock(&mutex);
-	    sem_post(&audio_full);
-	    break;
-	}
-
-	/* Get ready for the next chunk. */
-        output_count += src_data.output_frames_gen;
-        src_data.data_in += src_data.input_frames_used * sf_info.channels;
-        src_data.input_frames -= src_data.input_frames_used;
-
-	/* By this time, the buffer is full.  Signal the mixer to play it. */
 	pthread_mutex_unlock(&mutex);
 	sem_post(&audio_full);
     }
-
-    /* The two ways to exit the above loop are to process all the
-     * samples in the AIFF file or else get told to stop early.
-     * Whichever, we need to clean up and terminate this thread.
-     */
-
     music_playing = FALSE;
+    memset(musicbuffer, 0, BUFFSIZE * sizeof(float) * 2);
+
     pthread_mutex_unlock(&mutex);
-//    sem_post(&audio_empty);
+    sem_post(&audio_empty);
 
-    fseek(myeffect.fp, filestart, SEEK_SET);
-    sf_close(sndfile);
+    ov_clear(&vf);
+
+    free(shortbuffer);
     free(floatbuffer);
-    free(floatbuffer2);
 
-    pthread_exit(NULL);
-} /* playmod */
+    return;
+} /* playogg */
 
 #endif /* NO_SOUND */

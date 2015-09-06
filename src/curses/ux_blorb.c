@@ -107,7 +107,6 @@ bb_err_t ux_blorb_init(char *filename)
 	    *p = '\0';
             strncat(mystring, EXT_BLORBLONG, len2 * sizeof(char));
 	    blorb_fp = fopen(mystring, "rb");
-	    printf("Got a blorb_fp\n");
 	}
 
 	if (blorb_fp == NULL || !isblorb(fp))	/* No matching blorbs found. */

@@ -544,7 +544,7 @@ FILE *os_load_story(void)
 
     switch (ux_blorb_init(f_setup.story_file)) {
 	case bb_err_NoBlorb:
-	  printf("No blorb file found.\n\n");
+//	  printf("No blorb file found.\n\n");
 	  break;
         case bb_err_Format:
 	  printf("Blorb file loaded, but unable to build map.\n\n");

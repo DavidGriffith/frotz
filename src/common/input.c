@@ -242,10 +242,7 @@ void z_read (void)
 
 	}
 
-	if (truncate_question_mark()) {
-	    if (buffer[i] == '?')
-		buffer[i] = ' ';
-	}
+	if (truncate_question_mark() && buffer[i] == '?') buffer[i] = ' ';
 
 	storeb ((zword) (zargs[0] + ((h_version <= V4) ? 1 : 2) + i), translate_to_zscii (buffer[i]));
 
@@ -340,18 +337,18 @@ void z_read_mouse (void)
 /*
  * truncate_question_mark
  *
- * check if this game is one that expects theinterpreter to truncate a
+ * check if this game is one that expects the interpreter to truncate a
  * trailing question mark from the input buffer.
  *
  * For some games, Infocom modified the interpreter to truncate trailing
  * question marks.  Presumably this was to make it easier to deal with
  * questions asked of the narrator or interpreter, such as "WHAT IS A
  * GRUE?".  This is a deviation from the Z-Machine Standard (written
- * after Infocom's demise).  Some interpreters written later
- * incorrectly truncate aswell.  In the interest of making sure the
- * original Infocom games play exactly as they did with Infocom's own
- * interpreters, this function checks for those games that expect the
- * trailing question mark to be truncated.
+ * after Infocom's demise).  Some interpreters written later incorrectly
+ * always truncate trailing punctuation.  In the interest of making sure
+ * the original Infocom games play exactly as they did with Infocom's
+ * own interpreters, this function checks for those games that expect
+ * the trailing question mark to be truncated.
  *
  */
 static bool truncate_question_mark(void)

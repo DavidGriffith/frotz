@@ -83,7 +83,7 @@ CURSES = -lcurses
 #
 #CURSES_DEF = -DUSE_NCURSES_H
 
-# Uncomment this if youy're compiling Unix Frotz on a machine that lacks 
+# Uncomment this if you're compiling Unix Frotz on a machine that lacks 
 # the strrchr() libc library call.  If you don't know what this means,
 # leave it alone.
 #

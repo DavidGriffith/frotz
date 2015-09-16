@@ -343,15 +343,11 @@ static void *mixer(void *arg)
 	if (bleep_playing && !music_playing) {
 	    floattopcm16(shortbuffer, bleepbuffer, bleepsamples);
             ao_play(device, (char *) shortbuffer, bleepsamples * sizeof(short));
-//	    memset(shortbuffer, 0, BUFFSIZE * sizeof(short) * 2);
-//	    memset(bleepbuffer, 0, BUFFSIZE * sizeof(float) * 2);
 	}
 
 	if (music_playing && !bleep_playing) {
 	    floattopcm16(shortbuffer, musicbuffer, musicsamples);
             ao_play(device, (char *) shortbuffer, musicsamples * sizeof(short));
-//	    memset(shortbuffer, 0, BUFFSIZE * sizeof(short) * 2);
-//	    memset(musicbuffer, 0, BUFFSIZE * sizeof(float) * 2);
 	}
 
 	if (music_playing && bleep_playing) {
@@ -360,9 +356,6 @@ static void *mixer(void *arg)
 	    }
 	    floattopcm16(shortbuffer, bleepbuffer, MAX(musicsamples, bleepsamples));
 	    ao_play(device, (char *) shortbuffer, MAX(musicsamples, bleepsamples) * sizeof(short));
-//	    memset(shortbuffer, 0, BUFFSIZE * sizeof(short) * 2);
-//	    memset(musicbuffer, 0, BUFFSIZE * sizeof(float) * 2);
-//	    memset(bleepbuffer, 0, BUFFSIZE * sizeof(float) * 2);
 	}
 
 	if (!bleep_playing && !music_playing) {

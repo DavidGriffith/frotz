@@ -444,10 +444,9 @@ static int mypower(int base, int exp) {
  * sure that an AIFF chunk is to be played.  Volume and repeats are also
  * handled here.
  *
- * This function should be able to play OGG chunks, but for some strange
- * reason, libsndfile refuses to load them.  Libsndfile is capable of
- * loading and playing OGGs when they're naked file.  I don't see what
- * the big problem is.
+ * This function should be able to play OGG chunks, but because of a bug
+ * or oversight in Libsndfile, that library is incapable of playing OGG 
+ * data which are embedded in a larger file.
  *
  */
 void *playaiff(EFFECT *raw_effect)
@@ -730,8 +729,6 @@ static void *playogg(EFFECT *raw_effect)
 
     int current_section;
     short *shortbuffer;
-    float *floatbuffer;
-    float *floatbuffer2;
 
     long filestart;
     int volcount;
@@ -757,7 +754,6 @@ static void *playogg(EFFECT *raw_effect)
     volfactor = mypower(2, -myeffect.vol + 8);
 
     shortbuffer = malloc(BUFFSIZE * info->channels * sizeof(short));
-    floatbuffer = malloc(BUFFSIZE * info->channels * sizeof(float));
 
     frames_read = 0;
     toread = ov_pcm_total(&vf, -1) * 2 * info->channels;
@@ -772,20 +768,19 @@ static void *playogg(EFFECT *raw_effect)
 	if (!music_playing) break;
 
         frames_read = ov_read(&vf, (char *)shortbuffer, BUFFSIZE, 0,2,1,&current_section);
-        pcm16tofloat(floatbuffer, shortbuffer, frames_read);
+
+        pcm16tofloat(musicbuffer, shortbuffer, frames_read);
         for (volcount = 0; volcount <= frames_read / 2; volcount++) {
-            ((float *) floatbuffer)[volcount] /= volfactor;
+            ((float *) musicbuffer)[volcount] /= volfactor;
         }
 
-	musicsamples = frames_read;
-	memcpy(musicbuffer, floatbuffer, musicsamples);
+	musicsamples = frames_read / 2;
         count += frames_read;
 
 	pthread_mutex_unlock(&mutex);
 	sem_post(&audio_full);
     }
     music_playing = FALSE;
-    memset(musicbuffer, 0, BUFFSIZE * sizeof(float) * 2);
 
     pthread_mutex_unlock(&mutex);
     sem_post(&audio_empty);
@@ -793,7 +788,6 @@ static void *playogg(EFFECT *raw_effect)
     ov_clear(&vf);
 
     free(shortbuffer);
-    free(floatbuffer);
 
     return;
 } /* playogg */

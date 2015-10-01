@@ -1,5 +1,5 @@
 .\" -*- nroff -*-
-.TH FROTZ 6 2.45
+.TH DFROTZ 6 2.45
 .SH NAME
 dfrotz \- interpreter for Infocom and other Z-Machine games (dumb interface)
 
@@ -22,8 +22,8 @@ outlines of V6 graphics with the picture number in the bottom-right
 corner.
 
 .P
-This manpage is for Frotz with the dumb interface.  No sound-effect or
-colors are supported.
+This manpage is for Frotz with the dumb interface.  Dumb Frotz 
+does not support sound-effects, graphics, or colors.
 
 
 .SH OPTIONS
@@ -39,9 +39,10 @@ value, the test and the result will be reported.
 
 .TP
 .B \-h N
-Manually sets the screen height.  Though most curses libraries are intelligent
-enough to determine the current width from the terminal, it may sometimes
-be necessary to use this option to override the default.
+Screen height.  Every N lines, a MORE prompt will be printed.  Use of 
+the
+.B \-m
+option renders this option moot.
 
 .TP
 .B \-i
@@ -53,6 +54,11 @@ there that cause fatal errors because the authors were careless and used
 an interpreter that didn't properly check for errors.  This option is
 intended to get around such bugs, but be warned that Strange Things may
 happen if fatal errors are not caught.
+
+.TP
+.B \-m
+Turn off MORE prompts.  This can be desirable when using a printing 
+terminal.
 
 .TP
 .B \-o
@@ -139,7 +145,7 @@ Default is 1 (report first instance of an error).
 
 
 .SH CONFIGURATION
-Unline it's curses-using sibling,
+Unlike it's curses-using sibling,
 .B dfrotz
 does not use configuration files.  All configuration is done on the
 command line or while
@@ -295,38 +301,33 @@ A blank line emitted as part of span compression.
 (blank) Any other output line.
 
 
-
 .SH ENVIRONMENT
-Unline it's curses-using sibling,
+Unlike it's curses-using sibling,
 .B dfrotz
 does not search any path for game files.
 
 
+.SH FURTHER INFORMATION
 .PP
-Latest information on Unix Frotz is here:
+A
+.BR git(1)
+repository of all versions of Unix Frotz back to 2.32 is available 
+for public perusal here:
 .br
-http://www.cs.csubak.edu/~dgriffi/proj/frotz/
-
+https://github.com/DavidGriffith/frotz/. 
 .PP
-The latest release of Unix Frotz is here:
+The bleeding edge of Frotz development may be followed there.  A wiki 
+summarising Frotz is also there at this URL:
 .br
-ftp://ftp.ifarchive.org/if-archive/infocom/interpreters/frotz/
-
+https://github.com/DavidGriffith/frotz/wiki/
 .PP
-See this website for a list of mirrors:
+Source tarballs are available at the IF Archive or any of its many 
+mirrors:
 .br
-http://www.ifarchive.org
-
+http://www.ifarchive.org/
 .PP
-See this website for more information on Infocom past, present, and
-future; and where to get new Z-Machine games and the old ones by Infocom:
-.br
-http://www.csd.uwo.ca/Infocom/
-
-.PP
-Frotz for other platforms (very old and out of date):
-.br
-http://www.geocities.com/SiliconValley/Heights/3222/frotz.html
+Most distributions of Linux and BSD include Frotz in their package 
+repositories.
 
 
 .SH CAVEATS
@@ -345,26 +346,34 @@ This manpage is not intended to tell users HOW to play interactive
 fiction.  Refer to the file HOW_TO_PLAY included in the Unix Frotz
 documentation or visit one of the following sites:
 .br
-http://www.csd.uwo.ca/Infocom/faq.html
+http://www.microheaven.com/ifguide/
 .br
-http://www.cs.csubak.edu/~dgriffi/proj/frotz/HOW_TO_PLAY
+http://www.brasslantern.org/beginners/
 .br
-http://www.ifarchive.org
+http://www.musicwords.net/if/how_to_play.htm
+.br
+http://ifarchive.org/
+
+.PP
+If you prefer a PDF file of how to play, here is one:
+.br
+http://inform-fiction.org/I7Downloads/Examples/dm/IntroductionToIF.pdf
+
 
 .SH BUGS
-This program has no bugs.  no bugs.  no bugs.  no *WHAP* thank you.
-.br
-Well, if you insist, you can look at
-http://www.cs.csubak.edu/~dgriffi/proj/frotz/BUGS or see the BUGS file
-in the Unix Frotz tarball
+This program has no bugs.  no bugs.  no bugs.  no *WHAP* thank you. If 
+you find one, please report it to the Github site referenced above in
+.B
+FURTHER INFORMATION.
+
 
 .SH AUTHORS
 .B Frotz
-was written by Stefan Jokisch in 1995-7.
+was written by Stefan Jokisch for MSDOS in 1995-7.
 .br
 The Unix port was done by Galen Hazelwood.
 .br
-Currently the Unix port is maintained by David Griffith.
+The Unix port is currently maintained by David Griffith <dave@661.org>.
 
 
 .SH "SEE ALSO"

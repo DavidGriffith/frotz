@@ -21,9 +21,6 @@ except for version 6.  Version 6 is semi-supported by displaying the
 outlines of V6 graphics with the picture number in the bottom-right
 corner.
 
-.P
-This port supports old-style sound effects through the OSS sound driver.
-
 
 .SH OPTIONS
 .TP
@@ -170,7 +167,7 @@ except in special circumstances.
 .TP
 .B \-x
 Expand the abbreviations "g", "x", and "z" to "again", "examine", and
-"wait".  This switch is for use iwth old Infocom games that lack these
+"wait".  This switch is for use with old Infocom games that lack these
 common abbreviations which were introduced in later games.  Use it with
 caution: A few games might use "g", "x" or "z" for different purposes.
 
@@ -193,9 +190,10 @@ Default is 1 (report first instance of an error).
 On startup,
 .B frotz
 will first check the system's frotz.conf then $HOME/.frotzrc for
-configuration information.  The configuration file uses a simple
+configuration information.  The configuration file uses a simple syntax 
+of
 .br
-<variable> <whitespace> <value> syntax.
+<variable> <whitespace> <value>
 
 .PP
 Color names may be any of the following:
@@ -410,32 +408,28 @@ that path for game files.  If that doesn't exist, INFOCOM_PATH will be
 searched.
 
 
+.SH FURTHER INFORMATION
 .PP
-Latest information on Unix Frotz is here:
+A
+.BR git(1)
+repository of all versions of Unix Frotz back to 2.32 is available 
+for public perusal here:
 .br
-http://www.cs.csubak.edu/~dgriffi/proj/frotz/
-
+https://github.com/DavidGriffith/frotz/. 
 .PP
-The latest release of Unix Frotz is here:
+The bleeding edge of Frotz development may be followed there.  A wiki 
+summarising Frotz is also there at this URL:
 .br
-ftp://ftp.ifarchive.org/if-archive/infocom/interpreters/frotz/
-
+https://github.com/DavidGriffith/frotz/wiki/
 .PP
-See this website for a list of mirrors:
+The Interactive Fiction Archive is a good place to find games to play
+with Frotz.  Various ports and builds for Frotz may also be found here.
+Here is its URL:
 .br
-http://www.ifarchive.org
-
+http://www.ifarchive.org/
 .PP
-See this website for more information on Infocom past, present, and
-future; and where to get new Z-Machine games and the old ones by Infocom:
-.br
-http://www.csd.uwo.ca/Infocom/
-
-.PP
-Frotz for other platforms:
-.br
-http://www.geocities.com/SiliconValley/Heights/3222/frotz.html
-
+Most distributions of Linux and BSD include Frotz in their package 
+repositories.
 
 .SH CAVEATS
 .PP
@@ -460,22 +454,34 @@ This manpage is not intended to tell users HOW to play interactive
 fiction.  Refer to the file HOW_TO_PLAY included in the Unix Frotz
 documentation or visit one of the following sites:
 .br
-http://www.csd.uwo.ca/Infocom/faq.html
+http://www.microheaven.com/ifguide/
 .br
-http://www.cs.csubak.edu/~dgriffi/proj/frotz/HOW_TO_PLAY
+http://www.brasslantern.org/beginners/
 .br
-http://www.ifarchive.org
+http://www.musicwords.net/if/how_to_play.htm
+.br
+http://ifarchive.org/
+
+.PP
+If you prefer a PDF file of how to play, here is one:
+.br
+http://inform-fiction.org/I7Downloads/Examples/dm/IntroductionToIF.pdf
+
 
 .SH BUGS
-This program has no bugs.  no bugs.  no bugs.  no *WHAP* thank you.
+This program has no bugs.  no bugs.  no bugs.  no *WHAP* thank you.  If 
+you find one, please report it to the Github site referenced above in
+.B
+FURTHER INFORMATION.
+
 
 .SH AUTHORS
 .B Frotz
-was written by Stefan Jokisch in 1995-7.
+was written by Stefan Jokisch for MSDOS in 1995-7.
 .br
 The Unix port was done by Galen Hazelwood.
 .br
-Currently the Unix port is maintained by David Griffith.
+The Unix port is currently maintained by David Griffith <dave@661.org>.
 
 
 .SH "SEE ALSO"

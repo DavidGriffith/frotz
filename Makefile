@@ -8,8 +8,7 @@ CC = gcc
 # These are good for regular use.
 #OPTS = -O2 -fomit-frame-pointer -falign-functions=2 -falign-loops=2 -falign-jumps=2
 # These are handy for debugging.
-OPTS = -g
-#OPTS = -g -Wall -Wextra
+OPTS = -g -Wall -Wextra
 
 # Define where you want Frotz installed (typically /usr/local).
 #

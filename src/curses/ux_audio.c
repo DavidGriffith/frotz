@@ -27,6 +27,7 @@
 #include <fcntl.h>
 #include <pthread.h>
 #include <semaphore.h>
+#include <signal.h>
 
 #ifdef USE_NCURSES_H
 #include <ncurses.h>
@@ -151,6 +152,9 @@ void os_init_sound(void)
  */
 void os_beep (int number)
 {
+    int i = number;
+    i++;
+
     beep();
 }/* os_beep */
 
@@ -166,6 +170,9 @@ void os_beep (int number)
  */
 void os_prepare_sample (int number)
 {
+    int i = number;
+    i++;
+
     return;
 }/* os_prepare_sample */
 
@@ -187,6 +194,9 @@ void os_start_sample (int number, int volume, int repeats, zword eos)
     EFFECT myeffect;
     int err;
     static pthread_attr_t attr;
+    zword foo = eos;
+
+    foo++;
 
     if (blorb_map == NULL) return;
 
@@ -308,7 +318,6 @@ static void *mixer(void *arg)
     int default_driver;
     ao_device *device;
     ao_sample_format format;
-
     int i;
 
     ao_initialize();
@@ -405,7 +414,7 @@ static void pcm16tofloat(float *outbuf, short *inbuf, int length)
  */
 static void stereoize(float *outbuf, float *inbuf, size_t length)
 {
-    int count;
+    size_t count;
     int outcount;
 
     outcount = 0;
@@ -561,10 +570,11 @@ void *playaiff(EFFECT *raw_effect)
     bleep_playing = FALSE;
     memset(bleepbuffer, 0, BUFFSIZE * sizeof(float) * 2);
 
+//    fseek(myeffect.fp, filestart, SEEK_SET);
+
     pthread_mutex_unlock(&mutex);
     sem_post(&audio_empty);
 
-    fseek(myeffect.fp, filestart, SEEK_SET);
     sf_close(sndfile);
     free(floatbuffer);
     free(floatbuffer2);
@@ -587,7 +597,7 @@ static void *playmusic(EFFECT *raw_effect)
 
     if (myeffect.type == MOD)		playmod(&myeffect);
     else if (myeffect.type == OGGV)	playogg(&myeffect);
-    else;
+    else { } /* do nothing */
 
     pthread_exit(NULL);
 
@@ -607,8 +617,8 @@ static void *playmod(EFFECT *raw_effect)
 {
     short *shortbuffer;
 
-    int modlen;
-    int count;
+//    int modlen;
+//    int count;
 
     char *filedata;
     long size;
@@ -644,7 +654,7 @@ static void *playmod(EFFECT *raw_effect)
     fseek(myeffect.fp, filestart, SEEK_SET);
     if (!mod) {
 	printf("Unable to load MOD chunk.\n\r");
-	return;
+	return 0;
     }
 
     if (myeffect.vol < 1) myeffect.vol = 1;
@@ -679,7 +689,7 @@ static void *playmod(EFFECT *raw_effect)
     free(shortbuffer);
     free(filedata);
 
-    return;
+    return 0;
 } /* playmod */
 
 
@@ -738,17 +748,18 @@ static void *playogg(EFFECT *raw_effect)
 
     EFFECT myeffect = *raw_effect;
 
+    filestart = ftell(myeffect.fp);
     fseek(myeffect.fp, myeffect.result.data.startpos, SEEK_SET);
 
     if (ov_open_callbacks(myeffect.fp, &vf, NULL, 0, OV_CALLBACKS_NOCLOSE) < 0) {
 	printf("Unable to load OGGV chunk.\n\r");
-	return;
+	return 0;
     }
 
     info = ov_info(&vf, -1);
     if (info == NULL) {
 	printf("Unable to get info on OGGV chunk.\n\r");
-	return;
+	return 0;
     }
 
     if (myeffect.vol < 1) myeffect.vol = 1;
@@ -782,6 +793,8 @@ static void *playogg(EFFECT *raw_effect)
 	pthread_mutex_unlock(&mutex);
 	sem_post(&audio_full);
     }
+
+//    fseek(myeffect.fp, filestart, SEEK_SET);
     music_playing = FALSE;
 
     pthread_mutex_unlock(&mutex);
@@ -791,7 +804,7 @@ static void *playogg(EFFECT *raw_effect)
 
     free(shortbuffer);
 
-    return;
+    return 0;
 } /* playogg */
 
 #endif /* NO_SOUND */

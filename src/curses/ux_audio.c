@@ -538,8 +538,8 @@ void *playaiff(EFFECT *raw_effect)
 
 	/* If that's all, terminate and signal that we're done. */
 	if (src_data.end_of_input && src_data.output_frames_gen == 0) {
-	    pthread_mutex_unlock(&mutex);
 	    sem_post(&audio_full);
+	    pthread_mutex_unlock(&mutex);
 	    break;
 	}
 
@@ -559,8 +559,10 @@ void *playaiff(EFFECT *raw_effect)
      */
 
     bleep_playing = FALSE;
+    memset(bleepbuffer, 0, BUFFSIZE * sizeof(float) * 2);
+
     pthread_mutex_unlock(&mutex);
-//    sem_post(&audio_empty);
+    sem_post(&audio_empty);
 
     fseek(myeffect.fp, filestart, SEEK_SET);
     sf_close(sndfile);
@@ -649,7 +651,7 @@ static void *playmod(EFFECT *raw_effect)
     if (myeffect.vol > 8) myeffect.vol = 8;
     ModPlug_SetMasterVolume(mod, mypower(2, myeffect.vol));
 
-    shortbuffer = malloc(BUFFSIZE * sizeof(char) * 2);
+    shortbuffer = malloc(BUFFSIZE * sizeof(short) * 2);
 
     music_playing = TRUE;
 

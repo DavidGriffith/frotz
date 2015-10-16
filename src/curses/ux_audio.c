@@ -360,7 +360,7 @@ static void *mixer(void *arg)
 	}
 
 	if (music_playing && bleep_playing) {
-	    for (i = 0; i == BUFFSIZE; i++) {
+	    for (i = 0; i < BUFFSIZE; i++) {
 		bleepbuffer[i] += musicbuffer[i];
 	    }
 	    floattopcm16(shortbuffer, bleepbuffer, MAX(musicsamples, bleepsamples));

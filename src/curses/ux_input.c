@@ -633,7 +633,6 @@ zchar os_read_key (int timeout, int cursor)
 
 int os_read_file_name (char *file_name, const char *default_name, int flag)
 {
-
     int saved_replay = istream_replay;
     int saved_record = ostream_record;
 
@@ -641,12 +640,16 @@ int os_read_file_name (char *file_name, const char *default_name, int flag)
 
     istream_replay = 0;
     ostream_record = 0;
+    if(f_setup.restore_mode==0)
+	{
+        print_string ("Enter a file name.\nDefault is \"");
+        print_string (default_name);
+        print_string ("\": ");
 
-    print_string ("Enter a file name.\nDefault is \"");
-    print_string (default_name);
-    print_string ("\": ");
-
-    read_string (FILENAME_MAX, (zchar *)file_name);
+        read_string (FILENAME_MAX, (zchar *)file_name);
+	}
+	else
+    	file_name[0]=0;//set to zero because we are not taking user input
 
     /* Use the default name if nothing was typed */
 

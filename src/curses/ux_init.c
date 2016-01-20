@@ -72,14 +72,14 @@ Syntax: frotz [options] story-file\n\
   -b # background color         \t -P   alter piracy opcode\n\
   -c # context lines            \t -q   quiet (disable sound effects)\n\
   -d   disable color            \t -r # right margin\n\
-  -e   enable sound             \t -s # random number seed value\n\
-  -f # foreground color         \t -S # transcript width\n\
-  -F   Force color mode         \t -t   set Tandy bit\n\
-  -h # screen height            \t -u # slots for multiple undo\n\
-  -i   ignore fatal errors      \t -w # screen width\n\
-  -l # left margin              \t -x   expand abbreviations g/x/z\n\
-  -o   watch object movement"
-
+  -e   enable sound             \t -R   load a save file directly from command line\n\
+  -f # foreground color         \t -s # random number seed value\n\
+  -F   Force color mode         \t -S # transcript width\n\
+  -h # screen height            \t -t   set Tandy bit\n\
+  -i   ignore fatal errors      \t -u # slots for multiple undo\n\
+  -l # left margin              \t -w # screen width\n\
+  -o   watch object movement	\t -x   expand abbreviations g/x/z\n"
+                                
 /*
 char stripped_story_name[FILENAME_MAX+1];
 char semi_stripped_story_name[FILENAME_MAX+1];
@@ -207,10 +207,12 @@ void os_process_arguments (int argc, char *argv[])
 	getconfig(configfile);  /* we're not concerned if this fails */
     }
 
+    f_setup.tmp_save_name = malloc(FILENAME_MAX * sizeof(char)); /*needs to be initialized before we get to parsing our options*/
+
     /* Parse the options */
 
     do {
-	c = getopt(argc, argv, "aAb:c:def:Fh:il:oOpPqr:s:S:tu:w:xZ:");
+	c = getopt(argc, argv, "aAb:c:def:Fh:il:oOpPqrR:s:S:tu:w:xZ:");
 	switch(c) {
 	  case 'a': f_setup.attribute_assignment = 1; break;
 	  case 'A': f_setup.attribute_testing = 1; break;
@@ -244,6 +246,7 @@ void os_process_arguments (int argc, char *argv[])
 	  case 'P': f_setup.piracy = 1; break;
 	  case 'q': f_setup.sound = 0; break;
 	  case 'r': f_setup.right_margin = atoi(optarg); break;
+	  case 'R': f_setup.restore_mode = 1; strcpy(f_setup.tmp_save_name, optarg); break;
 	  case 's': u_setup.random_seed = atoi(optarg); break;
 	  case 'S': f_setup.script_cols = atoi(optarg); break;
 	  case 't': u_setup.tandy_bit = 1; break;
@@ -340,6 +343,7 @@ void os_process_arguments (int argc, char *argv[])
     strncpy(f_setup.command_name, f_setup.story_name, strlen(f_setup.story_name));
     strncat(f_setup.command_name, EXT_COMMAND, strlen(EXT_COMMAND));
 
+
     f_setup.save_name = malloc(strlen(f_setup.story_name) * sizeof(char) + 5);
     strncpy(f_setup.save_name, f_setup.story_name, strlen(f_setup.story_name));
     strncat(f_setup.save_name, EXT_SAVE, strlen(EXT_SAVE));
@@ -347,6 +351,14 @@ void os_process_arguments (int argc, char *argv[])
     f_setup.aux_name = malloc(strlen(f_setup.story_name) * sizeof(char) + 5);
     strncpy(f_setup.aux_name, f_setup.story_name, strlen(f_setup.story_name));
     strncat(f_setup.aux_name, EXT_AUX, strlen(EXT_AUX));
+    
+    /*Set our auto load save as the name_save*/
+     if(f_setup.restore_mode == 1)
+	{
+        char * delete_me = f_setup.save_name;
+        f_setup.save_name=f_setup.tmp_save_name;
+	free(delete_me);
+        }
 
     switch (ux_init_blorb()) {
         case bb_err_Format:
@@ -1029,6 +1041,7 @@ void os_init_setup(void)
 	f_setup.script_cols = 80;
 	f_setup.sound = 1;
 	f_setup.err_report_mode = ERR_DEFAULT_REPORT_MODE;
+	f_setup.restore_mode = 0;
 
 	u_setup.use_blorb = 0;
 	u_setup.exec_in_blorb = 0;

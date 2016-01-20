@@ -26,9 +26,11 @@ typedef struct frotz_setup_struct {
         char *script_name;
         char *command_name;
         char *save_name;
+        char *tmp_save_name;
         char *aux_name;
         char *story_path;
         char *zcode_path;
+	int restore_mode; /* for a save file passed from command line*/
 } f_setup_t;
 
 extern f_setup_t f_setup;

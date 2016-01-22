@@ -255,6 +255,11 @@ static void load_all_operands (zbyte specifier)
  */
 void interpret (void)
 {
+    /* If we got a save file on the command line, use it now. */
+    if(f_setup.restore_mode==1) {
+	z_restore();
+	f_setup.restore_mode=0;
+    }
 
     do {
 

@@ -106,6 +106,7 @@ void os_init_setup(void)
 	f_setup.script_cols = 80;
 	f_setup.sound = 1;
 	f_setup.err_report_mode = ERR_DEFAULT_REPORT_MODE;
+	f_setup.restore_mode = 0;
 
 }/* os_init_setup */
 

@@ -640,16 +640,18 @@ int os_read_file_name (char *file_name, const char *default_name, int flag)
 
     istream_replay = 0;
     ostream_record = 0;
-    if(f_setup.restore_mode==0)
-	{
-        print_string ("Enter a file name.\nDefault is \"");
-        print_string (default_name);
-        print_string ("\": ");
 
-        read_string (FILENAME_MAX, (zchar *)file_name);
-	}
-	else
-    	file_name[0]=0;//set to zero because we are not taking user input
+    /* If we're restoring a game before the interpreter starts,
+     * our filename is already provided.  Just go ahead silently.
+     */
+    if (f_setup.restore_mode) {
+	file_name[0]=0;
+    } else {
+	print_string ("Enter a file name.\nDefault is \"");
+	print_string (default_name);
+	print_string ("\": ");
+	read_string (FILENAME_MAX, (zchar *)file_name);
+    }
 
     /* Use the default name if nothing was typed */
 

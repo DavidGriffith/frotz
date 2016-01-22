@@ -770,6 +770,9 @@ void z_restore (void)
 
 finished:
 
+    if (gfp == NULL && f_setup.restore_mode)
+	os_fatal ("Error reading save file");
+
     if (h_version <= V3)
 	branch (success);
     else

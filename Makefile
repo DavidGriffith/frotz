@@ -1,3 +1,9 @@
+# Define path for ar
+AR = /usr/bin/ar
+
+# Define path for ranlib
+RANLIB = /usr/bin/ranlib
+
 # Define your C compiler.  I recommend gcc if you have it.
 # MacOS users should use "cc" even though it's really "gcc".
 #
@@ -240,40 +246,40 @@ common_lib:	$(COMMON_TARGET)
 $(COMMON_TARGET): $(COMMON_OBJECT)
 	@echo
 	@echo "Archiving common code..."
-	ar rc $(COMMON_TARGET) $(COMMON_OBJECT)
-	ranlib $(COMMON_TARGET)
+	$(AR) rc $(COMMON_TARGET) $(COMMON_OBJECT)
+	$(RANLIB) $(COMMON_TARGET)
 	@echo
 
 curses_lib:	config_curses $(CURSES_TARGET)
 $(CURSES_TARGET): $(CURSES_OBJECT)
 	@echo
 	@echo "Archiving curses interface code..."
-	ar rc $(CURSES_TARGET) $(CURSES_OBJECT)
-	ranlib $(CURSES_TARGET)
+	$(AR) rc $(CURSES_TARGET) $(CURSES_OBJECT)
+	$(RANLIB) $(CURSES_TARGET)
 	@echo
 
 dumb_lib:	$(DUMB_TARGET)
 $(DUMB_TARGET): $(DUMB_OBJECT)
 	@echo
 	@echo "Archiving dumb interface code..."
-	ar rc $(DUMB_TARGET) $(DUMB_OBJECT)
-	ranlib $(DUMB_TARGET)
+	$(AR) rc $(DUMB_TARGET) $(DUMB_OBJECT)
+	$(RANLIB) $(DUMB_TARGET)
 	@echo
 
 sdl_lib:	$(SDL_TARGET)
 $(SDL_TARGET): $(SDL_OBJECT)
 	@echo
 	@echo "Archiving SDL interface code..."
-	ar rc $(SDL_TARGET) $(SDL_OBJECT)
-	ranlib $(SDL_TARGET)
+	$(AR) rc $(SDL_TARGET) $(SDL_OBJECT)
+	$(RANLIB) $(SDL_TARGET)
 	@echo
 
 blorb_lib:	$(BLORB_TARGET)
 $(BLORB_TARGET): $(BLORB_OBJECT)
 	@echo
 	@echo "Archiving Blorb file handling code..."
-	ar rc $(BLORB_TARGET) $(BLORB_OBJECT)
-	ranlib $(BLORB_TARGET)
+	$(AR) rc $(BLORB_TARGET) $(BLORB_OBJECT)
+	$(RANLIB) $(BLORB_TARGET)
 	@echo
 
 

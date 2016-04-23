@@ -290,27 +290,23 @@ soundcard.h:
 
 install: $(NAME)
 	strip $(BINNAME)$(EXTENSION)
-	install -d $(PREFIX)/bin
-	install -d $(MAN_PREFIX)/man/man6
-	install -c -m 755 $(BINNAME)$(EXTENSION) $(PREFIX)/bin
-	install -c -m 644 doc/$(NAME).6 $(MAN_PREFIX)/man/man6
+	@install -D -m 755 $(BINNAME)$(EXTENSION) "$(DESTDIR)$(PREFIX)/bin/$(BINNAME)$(EXTENSION)"
+	@install -D -m 644 doc/$(NAME).6 "$(DESTDIR)$(MAN_PREFIX)/man/man6/$(NAME).6"
 
 uninstall:
-	rm -f $(PREFIX)/bin/$(NAME)
-	rm -f $(MAN_PREFIX)/man/man6/$(NAME).6
+	@rm -f "$(DESTDIR)$(PREFIX)/bin/$(NAME)"
+	@rm -f "$(DESTDIR)$(MAN_PREFIX)/man/man6/$(NAME).6"
 
 deinstall: uninstall
 
 install_dumb: d$(NAME)
 	strip d$(BINNAME)$(EXTENSION)
-	install -d $(PREFIX)/bin
-	install -d $(MAN_PREFIX)/man/man6
-	install -c -m 755 d$(BINNAME)$(EXTENSION) $(PREFIX)/bin
-	install -c -m 644 doc/d$(NAME).6 $(MAN_PREFIX)/man/man6
+	@install -D -m 755 d$(BINNAME)$(EXTENSION) "$(DESTDIR)$(PREFIX)/bin/d$(BINNAME)$(EXTENSION)"
+	@install -D -m 644 doc/d$(NAME).6 "$(DESTDIR)$(MAN_PREFIX)/man/man6/d$(NAME).6"
 
 uninstall_dumb:
-	rm -f $(PREFIX)/bin/d$(NAME)
-	rm -f $(MAN_PREFIX)/man/man6/d$(NAME).6
+	@rm -f "$(DESTDIR)$(PREFIX)/bin/d$(NAME)"
+	@rm -f "$(DESTDIR)$(MAN_PREFIX)/man/man6/d$(NAME).6"
 
 deinstall_dumb: uninstall_dumb
 

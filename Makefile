@@ -289,7 +289,6 @@ soundcard.h:
 	fi
 
 install: $(NAME)
-	strip $(BINNAME)$(EXTENSION)
 	@install -D -m 755 $(BINNAME)$(EXTENSION) "$(DESTDIR)$(PREFIX)/bin/$(BINNAME)$(EXTENSION)"
 	@install -D -m 644 doc/$(NAME).6 "$(DESTDIR)$(MAN_PREFIX)/man/man6/$(NAME).6"
 
@@ -300,7 +299,6 @@ uninstall:
 deinstall: uninstall
 
 install_dumb: d$(NAME)
-	strip d$(BINNAME)$(EXTENSION)
 	@install -D -m 755 d$(BINNAME)$(EXTENSION) "$(DESTDIR)$(PREFIX)/bin/d$(BINNAME)$(EXTENSION)"
 	@install -D -m 644 doc/d$(NAME).6 "$(DESTDIR)$(MAN_PREFIX)/man/man6/d$(NAME).6"
 

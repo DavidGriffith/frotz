@@ -192,20 +192,22 @@ void os_process_arguments (int argc, char *argv[])
     if (signal(SIGINT, SIG_IGN) != SIG_IGN)
 	signal(SIGINT, sigint_handler);
 
-    /* First check for a "$HOME/.frotzrc". */
-    /* If not found, look for CONFIG_DIR/frotz.conf */
-    /* $HOME/.frotzrc overrides CONFIG_DIR/frotz.conf */
+	if (getenv("XDG_CONFIG_HOME")) {
+		snprintf(configfile, FILENAME_MAX,
+			"%s/frotz/frotz.conf", getenv("XDG_CONFIG_HOME"));
+	} else {
+		snprintf(configfile, FILENAME_MAX,
+			"%s/.config/frotz/frotz.conf", home);
+	}
 
-    strncpy(configfile, home, FILENAME_MAX);
-    strncat(configfile, "/", 1);
-
-    strncat(configfile, USER_CONFIG, strlen(USER_CONFIG));
-    if (!getconfig(configfile)) {
-	strncpy(configfile, CONFIG_DIR, FILENAME_MAX);
-	strncat(configfile, "/", 1);	/* added by DJP */
-	strncat(configfile, MASTER_CONFIG, FILENAME_MAX-10);
-	getconfig(configfile);  /* we're not concerned if this fails */
-    }
+	if (!getconfig(configfile)) {
+		snprintf(configfile, FILENAME_MAX, "%s/.frotzrc", home);
+	}
+    
+	if (!getconfig(configfile)) {
+		snprintf(configfile, FILENAME_MAX, "%s/frotz.conf", CONFIG_DIR);
+		getconfig(configfile);  /* we're not concerned if this fails */
+	}
 
     /* Parse the options */
 

@@ -9,9 +9,6 @@
 #include "../blorb/blorb.h"
 #include "ux_setup.h"
 
-#define MASTER_CONFIG		"frotz.conf"
-#define USER_CONFIG		".frotzrc"
-
 #define ASCII_DEF		1
 #define ATTRIB_ASSIG_DEF	0
 #define ATTRIB_TEST_DEF		0

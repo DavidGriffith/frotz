@@ -160,7 +160,7 @@ void os_process_arguments (int argc, char *argv[])
 
 #ifndef WIN32
     if ((getuid() == 0) || (geteuid() == 0)) {
-        printf("I won't run as root!\n");
+        fputs("I won't run as root!\n", stderr);
         exit(1);
     }
 #endif
@@ -172,7 +172,7 @@ void os_process_arguments (int argc, char *argv[])
 #endif
 
     if ((home = getenv(HOMEDIR)) == NULL) {
-        printf("Hard drive on fire!\n");
+        fputs("Hard drive on fire!\n", stderr);
         exit(1);
     }
 
@@ -364,7 +364,7 @@ void os_process_arguments (int argc, char *argv[])
 
 	if (strncmp(basename(f_setup.story_file),
 		basename(u_setup.blorb_file), 55)) {
-		fprintf(stderr, "Story file %s is not a blorb file.\n", f_setup.story_file);
+		return;
 	} else if (!(blorbfile = fopen(u_setup.blorb_file, "rb"))) {
 		fprintf(stderr, "Error: Cannot read blorb file %s.\n", u_setup.blorb_file);
 	} else if (bb_create_map(blorbfile, &blorb_map) != bb_err_None) {

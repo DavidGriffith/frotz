@@ -148,7 +148,7 @@ void os_fatal (const char *s, ...)
 
 void os_process_arguments (int argc, char *argv[])
 {
-    int c, i;
+    int c;
 
     char *p = NULL;
     char *blorb_ext = NULL;

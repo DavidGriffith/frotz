@@ -148,7 +148,7 @@ void os_fatal (const char *s, ...)
 
 void os_process_arguments (int argc, char *argv[])
 {
-    int c, i;
+    int c;
 
     char *p = NULL;
     char *blorb_ext = NULL;
@@ -156,9 +156,11 @@ void os_process_arguments (int argc, char *argv[])
     char *home;
     char configfile[FILENAME_MAX + 1];
 
+    FILE *blorbfile;
+
 #ifndef WIN32
     if ((getuid() == 0) || (geteuid() == 0)) {
-        printf("I won't run as root!\n");
+        fputs("I won't run as root!\n", stderr);
         exit(1);
     }
 #endif
@@ -170,7 +172,7 @@ void os_process_arguments (int argc, char *argv[])
 #endif
 
     if ((home = getenv(HOMEDIR)) == NULL) {
-        printf("Hard drive on fire!\n");
+        fputs("Hard drive on fire!\n", stderr);
         exit(1);
     }
 
@@ -360,18 +362,20 @@ void os_process_arguments (int argc, char *argv[])
     strncpy(f_setup.aux_name, f_setup.story_name, strlen(f_setup.story_name));
     strncat(f_setup.aux_name, EXT_AUX, strlen(EXT_AUX));
 
-    switch (ux_init_blorb()) {
-        case bb_err_Format:
-	  printf("Blorb file loaded, but unable to build map.\n\n");
-	  break;
-	case bb_err_NotFound:
-	  printf("Blorb file loaded, but lacks executable chunk.\n\n");
-	  break;
-    }
-
-  printf("u_setup.blorb_file %s\n", u_setup.blorb_file);
-  printf("u_setup.blorb_name %s\n", u_setup.blorb_name);
-
+	if (strncmp(basename(f_setup.story_file),
+		basename(u_setup.blorb_file), 55)) {
+		return;
+	} else if (!(blorbfile = fopen(u_setup.blorb_file, "rb"))) {
+		fprintf(stderr, "Error: Cannot read blorb file %s.\n", u_setup.blorb_file);
+	} else if (bb_create_map(blorbfile, &blorb_map) != bb_err_None) {
+		fputs("Error: Blorb file loaded, but unable to build map.\n", stderr );
+	} else if (bb_load_chunk_by_type(blorb_map, bb_method_FilePos,
+		&blorb_res, bb_make_id('Z','C','O','D'), 0) != bb_err_None) {
+		fputs("Error: Blorb file loaded, but lacks executable chunk.\n", stderr);
+	} else {
+		u_setup.exec_in_blorb = 1;
+		u_setup.use_blorb = 1;
+	}
 }/* os_process_arguments */
 
 /*
@@ -1067,38 +1071,6 @@ void os_init_setup(void)
 	u_setup.current_color = 0;
 	u_setup.color_enabled = FALSE;
 
-}
-
-int ux_init_blorb(void)
-{
-    FILE *blorbfile;
-
-    /* If the filename given on the command line is the same as our
-     * computed blorb filename, then we will assume the executable
-     * is contained in the blorb file.
-     */
-
-    if (strncmp(basename(f_setup.story_file),
-     basename(u_setup.blorb_file), 55) == 0) {
-	if ((blorbfile = fopen(u_setup.blorb_file, "rb")) == NULL)
-	    return bb_err_Read;
-	blorb_err = bb_create_map(blorbfile, &blorb_map);
-	if (blorb_err != bb_err_None)
-	    return bb_err_Format;
-
-    /* Now we need to locate the EXEC chunk within the blorb file
-     * and present it to the rest of the program as a file stream.
-     */
-
-	blorb_err = bb_load_chunk_by_type(blorb_map, bb_method_FilePos, 
-			&blorb_res, bb_make_id('Z','C','O','D'), 0);
-
-	if (blorb_err == bb_err_None) {
-	    u_setup.exec_in_blorb = 1;
-	    u_setup.use_blorb = 1;
-        }
-	return blorb_err;
-    }
 }
 
 #ifdef NO_STRRCHR

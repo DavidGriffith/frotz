@@ -572,7 +572,7 @@ void *playaiff(EFFECT *raw_effect)
 
 //    fseek(myeffect.fp, filestart, SEEK_SET);
 
-    pthread_mutex_unlock(&mutex);
+//    pthread_mutex_unlock(&mutex);
 //    sem_post(&audio_empty);
 
     sf_close(sndfile);

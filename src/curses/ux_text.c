@@ -187,8 +187,8 @@ void os_set_text_style (int new_style)
  */
 void os_set_font (int new_font)
 {
-
     /* Not implemented */
+    new_font = new_font;	/* Keep -Wall quiet */
 
 }/* os_set_font */
 

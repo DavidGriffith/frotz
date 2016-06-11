@@ -97,7 +97,7 @@ bool unix_init_pictures (void)
   basename = strrchr(f_setup.story_name, '/');
   if (basename) basename++; else basename = f_setup.story_name;
   dotpos = strrchr(basename, '.');
-  namelen = (dotpos ? dotpos - basename : strlen(basename));
+  namelen = (dotpos ? dotpos - basename : (int) strlen(basename));
   sprintf(filename, "%.*sgraphics/%.*s.mg1",
           (int)(basename - f_setup.story_name), f_setup.story_name, namelen, basename);
 

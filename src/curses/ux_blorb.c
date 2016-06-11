@@ -44,11 +44,11 @@ FILE *blorb_fp;
 bb_result_t blorb_res;
 bb_map_t *blorb_map;
 
-/* uint32 *findchunk(uint32 *data, char *chunkID, int length); */
-static char *findchunk(char *pstart, char *fourcc, int n);
-static unsigned short ReadShort(const unsigned char *bytes);
-static unsigned long ReadLong(const unsigned char *bytes);
-static double ReadExtended(const unsigned char *bytes);
+// uint32 *findchunk(uint32 *data, char *chunkID, int length);
+// static char *findchunk(char *pstart, char *fourcc, int n);
+// static unsigned short ReadShort(const unsigned char *bytes);
+// static unsigned long ReadLong(const unsigned char *bytes);
+// static double ReadExtended(const unsigned char *bytes);
 static int isblorb(FILE *);
 
 #define UnsignedToFloat(u) (((double)((long)(u - 2147483647L - 1))) + 2147483648.0)
@@ -186,7 +186,7 @@ static int isblorb(FILE *fp)
     return 1;
 }
 
-
+#ifdef CRAP
 static char *findchunk(char *data, char *string, int length)
 {
     char *mydata = data+12;
@@ -200,14 +200,12 @@ static char *findchunk(char *data, char *string, int length)
     return NULL;
 }
 
-
 static unsigned short ReadShort(const unsigned char *bytes)
 {
     return (unsigned short)(
 	((unsigned short)(bytes[0] & 0xFF) << 8) |
 	((unsigned short)(bytes[1] & 0xFF)));
 }
-
 
 static unsigned long ReadLong(const unsigned char *bytes)
 {
@@ -217,7 +215,6 @@ static unsigned long ReadLong(const unsigned char *bytes)
 	((unsigned long)(bytes[2] & 0xFF) << 8) |
 	((unsigned long)(bytes[3] & 0xFF)));
 }
-
 
 static double ReadExtended(const unsigned char *bytes)
 {
@@ -246,3 +243,4 @@ static double ReadExtended(const unsigned char *bytes)
 	return -f;
     return f;
 }
+#endif

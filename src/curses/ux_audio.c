@@ -318,7 +318,10 @@ static void *mixer(void *arg)
     int default_driver;
     ao_device *device;
     ao_sample_format format;
+    int samplecount;
     int i;
+
+    arg = arg;		/* Keep -Wall quiet */
 
     ao_initialize();
     default_driver = ao_default_driver_id();
@@ -363,8 +366,9 @@ static void *mixer(void *arg)
 	    for (i = 0; i < BUFFSIZE; i++) {
 		bleepbuffer[i] += musicbuffer[i];
 	    }
-	    floattopcm16(shortbuffer, bleepbuffer, MAX(musicsamples, bleepsamples));
-	    ao_play(device, (char *) shortbuffer, MAX(musicsamples, bleepsamples) * sizeof(short));
+	    samplecount = musicsamples > bleepsamples ? musicsamples : bleepsamples;
+	    floattopcm16(shortbuffer, bleepbuffer, samplecount);
+	    ao_play(device, (char *) shortbuffer, samplecount * sizeof(short));
 	}
 
 	if (!bleep_playing && !music_playing) {
@@ -460,7 +464,7 @@ static int mypower(int base, int exp) {
  */
 void *playaiff(EFFECT *raw_effect)
 {
-    long filestart;
+//    long filestart;
 
     int volcount;
     int volfactor;
@@ -483,7 +487,7 @@ void *playaiff(EFFECT *raw_effect)
     sf_info.format = 0;
     bleepnum = myeffect.number;
 
-    filestart = ftell(myeffect.fp);
+//    filestart = ftell(myeffect.fp);
     lseek(fileno(myeffect.fp), myeffect.result.data.startpos, SEEK_SET);
     sndfile = sf_open_fd(fileno(myeffect.fp), SFM_READ, &sf_info, 0);
 
@@ -742,13 +746,13 @@ static void *playogg(EFFECT *raw_effect)
     int current_section;
     short *shortbuffer;
 
-    long filestart;
+//    long filestart;
     int volcount;
     int volfactor;
 
     EFFECT myeffect = *raw_effect;
 
-    filestart = ftell(myeffect.fp);
+//    filestart = ftell(myeffect.fp);
     fseek(myeffect.fp, myeffect.result.data.startpos, SEEK_SET);
 
     if (ov_open_callbacks(myeffect.fp, &vf, NULL, 0, OV_CALLBACKS_NOCLOSE) < 0) {

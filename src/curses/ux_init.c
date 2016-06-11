@@ -79,8 +79,8 @@ static int	getconfig(char *);
 static int	getbool(char *);
 static int	getcolor(char *);
 static int	geterrmode(char *);
-static void	redraw(void);
-static FILE	*pathopen(const char *, const char *, const char *, char *);
+/* static void	redraw(void); */
+/* static FILE	*pathopen(const char *, const char *, const char *, char *); */
 
 
 /*
@@ -505,6 +505,7 @@ void os_reset_screen (void)
  */
 void os_restart_game (int stage)
 {
+    stage = stage;	/* Keep -Wall quiet */
 }
 
 
@@ -623,6 +624,7 @@ int os_storyfile_tell(FILE * fp)
 }
 
 
+#ifdef CRAP
 /*
  * pathopen
  *
@@ -655,6 +657,7 @@ static FILE *pathopen(const char *name, const char *p, const char *mode, char *f
 	}
 	return NULL;
 } /* FILE *pathopen() */
+#endif
 
 
 /*
@@ -675,7 +678,7 @@ static int getconfig(char *configfile)
 {
 	FILE	*fp;
 
-	int	num, num2;
+	size_t	num, num2;
 
 	char	varname[LINELEN + 1];
 	char	value[LINELEN + 1];
@@ -929,6 +932,7 @@ the Z-Machine standard itself.  See the file BUGS for a detailed
 explaination for this.  Because of this trouble, this function currently
 does nothing.
 */
+    sig = sig;		/* Keep -Wall quiet */
 
 }
 
@@ -942,6 +946,7 @@ does nothing.
 void sigint_handler(int dummy)
 {
     signal(SIGINT, sigint_handler);
+    dummy = dummy;
 
     os_stop_sample(0);
     scrollok(stdscr, TRUE); scroll(stdscr);
@@ -950,12 +955,11 @@ void sigint_handler(int dummy)
     exit(1);
 }
 
-
+/*
 void redraw(void)
 {
-	/* not implemented */
 }
-
+*/
 
 void os_init_setup(void)
 {

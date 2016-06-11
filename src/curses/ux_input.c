@@ -300,7 +300,7 @@ static int unix_history_back(zchar *str, int searchlen, int maxlen)
 	    history_view = prev;
 	    return 0;
 	}
-    } while (strlen( *history_view) > maxlen
+    } while (strlen( *history_view) > (size_t) maxlen
 	     || (searchlen != 0 && strncmp( (char *)str, *history_view, searchlen)));
     strcpy((char *)str + searchlen, *history_view + searchlen);
     return 1;
@@ -325,7 +325,7 @@ static int unix_history_forward(zchar *str, int searchlen, int maxlen)
 	    history_view = prev;
 	    return 0;
 	}
-    } while (strlen( *history_view) > maxlen
+    } while (strlen( *history_view) > (size_t) maxlen
 	     || (searchlen != 0 && strncmp( (char *)str, *history_view, searchlen)));
     strcpy((char *)str + searchlen, *history_view + searchlen);
     return 1;
@@ -615,9 +615,10 @@ zchar os_read_key (int timeout, int cursor)
 
 int os_read_file_name (char *file_name, const char *default_name, int flag)
 {
-
     int saved_replay = istream_replay;
     int saved_record = ostream_record;
+
+    flag = flag;	/*Keep -Wall quiet */
 
     /* Turn off playback and recording temporarily */
 

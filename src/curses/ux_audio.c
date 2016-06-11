@@ -75,7 +75,7 @@ static void stereoize(float *, float *, size_t);
 
 static int mypower(int, int);
 static char *getfiledata(FILE *, long *);
-static void *mixer(void);
+static void *mixer(void *);
 
 static pthread_t	mixer_id;
 static pthread_t	playaiff_id;
@@ -312,7 +312,7 @@ void os_wait_sample (void)
  * Data presented to the mixer must be floats at 44100hz
  *
  */
-static void *mixer(void)
+static void *mixer(void * UNUSED(arg))
 {
     short *shortbuffer;
     int default_driver;

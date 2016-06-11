@@ -185,11 +185,9 @@ void os_set_text_style (int new_style)
  * choose fonts which aren't supported by the interface.
  *
  */
-void os_set_font (int new_font)
+void os_set_font (int UNUSED(new_font))
 {
     /* Not implemented */
-    new_font = new_font;	/* Keep -Wall quiet */
-
 }/* os_set_font */
 
 

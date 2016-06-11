@@ -6,7 +6,6 @@
  */
 
 #include "dumb_frotz.h"
-#include "../common/unused.h"
 
 f_setup_t f_setup;
 

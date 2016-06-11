@@ -503,9 +503,8 @@ void os_reset_screen (void)
  *     RESTART_END - restart is complete
  *
  */
-void os_restart_game (int stage)
+void os_restart_game (int UNUSED (stage))
 {
-    stage = stage;	/* Keep -Wall quiet */
 }
 
 
@@ -923,7 +922,7 @@ static int geterrmode(char *value)
  * cleanly resize the window.
  *
  */
-void sigwinch_handler(int sig)
+void sigwinch_handler(int UNUSED(sig))
 {
 /*
 There are some significant problems involved in getting resizes to work
@@ -932,8 +931,6 @@ the Z-Machine standard itself.  See the file BUGS for a detailed
 explaination for this.  Because of this trouble, this function currently
 does nothing.
 */
-    sig = sig;		/* Keep -Wall quiet */
-
 }
 
 

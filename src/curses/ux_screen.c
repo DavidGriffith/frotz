@@ -44,11 +44,9 @@
  * being erased.  This is not relevant for the curses interface.
  *
  */
-void os_erase_area (int top, int left, int bottom, int right, int win)
+void os_erase_area (int top, int left, int bottom, int right, int UNUSED(win))
 {
     int y, x, i, j;
-
-    win = win;		/* Keep -Wall quiet */
 
     /* Catch the most common situation and do things the easy way */
     if ((top == 1) && (bottom == h_screen_rows) &&

@@ -75,7 +75,7 @@ static void stereoize(float *, float *, size_t);
 
 static int mypower(int, int);
 static char *getfiledata(FILE *, long *);
-static void *mixer(void *);
+static void *mixer(void);
 
 static pthread_t	mixer_id;
 static pthread_t	playaiff_id;
@@ -135,7 +135,7 @@ void os_init_sound(void)
     pthread_attr_init(&attr);
     pthread_attr_setdetachstate(&attr, PTHREAD_CREATE_DETACHED);
 
-    err = pthread_create(&(mixer_id), &attr, &mixer, NULL);
+    err = pthread_create(&(mixer_id), &attr, (void *) &mixer, NULL);
     if (err != 0) {
 	printf("Can't create mixer thread :[%s]", strerror(err));
 	exit(1);
@@ -312,7 +312,7 @@ void os_wait_sample (void)
  * Data presented to the mixer must be floats at 44100hz
  *
  */
-static void *mixer(void *arg)
+static void *mixer(void)
 {
     short *shortbuffer;
     int default_driver;
@@ -320,8 +320,6 @@ static void *mixer(void *arg)
     ao_sample_format format;
     int samplecount;
     int i;
-
-    arg = arg;		/* Keep -Wall quiet */
 
     ao_initialize();
     default_driver = ao_default_driver_id();

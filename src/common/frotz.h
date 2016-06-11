@@ -90,6 +90,7 @@ typedef struct {
 
 
 #include "setup.h"
+#include "unused.h"
 
 /*** Constants that may be set at compile time ***/
 

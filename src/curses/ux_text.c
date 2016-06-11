@@ -185,11 +185,9 @@ void os_set_text_style (int new_style)
  * choose fonts which aren't supported by the interface.
  *
  */
-void os_set_font (int new_font)
+void os_set_font (int UNUSED(new_font))
 {
     /* Not implemented */
-    new_font = new_font;	/* Keep -Wall quiet */
-
 }/* os_set_font */
 
 
@@ -206,7 +204,7 @@ void os_set_font (int new_font)
  */
 void os_display_char (zchar c)
 {
-    if (c >= ZC_LATIN1_MIN && c <= ZC_LATIN1_MAX) {
+    if (c >= ZC_LATIN1_MIN) {
         if (u_setup.plain_ascii) {
 
 	  char *ptr = latin1_to_ascii + 3 * (c - ZC_LATIN1_MIN);
@@ -274,7 +272,7 @@ void os_display_string (const zchar *s)
  */
 int os_char_width (zchar c)
 {
-    if (c >= ZC_LATIN1_MIN && c <= ZC_LATIN1_MAX && u_setup.plain_ascii) {
+    if (c >= ZC_LATIN1_MIN && u_setup.plain_ascii) {
 
         int width = 0;
         const char *ptr = latin1_to_ascii + 3 * (c - ZC_LATIN1_MIN);

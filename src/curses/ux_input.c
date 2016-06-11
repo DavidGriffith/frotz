@@ -613,12 +613,10 @@ zchar os_read_key (int timeout, int cursor)
  *
  */
 
-int os_read_file_name (char *file_name, const char *default_name, int flag)
+int os_read_file_name (char *file_name, const char *default_name, int UNUSED(flag))
 {
     int saved_replay = istream_replay;
     int saved_record = ostream_record;
-
-    flag = flag;	/*Keep -Wall quiet */
 
     /* Turn off playback and recording temporarily */
 

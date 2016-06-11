@@ -20,7 +20,7 @@ MAN_PREFIX = $(PREFIX)
 CONFIG_DIR = /etc
 #CONFIG_DIR = $(PREFIX)/etc
 
-# Pick your sound support.  The most featureful form of sound support is 
+# Pick your sound support.  The most featureful form of sound support is
 # through libao.  Comment all of these out if you don't want sound.
 #
 #SOUND = none
@@ -30,8 +30,8 @@ SOUND = ao
 
 
 ##########################################################################
-# The configuration options below are intended mainly for older flavors 
-# of Unix.  For Linux, BSD, and Solaris released since 2003, you can 
+# The configuration options below are intended mainly for older flavors
+# of Unix.  For Linux, BSD, and Solaris released since 2003, you can
 # ignore this section.
 ##########################################################################
 
@@ -44,7 +44,7 @@ COLOR = yes
 CURSES = -lncurses
 #CURSES = -lcurses
 
-# Just in case your operating system keeps its user-added header files 
+# Just in case your operating system keeps its user-added header files
 # somewhere unusual...
 #
 #INCL = -I/usr/local/include
@@ -67,8 +67,8 @@ CURSES = -lncurses
 #NO_MEMMOVE = yes
 
 # Default sample rate for sound effects.
-# All modern sound interfaces can be expected to support 44100 Hz sample 
-# rates.  Earlier ones, particularly ones in Sun 4c workstations support 
+# All modern sound interfaces can be expected to support 44100 Hz sample
+# rates.  Earlier ones, particularly ones in Sun 4c workstations support
 # only up to 8000 Hz.
 SAMPLERATE = 44100
 
@@ -123,7 +123,8 @@ CURSES_OBJECT = $(CURSES_DIR)/ux_init.o \
 		$(CURSES_DIR)/ux_blorb.o \
 		$(CURSES_DIR)/ux_audio.o \
 		$(CURSES_DIR)/ux_resource.o \
-		$(CURSES_DIR)/ux_audio_none.o
+		$(CURSES_DIR)/ux_audio_none.o \
+		$(CURSES_DIR)/ux_locks.o
 
 DUMB_DIR = $(SRCDIR)/dumb
 DUMB_TARGET = $(SRCDIR)/frotz_dumb.a

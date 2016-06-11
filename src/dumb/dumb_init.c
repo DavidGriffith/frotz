@@ -6,6 +6,7 @@
  */
 
 #include "dumb_frotz.h"
+#include "../common/unused.h"
 
 f_setup_t f_setup;
 
@@ -158,7 +159,7 @@ int os_random_seed (void)
     else return user_random_seed;
 }
 
-void os_restart_game (int stage) {}
+void os_restart_game (int UNUSED (stage)) {}
 
 void os_fatal (const char *s, ...)
 {

@@ -36,6 +36,7 @@
 #endif
 
 #include "ux_frotz.h"
+#include "ux_locks.h"
 
 #ifndef NO_SOUND
 
@@ -99,7 +100,6 @@ bool	music_stop = FALSE;
 
 float	*musicbuffer;
 int	musicsamples;
-int	musicnum;
 
 
 /*
@@ -259,8 +259,8 @@ void os_stop_sample (int number)
 	while(pthread_kill(playaiff_id, 0) == 0);
     }
 
-    if (music_playing && (number == musicnum || number == 0)) {
-	music_playing = FALSE;
+    if (get_music_playing() && (number == get_musicnum () || number == 0)) {
+	set_music_playing(false);
 	while(pthread_kill(playmusic_id, 0) == 0);
     }
 
@@ -456,7 +456,7 @@ static int mypower(int base, int exp) {
  * handled here.
  *
  * This function should be able to play OGG chunks, but because of a bug
- * or oversight in Libsndfile, that library is incapable of playing OGG 
+ * or oversight in Libsndfile, that library is incapable of playing OGG
  * data which are embedded in a larger file.
  *
  */
@@ -631,7 +631,7 @@ static void *playmod(EFFECT *raw_effect)
 
     EFFECT myeffect = *raw_effect;
 
-    musicnum = myeffect.number;
+    set_musicnum(myeffect.number);
 
     filestart = ftell(myeffect.fp);
     fseek(myeffect.fp, myeffect.result.data.startpos, SEEK_SET);

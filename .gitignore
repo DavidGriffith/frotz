@@ -3,3 +3,4 @@ dfrotz
 *.o
 *.a
 defines.h
+git_hash.h

@@ -148,9 +148,9 @@ SOUND_LIB = -lao -ldl -lpthread -lm -lsndfile -lvorbisfile -lmodplug -lsamplerat
 # Targets
 #
 
-.PHONY: all help dist clean distclean install install_dumb uninstall uninstall_dumb
+.PHONY: all help dist clean distclean install install_dumb uninstall uninstall_dumb hash
 
-$(NAME): $(CURSES_DIR)/defines.h $(COMMON_TARGET) $(CURSES_TARGET) $(BLORB_TARGET)
+$(NAME): hash $(COMMON_DIR)/defines.h $(CURSES_DIR)/curses_defines.h $(COMMON_TARGET) $(CURSES_TARGET) $(BLORB_TARGET)
 ifeq ($(SOUND), ao)
 	$(CC) -o $(BINNAME)$(EXTENSION) $(TARGETS) $(LIB) $(CURSES) $(SOUND_LIB)
 else ifeq ($(SOUND), none)
@@ -187,9 +187,12 @@ $(CURSES_OBJECT): %.o: %.c
 ####################################
 # Get the defines set up just right
 #
-$(CURSES_DIR)/defines.h:
+$(COMMON_DIR)/defines.h:
 	@echo "Generating $@"
 	@echo "#define VERSION \"$(VERSION)\"" > $@
+
+$(CURSES_DIR)/curses_defines.h:
+	@echo "Generating $@"
 	@echo "#define CONFIG_DIR \"$(CONFIG_DIR)\"" >> $@
 	@echo "#define SOUND \"$(SOUND)\"" >> $@
 	@echo "#define SAMPLERATE $(SAMPLERATE)" >> $@
@@ -271,7 +274,7 @@ uninstall_dumb:
 	rm -f $(PREFIX)/bin/d$(NAME)
 	rm -f $(MAN_PREFIX)/man/man6/d$(NAME).6
 
-dist: distclean
+dist: distclean hash
 	mkdir $(distdir)
 	@for file in `ls`; do \
 		if test $$file != $(distdir); then \
@@ -288,7 +291,8 @@ dist: distclean
 
 clean:
 	rm -f $(SRCDIR)/*.h $(SRCDIR)/*.a
-	rm -f $(CURSES_DIR)/defines.h
+	rm -f $(COMMON_DIR)/defines.h
+	rm -f $(CURSES_DIR)/curses_defines.h
 	find . -name *.o -exec rm -f {} \;
 	find . -name *.O -exec rm -f {} \;
 
@@ -299,6 +303,24 @@ distclean: clean
 	rm -f *core $(SRCDIR)/*core
 	-rm -rf $(distdir)
 	-rm -f $(distdir).tar $(distdir).tar.gz
+
+# If we're building from a Git repository, fetch the commit tag and put 
+#   it into $(COMMON_DIR)/git_hash.h.
+# If not, that should mean that we're building from a tarball.  In that 
+#  case, $(COMMON_DIR)/git_hash.h should already be there.
+hash:
+ifneq ($(and $(wildcard .git),$(shell which git)),)
+	@echo "Creating $(COMMON_DIR)/git_hash.h"
+	@echo "#define GIT_HASH \"$$(git rev-parse HEAD)\"" > $(COMMON_DIR)/git_hash.h
+	@echo "#define GIT_TAG \"$$(git describe --tags)\"" >> $(COMMON_DIR)/git_hash.h
+	@echo "#define GIT_BRANCH \"$$(git rev-parse --abbrev-ref HEAD)\"" >> $(COMMON_DIR)/git_hash.h
+else
+  ifneq ($(wildcard $(COMMON_DIR)/git_hash.h),)
+	@echo "Found $(COMMON_DIR)/git_hash.h"
+  else
+	$(error $(COMMON_DIR)/git_hash.h is missing!.)
+  endif
+endif
 
 help:
 	@echo
@@ -313,4 +335,3 @@ help:
 	@echo "    distclean"
 	@echo "    dist"
 	@echo
-

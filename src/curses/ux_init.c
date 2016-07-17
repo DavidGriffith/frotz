@@ -61,9 +61,9 @@ Syntax: frotz [options] story-file\n\
   -f # foreground color         \t -S # transcript width\n\
   -F   Force color mode         \t -t   set Tandy bit\n\
   -h # screen height            \t -u # slots for multiple undo\n\
-  -i   ignore fatal errors      \t -w # screen width\n\
-  -l # left margin              \t -x   expand abbreviations g/x/z\n\
-  -o   watch object movement"
+  -i   ignore fatal errors      \t -v   print version information\n\
+  -l # left margin              \t -w # screen width\n\
+  -o   watch object movement    \t -x   expand abbreviations g/x/z"
 
 /*
 char stripped_story_name[FILENAME_MAX+1];
@@ -75,6 +75,7 @@ static int zoptind = 1;
 static int zoptopt = 0;
 static char *zoptarg = NULL;
 
+static void	print_version(void);
 static int	getconfig(char *);
 static int	getbool(char *);
 static int	getcolor(char *);
@@ -230,7 +231,7 @@ void os_process_arguments (int argc, char *argv[])
 
     /* Parse the options */
     do {
-	c = zgetopt(argc, argv, "aAb:c:def:Fh:il:oOpPqr:s:S:tu:w:xZ:");
+	c = zgetopt(argc, argv, "aAb:c:def:Fh:il:oOpPqr:s:S:tu:vw:xZ:");
 	switch(c) {
 	  case 'a': f_setup.attribute_assignment = 1; break;
 	  case 'A': f_setup.attribute_testing = 1; break;
@@ -268,6 +269,7 @@ void os_process_arguments (int argc, char *argv[])
 	  case 'S': f_setup.script_cols = atoi(zoptarg); break;
 	  case 't': u_setup.tandy_bit = 1; break;
 	  case 'u': f_setup.undo_slots = atoi(zoptarg); break;
+	  case 'v': print_version(); exit(2); break;
 	  case 'w': u_setup.screen_width = atoi(zoptarg); break;
 	  case 'x': f_setup.expand_abbreviations = 1; break;
 	  case 'Z': f_setup.err_report_mode = atoi(zoptarg);
@@ -280,10 +282,12 @@ void os_process_arguments (int argc, char *argv[])
     } while (c != EOF);
 
     if (zoptind != argc - 1) {
-	printf("FROTZ V%s\t", VERSION);
+	printf("FROTZ V%s\t", GIT_TAG);
 
 #ifndef NO_SOUND
 	printf("Audio output enabled.");
+#else
+	printf("Audio output disabled.");
 #endif
 	putchar('\n');
 
@@ -1036,3 +1040,22 @@ error:
     fputc ('\n', stderr);
     return '?';
 }/* zgetopt */
+
+
+static void print_version(void)
+{
+    printf("FROTZ V%s\t", VERSION);
+#ifndef NO_SOUND
+        printf("Audio output enabled.");
+#else
+	printf("Audio output disabled.");
+#endif
+    printf("\nGit commit:\t%s\n", GIT_HASH);
+    printf("Git tag:\t%s\n", GIT_TAG);
+    printf("Git branch:\t%s\n", GIT_BRANCH);
+    printf("  Frotz was originally written by Stefan Jokisch\n");
+    printf("  It was ported to Unix by Galen Hazelwood.\n");
+    printf("  The core and Unix port are currently maintained by David Griffith.\n");
+    printf("  See https://github.com/DavidGriffith/frotz for Frotz's homepage\n\n");
+    return;
+}

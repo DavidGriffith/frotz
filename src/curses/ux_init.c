@@ -168,6 +168,8 @@ void os_process_arguments (int argc, char *argv[])
 {
     int c;
     char *p = NULL;
+    char *blorb_ext = NULL;
+
     char *home;
     char configfile[FILENAME_MAX + 1];
 
@@ -311,8 +313,26 @@ void os_process_arguments (int argc, char *argv[])
     f_setup.story_name = strdup(basename(argv[zoptind]));
 
     /* Now strip off the extension. */
-    p = rindex(f_setup.story_name, '.');
-    *p = 0;
+    p = strrchr(f_setup.story_name, '.');
+    if ((p != NULL) &&
+        ((strcmp(p,EXT_BLORB2) == 0) ||
+         (strcmp(p,EXT_BLORB3) == 0) ||
+         (strcmp(p,EXT_BLORB4) == 0) ) ) {
+        blorb_ext = strdup(p);
+    }
+    else
+	blorb_ext = strdup(EXT_BLORB);
+
+
+    /* Get rid of extensions with 1 to 6 character extensions. */
+    /* This will take care of an extension like ".zblorb". */
+    /* More than that, there might be something weird going on */
+    /* which is not our concern. */
+    if (p != NULL) {
+	if (strlen(p) >= 2 && strlen(p) <= 7) {
+	    *p = '\0';      /* extension removed */
+	}
+    }
 
     f_setup.story_path = strdup(dirname(argv[zoptind]));
 

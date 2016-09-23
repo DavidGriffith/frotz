@@ -88,7 +88,7 @@ bb_err_t ux_blorb_init(char *filename)
         blorb_fp = fopen(filename, "rb");
     } else {
 	len1 = strlen(filename) + strlen(EXT_BLORB);
-	len2 = strlen(filename) + strlen(EXT_BLORBLONG);
+	len2 = strlen(filename) + strlen(EXT_BLORB3);
 
 	mystring = malloc(len2 * sizeof(char) + 1);
         strncat(mystring, filename, len1 * sizeof(char));
@@ -105,7 +105,7 @@ bb_err_t ux_blorb_init(char *filename)
         if ((blorb_fp = fopen(mystring, "rb")) == NULL) {
 	    p = rindex(mystring, '.');
 	    *p = '\0';
-            strncat(mystring, EXT_BLORBLONG, len2 * sizeof(char));
+            strncat(mystring, EXT_BLORB3, len2 * sizeof(char));
 	    blorb_fp = fopen(mystring, "rb");
 	}
 

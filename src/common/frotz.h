@@ -100,7 +100,7 @@ typedef struct {
 #define MAX_FILE_NAME 80
 #endif
 #ifndef TEXT_BUFFER_SIZE
-#define TEXT_BUFFER_SIZE 200
+#define TEXT_BUFFER_SIZE 275
 #endif
 #ifndef INPUT_BUFFER_SIZE
 #define INPUT_BUFFER_SIZE 200

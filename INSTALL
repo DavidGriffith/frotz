@@ -17,10 +17,11 @@ run Frotz:
   * A reasonably good SYSV derived curses library (ncurses is best)
 
 For sound support, a few more things are necessary:
-  * libao      (1.1.0 or higher)
-  * libsndfile (1.0.25 or higher)
-  * libmodplug (0.8.8.4 or higher)
-  * libvorbis  (1.3.2 or higher)
+  * libao         (1.1.0 or higher)
+  * libmodplug    (0.8.8.4 or higher)
+  * libsamplerate (0.1.8 or higher)
+  * libsndfile    (1.0.25 or higher)
+  * libvorbis     (1.3.2 or higher)
 Earlier versions of these libraries might work, but are untested.
 
 Frotz can be compiled without curses, leaving you with a dumb-mode 

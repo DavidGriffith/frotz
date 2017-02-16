@@ -72,6 +72,7 @@ static bool plain_ascii = FALSE;
 void os_process_arguments(int argc, char *argv[])
 {
     int c;
+    char *p = NULL;
 
     do_more_prompts = TRUE;
     /* Parse the options */
@@ -114,17 +115,26 @@ void os_process_arguments(int argc, char *argv[])
 	printf("While running, enter \"\\help\" to list the runtime escape sequences\n\n");
 	exit(1);
     }
-/*
-    if (((argc - zoptind) != 1) && ((argc - zoptind) != 2)) {
-	puts(usage);
-	exit(1);
-    }
-*/
-    f_setup.story_file = argv[zoptind++];
-    if (zoptind < argc)
-	graphics_filename = argv[zoptind++];
 
-    f_setup.save_name = malloc(FILENAME_MAX);
+    /* Create nice default file names */
+
+    f_setup.story_file = strdup(argv[zoptind++]);
+    if (zoptind < argc)
+	graphics_filename = strdup(argv[zoptind++]);
+
+    f_setup.story_name = strdup(basename(f_setup.story_file));
+
+    /* Now strip off the extension */
+    p = strrchr(f_setup.story_name, '.');
+    *p = '\0';	/* extension removed */
+
+    f_setup.save_name = malloc(strlen(f_setup.story_name) * sizeof(char) + 5);
+    strncpy(f_setup.save_name, f_setup.story_name, strlen(f_setup.story_name));
+    strncat(f_setup.save_name, EXT_SAVE, strlen(EXT_SAVE));
+
+    f_setup.script_name = malloc(strlen(f_setup.story_name) * sizeof(char) + 5);
+    strncpy(f_setup.script_name, f_setup.story_name, strlen(f_setup.story_name));
+    strncat(f_setup.script_name, EXT_SCRIPT, strlen(EXT_SCRIPT));
 }
 
 void os_init_screen(void)
@@ -213,4 +223,21 @@ void os_init_setup(void)
 	f_setup.err_report_mode = ERR_DEFAULT_REPORT_MODE;
 	f_setup.restore_mode = 0;
 
+}
+
+
+char *my_strdup(char *src)
+{
+	char *str;
+	char *p;
+	int len = 0;
+
+	while (src[len])
+		len++;
+	str = malloc(len + 1);
+	p = str;
+	while (*src)
+        *p++ = *src++;
+	*p = '\0';
+	return str;
 }

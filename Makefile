@@ -292,6 +292,7 @@ dist: distclean hash
 clean:
 	rm -f $(SRCDIR)/*.h $(SRCDIR)/*.a
 	rm -f $(COMMON_DIR)/defines.h
+	rm -f $(COMMON_DIR)/git_hash.h
 	rm -f $(CURSES_DIR)/curses_defines.h
 	find . -name *.o -exec rm -f {} \;
 	find . -name *.O -exec rm -f {} \;

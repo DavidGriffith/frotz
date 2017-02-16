@@ -16,6 +16,9 @@
 #ifndef __UNIX_PORT_FILE
 #include <signal.h>
 typedef int bool;
+#endif /* __UNIX_PORT_FILE */
+
+#include <stdio.h>
 
 #ifndef TRUE
 #define TRUE 1
@@ -24,12 +27,6 @@ typedef int bool;
 #ifndef FALSE
 #define FALSE 0
 #endif
-
-#endif /* __UNIX_PORT_FILE */
-
-
-#include <stdio.h>
-
 
 /* typedef unsigned short zbyte; */
 typedef unsigned char zbyte;

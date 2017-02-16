@@ -390,11 +390,19 @@ int os_read_file_name (char *file_name, const char *default_name, int flag)
   char buf[INPUT_BUFFER_SIZE], prompt[INPUT_BUFFER_SIZE];
   FILE *fp;
 
-  sprintf(prompt, "Please enter a filename [%s]: ", default_name);
-  dumb_read_misc_line(buf, prompt);
-  if (strlen(buf) > MAX_FILE_NAME) {
-    printf("Filename too long\n");
-    return FALSE;
+  /* If we're restoring a game before the interpreter starts,
+   * our filename is already provided.  Just go ahead silently.
+   */
+  if (f_setup.restore_mode) {
+    strcpy(file_name, default_name);
+    return TRUE;
+  } else {
+    sprintf(prompt, "Please enter a filename [%s]: ", default_name);
+    dumb_read_misc_line(buf, prompt);
+    if (strlen(buf) > MAX_FILE_NAME) {
+      printf("Filename too long\n");
+      return FALSE;
+    }
   }
 
   strcpy (file_name, buf[0] ? buf : default_name);

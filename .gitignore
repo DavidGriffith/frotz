@@ -2,5 +2,5 @@ frotz
 dfrotz
 *.o
 *.a
-defines.h
-git_hash.h
+src/*/defines.h
+src/common/git_hash.h

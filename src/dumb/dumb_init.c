@@ -9,6 +9,8 @@
 
 f_setup_t f_setup;
 
+static char *my_strdup(char *);
+
 #define INFORMATION "\
 An interpreter for all Infocom and other Z-Machine games.\n\
 Complies with standard 1.0 of Graham Nelson's specification.\n\
@@ -118,11 +120,11 @@ void os_process_arguments(int argc, char *argv[])
 
     /* Create nice default file names */
 
-    f_setup.story_file = strdup(argv[zoptind++]);
+    f_setup.story_file = my_strdup(argv[zoptind++]);
     if (zoptind < argc)
-	graphics_filename = strdup(argv[zoptind++]);
+	graphics_filename = my_strdup(argv[zoptind++]);
 
-    f_setup.story_name = strdup(basename(f_setup.story_file));
+    f_setup.story_name = my_strdup(basename(f_setup.story_file));
 
     /* Now strip off the extension */
     p = strrchr(f_setup.story_name, '.');

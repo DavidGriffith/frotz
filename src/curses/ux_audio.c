@@ -344,20 +344,11 @@ static void *mixer(void * UNUSED(arg))
 
     while (1) {
         if(music_playing) {
-            FILE *f= fopen("log_file.txt", "a+");
-            fprintf(f, "MUSIC WAIT\n");
-            fclose(f);
             sem_wait(&music_buffer.full);          /* Wait until output buffer is full */
         }
         if(bleep_playing ) {
-            FILE *f= fopen("log_file.txt", "a+");
-            fprintf(f, "BLEEP WAIT\n");
-            fclose(f);
             sem_wait(&bleep_buffer.full);          /* Wait until output buffer is full */
         }
-        FILE *f= fopen("log_file.txt", "a+");
-        fprintf(f, "Loop...\n");
-        fclose(f);
 
         pthread_mutex_lock(&mutex);     /* Acquire mutex */
 
@@ -369,29 +360,18 @@ static void *mixer(void * UNUSED(arg))
         }
 
         if (bleep_playing && !music_playing) {
-            FILE *f= fopen("log_file.txt", "a+");
-            fprintf(f, "BLEEP: %d\n", bleep_buffer.nsamples);
-            fclose(f);
             floattopcm16(shortbuffer, bleep_buffer.samples, bleep_buffer.nsamples);
             ao_play(device, (char *) shortbuffer, bleep_buffer.nsamples * sizeof(short));
             bleep_buffer.nsamples = 0;
         }
 
         if (music_playing && !bleep_playing) {
-            FILE *f= fopen("log_file.txt", "a+");
-            fprintf(f, "MUSIC: %d\n", music_buffer.nsamples);
-            fclose(f);
             floattopcm16(shortbuffer, music_buffer.samples, music_buffer.nsamples);
             ao_play(device, (char *) shortbuffer, music_buffer.nsamples * sizeof(short));
             music_buffer.nsamples = 0;
         }
 
         if (music_playing && bleep_playing) {
-            {
-            FILE *f= fopen("log_file.txt", "a+");
-            fprintf(f, "COMBO [start]: %d vs %d\n", music_buffer.nsamples, bleep_buffer.nsamples);
-            fclose(f);
-            }
             int samples = 100000;
             if(bleep_buffer.nsamples == -1)
                 bleep_buffer.nsamples = 0;
@@ -425,13 +405,6 @@ static void *mixer(void * UNUSED(arg))
                 music_buffer.nsamples -= samples;
 
 
-            {
-            FILE *f= fopen("log_file.txt", "a+");
-            fprintf(f, "COMBO [end]: %d vs %d\n", music_buffer.nsamples, bleep_buffer.nsamples);
-            fclose(f);
-            }
-
-
             samplecount = samples;
             floattopcm16(shortbuffer, outbuf, samples);
             ao_play(device, (char *) shortbuffer, samplecount * sizeof(short));
@@ -446,16 +419,10 @@ static void *mixer(void * UNUSED(arg))
         pthread_mutex_unlock(&mutex);   /* release the mutex lock */
 
         if(bleep_buffer.nsamples) {
-            FILE *f= fopen("log_file.txt", "a+");
-            fprintf(f, "BLEEP STILL FULL\n", music_buffer.nsamples, bleep_buffer.nsamples);
-            fclose(f);
             sem_post(&bleep_buffer.full);
         }
         if(music_buffer.nsamples) {
             sem_post(&music_buffer.full);
-            FILE *f= fopen("log_file.txt", "a+");
-            fprintf(f, "MUSIC STILL FULL\n", music_buffer.nsamples, bleep_buffer.nsamples);
-            fclose(f);
         }
 
         int tmp;
@@ -463,17 +430,11 @@ static void *mixer(void * UNUSED(arg))
 
         if(bleep_buffer.nsamples <= 0 && tmp == 0) {
             sem_post(&bleep_buffer.empty);         /* signal empty */
-            FILE *f= fopen("log_file.txt", "a+");
-            fprintf(f, "BLEEP POST\n", music_buffer.nsamples, bleep_buffer.nsamples);
-            fclose(f);
         }
 
         sem_getvalue(&music_buffer.empty, &tmp);
         if(music_buffer.nsamples <= 0 && tmp == 0) {
             sem_post(&music_buffer.empty);         /* signal empty */
-            FILE *f= fopen("log_file.txt", "a+");
-            fprintf(f, "MUSIC POST\n", music_buffer.nsamples, bleep_buffer.nsamples);
-            fclose(f);
         }
     }
 } /* mixer */
@@ -632,9 +593,6 @@ void *playaiff(EFFECT *raw_effect)
         }
 
         bleep_buffer.nsamples = src_data.output_frames_gen * 2;
-        FILE *f= fopen("log_file.txt", "a+");
-        fprintf(f, "Computed BLEEP: %d\n", bleep_buffer.nsamples);
-        fclose(f);
 
         /* Stereoize monaural sound-effects. */
         if (sf_info.channels == 1) {
@@ -777,9 +735,6 @@ static void *playmod(EFFECT *raw_effect)
             break;
         }
         music_buffer.nsamples = ModPlug_Read(mod, shortbuffer, BUFFSIZE) / 2;
-        FILE *f= fopen("log_file.txt", "a+");
-        fprintf(f, "Computed Mod: %d\n", bleep_buffer.nsamples);
-        fclose(f);
         pcm16tofloat(music_buffer.samples, shortbuffer, music_buffer.nsamples);
         if (music_buffer.nsamples == 0) break;
         pthread_mutex_unlock(&mutex);
@@ -898,9 +853,6 @@ static void *playogg(EFFECT *raw_effect)
     if(music_buffer.nsamples == -1)
         music_buffer.nsamples  = 0;
     //perform mix down
-    FILE *f= fopen("log_file.txt", "a+");
-    fprintf(f, "Computed ogg: %d\n", music_buffer.nsamples);
-    fclose(f);
     count += frames_read;
 
 	pthread_mutex_unlock(&mutex);

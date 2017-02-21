@@ -4,7 +4,7 @@
 CC = gcc
 
 # Enable compiler warnings. This is an absolute minimum.
-CFLAGS += -Wall -Wextra -I./src/common/ -DCONFIG_DIR='"etc"' -DGIT_TAG="xxx" -DBUFFSIZE=128 -DSAMPLERATE=48000 -std=gnu99
+CFLAGS += -Wall -Wextra -std=gnu99
 
 # Define your optimization flags.
 #
@@ -150,7 +150,7 @@ SOUND_LIB = -lao -ldl -lpthread -lm -lsndfile -lvorbisfile -lmodplug -lsamplerat
 
 .PHONY: all help dist clean distclean install install_dumb uninstall uninstall_dumb hash
 
-$(NAME): hash $(COMMON_DIR)/defines.h $(CURSES_DIR)/curses_defines.h $(COMMON_TARGET) $(CURSES_TARGET) $(BLORB_TARGET)
+$(NAME): hash $(COMMON_DIR)/defines.h $(CURSES_DIR)/defines.h $(COMMON_TARGET) $(CURSES_TARGET) $(BLORB_TARGET)
 ifeq ($(SOUND), ao)
 	$(CC) -o $(BINNAME)$(EXTENSION) $(TARGETS) $(LIB) $(CURSES) $(SOUND_LIB)
 else ifeq ($(SOUND), none)
@@ -191,7 +191,7 @@ $(COMMON_DIR)/defines.h:
 	@echo "Generating $@"
 	@echo "#define VERSION \"$(VERSION)\"" > $@
 
-$(CURSES_DIR)/curses_defines.h:
+$(CURSES_DIR)/defines.h:
 	@echo "Generating $@"
 	@echo "#define CONFIG_DIR \"$(CONFIG_DIR)\"" >> $@
 	@echo "#define SOUND \"$(SOUND)\"" >> $@
@@ -293,7 +293,7 @@ clean:
 	rm -f $(SRCDIR)/*.h $(SRCDIR)/*.a
 	rm -f $(COMMON_DIR)/defines.h
 	rm -f $(COMMON_DIR)/git_hash.h
-	rm -f $(CURSES_DIR)/curses_defines.h
+	rm -f $(CURSES_DIR)/defines.h
 	find . -name *.o -exec rm -f {} \;
 	find . -name *.O -exec rm -f {} \;
 

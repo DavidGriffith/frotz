@@ -4,7 +4,7 @@
 CC = gcc
 
 # Enable compiler warnings. This is an absolute minimum.
-CFLAGS += -Wall -Wextra
+CFLAGS += -Wall -Wextra -I./src/common/ -DCONFIG_DIR='"etc"' -DGIT_TAG="xxx" -DBUFFSIZE=128 -DSAMPLERATE=48000 -std=gnu99
 
 # Define your optimization flags.
 #
@@ -73,7 +73,7 @@ CURSES = -lncurses
 SAMPLERATE = 44100
 
 # Audio buffer size in frames
-BUFFSIZE = 512
+BUFFSIZE = 4096
 
 # Default sample rate converter type
 DEFAULT_CONVERTER = SRC_SINC_MEDIUM_QUALITY

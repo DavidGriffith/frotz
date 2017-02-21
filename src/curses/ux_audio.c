@@ -498,7 +498,7 @@ void *playaiff(EFFECT *raw_effect)
     memset(bleepbuffer, 0, BUFFSIZE * sizeof(float) * 2);
 
     /* Set up for conversion */
-    if ((src_state = src_new(DEFAULT_CONVERTER, sf_info.channels, &error)) == NULL) {
+    if ((src_state = src_new(SRC_SINC_FASTEST, sf_info.channels, &error)) == NULL) {
 	printf("Error: src_new() failed: %s.\n", src_strerror(error));
 	exit(1);
     }

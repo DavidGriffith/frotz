@@ -377,11 +377,15 @@ static void *mixer(void * UNUSED(arg))
                 bleep_buffer.nsamples = 0;
             if(music_buffer.nsamples == -1)
                 music_buffer.nsamples = 0;
-            if(samples > bleep_buffer.nsamples && bleep_buffer.nsamples > 0);
+            if(samples > bleep_buffer.nsamples && bleep_buffer.nsamples > 0)
                 samples = bleep_buffer.nsamples;
 
             if(samples > music_buffer.nsamples && music_buffer.nsamples > 0)
                 samples = music_buffer.nsamples;
+
+            //both buffers have invalid sample data or are empty
+            if(samples == 100000)
+                samples = 0;
 
             float *outbuf = calloc(samples+1,sizeof(float));
             for(int i=0; i < samples; ++i)

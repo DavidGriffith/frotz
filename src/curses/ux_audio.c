@@ -82,24 +82,37 @@ static pthread_t	mixer_id;
 static pthread_t	playaiff_id;
 static pthread_t	playmusic_id;
 static pthread_mutex_t	mutex;
-static sem_t		audio_full;
-static sem_t		audio_empty;
 static sem_t		playaiff_okay;
 static sem_t		playmusic_okay;
 
 bool    bleep_playing = FALSE;
 bool	bleep_stop = FALSE;
 
-float	*bleepbuffer;
-int	bleepsamples;
 int	bleepcount;
 int	bleepnum;
 
 bool    music_playing = FALSE;
 bool	music_stop = FALSE;
 
-float	*musicbuffer;
-int	musicsamples;
+typedef struct
+{
+    sem_t   full;
+    sem_t   empty;
+    float  *samples;
+    int     nsamples;
+} audiobuffer;
+
+audiobuffer bleep_buffer;
+audiobuffer music_buffer;
+
+void audiobuffer_init(audiobuffer *ab)
+{
+    sem_init(&ab->full, 0, 0);
+    sem_init(&ab->empty, 0, 0);
+    sem_post(&ab->empty);
+    ab->samples = malloc(BUFFSIZE * 2 * sizeof(float));
+    ab->nsamples = 0;
+}
 
 
 /*
@@ -115,22 +128,10 @@ void os_init_sound(void)
     static pthread_attr_t attr;
 
     pthread_mutex_init(&mutex, NULL);
-    sem_init(&audio_empty, 0, 1);
-    sem_init(&audio_full, 0, 0);
+    audiobuffer_init(&music_buffer);
+    audiobuffer_init(&bleep_buffer);
     sem_init(&playaiff_okay, 0, 0);
     sem_init(&playmusic_okay, 0, 0);
-
-    musicbuffer = malloc(BUFFSIZE * 2 * sizeof(float));
-    if (musicbuffer == NULL) {
-	printf("Unable to malloc musicbuffer\n");
-	exit(1);
-    }
-
-    bleepbuffer = malloc(BUFFSIZE * 2 * sizeof(float));
-    if (bleepbuffer == NULL) {
-	printf("Unable to malloc bleepbuffer\n");
-	exit(1);
-    }
 
     pthread_attr_init(&attr);
     pthread_attr_setdetachstate(&attr, PTHREAD_CREATE_DETACHED);
@@ -255,13 +256,15 @@ void os_start_sample (int number, int volume, int repeats, zword eos)
 void os_stop_sample (int number)
 {
     if (bleep_playing && (number == bleepnum || number == 0)) {
-	bleep_playing = FALSE;
-	while(pthread_kill(playaiff_id, 0) == 0);
+        bleep_playing = FALSE;
+        sem_post(&bleep_buffer.empty);
+        pthread_join(playaiff_id, 0);
     }
 
     if (get_music_playing() && (number == get_musicnum () || number == 0)) {
-	set_music_playing(false);
-	while(pthread_kill(playmusic_id, 0) == 0);
+        set_music_playing(false);
+        sem_post(&music_buffer.empty);
+        pthread_join(playmusic_id, 0);
     }
 
     return;
@@ -326,8 +329,8 @@ static void *mixer(void * UNUSED(arg))
 
     shortbuffer = malloc(BUFFSIZE * sizeof(short) * 2);
     if (shortbuffer == NULL) {
-	printf("Unable to malloc shortbuffer\n");
-	exit(1);
+        printf("Unable to malloc shortbuffer\n");
+        exit(1);
     }
 
     memset(&format, 0, sizeof(ao_sample_format));
@@ -340,42 +343,103 @@ static void *mixer(void * UNUSED(arg))
     device = NULL;
 
     while (1) {
-        sem_wait(&audio_full);          /* Wait until output buffer is full */
+        if(music_playing) {
+            sem_wait(&music_buffer.full);          /* Wait until output buffer is full */
+        }
+        if(bleep_playing ) {
+            sem_wait(&bleep_buffer.full);          /* Wait until output buffer is full */
+        }
+
         pthread_mutex_lock(&mutex);     /* Acquire mutex */
 
-	if (device == NULL) {
-	    device = ao_open_live(default_driver, &format, NULL);
-	    if (device == NULL) {
-	        printf(" Error opening sound device.\n");
-	    }
-	}
+        if (device == NULL) {
+            device = ao_open_live(default_driver, &format, NULL);
+            if (device == NULL) {
+                printf(" Error opening sound device.\n");
+            }
+        }
 
-	if (bleep_playing && !music_playing) {
-	    floattopcm16(shortbuffer, bleepbuffer, bleepsamples);
-            ao_play(device, (char *) shortbuffer, bleepsamples * sizeof(short));
-	}
+        if (bleep_playing && !music_playing) {
+            floattopcm16(shortbuffer, bleep_buffer.samples, bleep_buffer.nsamples);
+            ao_play(device, (char *) shortbuffer, bleep_buffer.nsamples * sizeof(short));
+            bleep_buffer.nsamples = 0;
+        }
 
-	if (music_playing && !bleep_playing) {
-	    floattopcm16(shortbuffer, musicbuffer, musicsamples);
-            ao_play(device, (char *) shortbuffer, musicsamples * sizeof(short));
-	}
+        if (music_playing && !bleep_playing) {
+            floattopcm16(shortbuffer, music_buffer.samples, music_buffer.nsamples);
+            ao_play(device, (char *) shortbuffer, music_buffer.nsamples * sizeof(short));
+            music_buffer.nsamples = 0;
+        }
 
-	if (music_playing && bleep_playing) {
-	    for (i = 0; i < BUFFSIZE; i++) {
-		bleepbuffer[i] += musicbuffer[i];
-	    }
-	    samplecount = musicsamples > bleepsamples ? musicsamples : bleepsamples;
-	    floattopcm16(shortbuffer, bleepbuffer, samplecount);
-	    ao_play(device, (char *) shortbuffer, samplecount * sizeof(short));
-	}
+        if (music_playing && bleep_playing) {
+            int samples = 100000;
+            if(bleep_buffer.nsamples == -1)
+                bleep_buffer.nsamples = 0;
+            if(music_buffer.nsamples == -1)
+                music_buffer.nsamples = 0;
+            if(samples > bleep_buffer.nsamples && bleep_buffer.nsamples > 0)
+                samples = bleep_buffer.nsamples;
 
-	if (!bleep_playing && !music_playing) {
-	    ao_close(device);
-	    device = NULL;
-	}
+            if(samples > music_buffer.nsamples && music_buffer.nsamples > 0)
+                samples = music_buffer.nsamples;
+
+            //both buffers have invalid sample data or are empty
+            if(samples == 100000)
+                samples = 0;
+
+            float *outbuf = calloc(samples+1,sizeof(float));
+            for(int i=0; i < samples; ++i)
+                outbuf[i] += music_buffer.samples[i];
+            for(int i=0; i < samples; ++i)
+                outbuf[i] += bleep_buffer.samples[i];
+
+            //only partially consume data
+            if(bleep_buffer.nsamples > samples) {
+                memmove(bleep_buffer.samples, bleep_buffer.samples+samples,
+                        sizeof(float)*(bleep_buffer.nsamples-samples));
+            }
+            if(bleep_buffer.nsamples > 0)
+                bleep_buffer.nsamples -= samples;
+
+            if(music_buffer.nsamples > samples) {
+                memmove(music_buffer.samples, music_buffer.samples+samples,
+                        sizeof(float)*(music_buffer.nsamples-samples));
+            }
+            if(music_buffer.nsamples > 0)
+                music_buffer.nsamples -= samples;
+
+
+            samplecount = samples;
+            floattopcm16(shortbuffer, outbuf, samples);
+            ao_play(device, (char *) shortbuffer, samplecount * sizeof(short));
+            free(outbuf);
+        }
+
+        if (!bleep_playing && !music_playing) {
+            ao_close(device);
+            device = NULL;
+        }
 
         pthread_mutex_unlock(&mutex);   /* release the mutex lock */
-        sem_post(&audio_empty);         /* signal empty */
+
+        if(bleep_buffer.nsamples) {
+            sem_post(&bleep_buffer.full);
+        }
+        if(music_buffer.nsamples) {
+            sem_post(&music_buffer.full);
+        }
+
+        int tmp;
+        sem_getvalue(&bleep_buffer.empty, &tmp);
+
+        if(bleep_buffer.nsamples <= 0 && tmp == 0) {
+            sem_post(&bleep_buffer.empty);         /* signal empty */
+        }
+
+        sem_getvalue(&music_buffer.empty, &tmp);
+        if(music_buffer.nsamples <= 0 && tmp == 0) {
+            sem_post(&music_buffer.empty);         /* signal empty */
+        }
     }
 } /* mixer */
 
@@ -495,10 +559,10 @@ void *playaiff(EFFECT *raw_effect)
 
     floatbuffer = malloc(BUFFSIZE * sf_info.channels * sizeof(float));
     floatbuffer2 = malloc(BUFFSIZE * 2 * sizeof(float));
-    memset(bleepbuffer, 0, BUFFSIZE * sizeof(float) * 2);
+    memset(bleep_buffer.samples, 0, BUFFSIZE * sizeof(float) * 2);
 
     /* Set up for conversion */
-    if ((src_state = src_new(DEFAULT_CONVERTER, sf_info.channels, &error)) == NULL) {
+    if ((src_state = src_new(SRC_SINC_FASTEST, sf_info.channels, &error)) == NULL) {
 	printf("Error: src_new() failed: %s.\n", src_strerror(error));
 	exit(1);
     }
@@ -512,56 +576,56 @@ void *playaiff(EFFECT *raw_effect)
     bleep_playing = TRUE;
 
     while (1) {
-	/* Check if we're being told to stop. */
-	if (!bleep_playing) break;
-	sem_wait(&audio_empty);
-	pthread_mutex_lock(&mutex);
+        /* Check if we're being told to stop. */
+        if (!bleep_playing) break;
+        sem_wait(&bleep_buffer.empty);
+        pthread_mutex_lock(&mutex);
 
-	/* If floatbuffer is empty, refill it. */
-	if (src_data.input_frames == 0) {
-	    src_data.input_frames = sf_readf_float(sndfile, floatbuffer, BUFFSIZE / sf_info.channels);
-	    src_data.data_in = floatbuffer;
-	    /* Mark end of input. */
-	    if (src_data.input_frames < BUFFSIZE / sf_info.channels)
-		src_data.end_of_input = SF_TRUE;
-	}
+        /* If floatbuffer is empty, refill it. */
+        if (src_data.input_frames == 0) {
+            src_data.input_frames = sf_readf_float(sndfile, floatbuffer, BUFFSIZE / sf_info.channels);
+            src_data.data_in = floatbuffer;
+            /* Mark end of input. */
+            if (src_data.input_frames < BUFFSIZE / sf_info.channels)
+                src_data.end_of_input = SF_TRUE;
+        }
 
-	/* Do the sample rate conversion. */
-	if ((error = src_process(src_state, &src_data))) {
-	    printf("Error: %s\n", src_strerror(error));
-	    exit(1);
-	}
+        /* Do the sample rate conversion. */
+        if ((error = src_process(src_state, &src_data))) {
+            printf("Error: %s\n", src_strerror(error));
+            exit(1);
+        }
 
-	bleepsamples = src_data.output_frames_gen * 2;
+        bleep_buffer.nsamples = src_data.output_frames_gen * 2;
 
-	/* Stereoize monaural sound-effects. */
-	if (sf_info.channels == 1) {
-	    /* Remember that each monaural frame contains just one sample. */
-	    stereoize(bleepbuffer, floatbuffer2, src_data.output_frames_gen);
-	} else {
-	    /* It's already stereo.  Just copy the buffer. */
-	    memcpy(bleepbuffer, floatbuffer2, sizeof(float) * src_data.output_frames_gen * 2);
-	}
+        /* Stereoize monaural sound-effects. */
+        if (sf_info.channels == 1) {
+            /* Remember that each monaural frame contains just one sample. */
+            stereoize(bleep_buffer.samples, floatbuffer2, src_data.output_frames_gen);
+        } else {
+            /* It's already stereo.  Just copy the buffer. */
+            memcpy(bleep_buffer.samples, floatbuffer2, sizeof(float) * src_data.output_frames_gen * 2);
+        }
 
-	/* Adjust volume. */
-	for (volcount = 0; volcount <= bleepsamples; volcount++)
-	    bleepbuffer[volcount] /= volfactor;
+        /* Adjust volume. */
+        for (volcount = 0; volcount <= bleep_buffer.nsamples; volcount++)
+            bleep_buffer.samples[volcount] /= volfactor;
 
-	/* If that's all, terminate and signal that we're done. */
-	if (src_data.end_of_input && src_data.output_frames_gen == 0) {
-	    sem_post(&audio_full);
-	    pthread_mutex_unlock(&mutex);
-	    break;
-	}
+        /* If that's all, terminate and signal that we're done. */
+        if (src_data.end_of_input && src_data.output_frames_gen == 0) {
+            sem_post(&bleep_buffer.full);
+            pthread_mutex_unlock(&mutex);
+            break;
+        }
 
-	/* Get ready for the next chunk. */
+        /* Get ready for the next chunk. */
         output_count += src_data.output_frames_gen;
         src_data.data_in += src_data.input_frames_used * sf_info.channels;
         src_data.input_frames -= src_data.input_frames_used;
 
-	/* By this time, the buffer is full.  Signal the mixer to play it. */
-	pthread_mutex_unlock(&mutex);
-	sem_post(&audio_full);
+        /* By this time, the buffer is full.  Signal the mixer to play it. */
+        pthread_mutex_unlock(&mutex);
+        sem_post(&bleep_buffer.full);
     }
 
     /* The two ways to exit the above loop are to process all the
@@ -570,12 +634,12 @@ void *playaiff(EFFECT *raw_effect)
      */
 
     bleep_playing = FALSE;
-    memset(bleepbuffer, 0, BUFFSIZE * sizeof(float) * 2);
+    memset(bleep_buffer.samples, 0, BUFFSIZE * sizeof(float) * 2);
 
-//    fseek(myeffect.fp, filestart, SEEK_SET);
+    //    fseek(myeffect.fp, filestart, SEEK_SET);
 
-//    pthread_mutex_unlock(&mutex);
-//    sem_post(&audio_empty);
+    //    pthread_mutex_unlock(&mutex);
+    //    sem_post(&audio_empty);
 
     sf_close(sndfile);
     free(floatbuffer);
@@ -655,8 +719,8 @@ static void *playmod(EFFECT *raw_effect)
     mod = ModPlug_Load(filedata, size);
     fseek(myeffect.fp, filestart, SEEK_SET);
     if (!mod) {
-	printf("Unable to load MOD chunk.\n\r");
-	return 0;
+        printf("Unable to load MOD chunk.\n\r");
+        return 0;
     }
 
     if (myeffect.vol < 1) myeffect.vol = 1;
@@ -668,24 +732,24 @@ static void *playmod(EFFECT *raw_effect)
     music_playing = TRUE;
 
     while (1) {
-	sem_wait(&audio_empty);
-	pthread_mutex_lock(&mutex);
-	memset(musicbuffer, 0, BUFFSIZE * sizeof(float) * 2);
-	if (!music_playing) {
-	    break;
-	}
-	musicsamples = ModPlug_Read(mod, shortbuffer, BUFFSIZE) / 2;
-	pcm16tofloat(musicbuffer, shortbuffer, musicsamples);
-	if (musicsamples == 0) break;
-	pthread_mutex_unlock(&mutex);
-	sem_post(&audio_full);
+        sem_wait(&music_buffer.empty);
+        pthread_mutex_lock(&mutex);
+        memset(music_buffer.samples, 0, BUFFSIZE * sizeof(float) * 2);
+        if (!music_playing) {
+            break;
+        }
+        music_buffer.nsamples = ModPlug_Read(mod, shortbuffer, BUFFSIZE) / 2;
+        pcm16tofloat(music_buffer.samples, shortbuffer, music_buffer.nsamples);
+        if (music_buffer.nsamples == 0) break;
+        pthread_mutex_unlock(&mutex);
+        sem_post(&music_buffer.full);
     }
 
     music_playing = FALSE;
-    memset(musicbuffer, 0, BUFFSIZE * sizeof(float) * 2);
+    memset(music_buffer.samples, 0, BUFFSIZE * sizeof(float) * 2);
 
     pthread_mutex_unlock(&mutex);
-    sem_post(&audio_empty);
+    sem_post(&music_buffer.empty);
 
     ModPlug_Unload(mod);
     free(shortbuffer);
@@ -777,30 +841,33 @@ static void *playogg(EFFECT *raw_effect)
     music_playing = TRUE;
 
     while (count < toread) {
-	sem_wait(&audio_empty);
+	sem_wait(&music_buffer.empty);
 	pthread_mutex_lock(&mutex);
-	memset(musicbuffer, 0, BUFFSIZE * sizeof(float) * 2);
+	memset(music_buffer.samples, 0, BUFFSIZE * sizeof(float) * 2);
 	if (!music_playing) break;
 
         frames_read = ov_read(&vf, (char *)shortbuffer, BUFFSIZE, 0,2,1,&current_section);
 
-        pcm16tofloat(musicbuffer, shortbuffer, frames_read);
+        pcm16tofloat(music_buffer.samples, shortbuffer, frames_read);
         for (volcount = 0; volcount <= frames_read / 2; volcount++) {
-            ((float *) musicbuffer)[volcount] /= volfactor;
+            ((float *) music_buffer.samples)[volcount] /= volfactor;
         }
 
-	musicsamples = frames_read / 2;
-        count += frames_read;
+	music_buffer.nsamples  = frames_read / 2;
+    if(music_buffer.nsamples == -1)
+        music_buffer.nsamples  = 0;
+    //perform mix down
+    count += frames_read;
 
 	pthread_mutex_unlock(&mutex);
-	sem_post(&audio_full);
+	sem_post(&music_buffer.full);
     }
 
 //    fseek(myeffect.fp, filestart, SEEK_SET);
     music_playing = FALSE;
 
     pthread_mutex_unlock(&mutex);
-    sem_post(&audio_empty);
+    sem_post(&music_buffer.empty);
 
     ov_clear(&vf);
 

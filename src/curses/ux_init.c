@@ -59,21 +59,21 @@ static void sigint_handler(int);
 
 #define INFORMATION "\
 An interpreter for all Infocom and other Z-Machine games.\n\
-Complies with standard 1.0 of Graham Nelson's specification.\n\
 \n\
 Syntax: frotz [options] story-file\n\
-  -a   watch attribute setting    \t -O   watch object locating\n\
-  -A   watch attribute testing    \t -p   plain ASCII output only\n\
-  -b <colorname> background color \t -P   alter piracy opcode\n\
-  -c # context lines              \t -q   quiet (disable sound effects)\n\
-  -d   disable color              \t -r # right margin\n\
-  -e   enable sound               \t -R <filename> load this save file\n\
-  -f <colorname> foreground color \t -s # random number seed value\n\
-  -F   Force color mode           \t -S # transcript width\n\
-  -h # screen height              \t -t   set Tandy bit\n\
-  -i   ignore fatal errors        \t -u # slots for multiple undo\n\
+  -a   watch attribute setting    \t -p   plain ASCII output only\n\
+  -A   watch attribute testing    \t -P   alter piracy opcode\n\
+  -b <colorname> background color \t -q   quiet (disable sound effects)\n\
+  -c # context lines              \t -r # right margin\n\
+  -d   disable color              \t -R <filename> load this save file\n\
+  -e   enable sound               \t -s # random number seed value\n\
+  -f <colorname> foreground color \t -S # transcript width\n\
+  -F   Force color mode           \t -t   set Tandy bit\n\
+  -h # screen height              \t -u # slots for multiple undo\n\
+  -i   ignore fatal errors        \t -v   show version information\n\
   -l # left margin                \t -w # screen width\n\
-  -o   watch object movement	  \t -x   expand abbreviations g/x/z\n"
+  -o   watch object movement	  \t -x   expand abbreviations g/x/z\n\
+  -O   watch object locating\n"
 
 /*
 char stripped_story_name[FILENAME_MAX+1];
@@ -245,7 +245,7 @@ void os_process_arguments (int argc, char *argv[])
 
     /* Parse the options */
     do {
-	c = zgetopt(argc, argv, "aAb:c:def:Fh:il:oOpPqrR:s:S:tu:w:xZ:");
+	c = zgetopt(argc, argv, "aAb:c:def:Fh:il:oOpPqrR:s:S:tu:vw:xZ:");
 	switch(c) {
 	  case 'a': f_setup.attribute_assignment = 1; break;
 	  case 'A': f_setup.attribute_testing = 1; break;
@@ -299,7 +299,7 @@ void os_process_arguments (int argc, char *argv[])
     } while (c != EOF);
 
     if (zoptind != argc - 1) {
-	printf("FROTZ V%s\t", GIT_TAG);
+	printf("FROTZ V%s\t", VERSION);
 
 #ifndef NO_SOUND
 	printf("Audio output enabled.");
@@ -1118,9 +1118,10 @@ static void print_version(void)
     printf("\nGit commit:\t%s\n", GIT_HASH);
     printf("Git tag:\t%s\n", GIT_TAG);
     printf("Git branch:\t%s\n", GIT_BRANCH);
-    printf("  Frotz was originally written by Stefan Jokisch\n");
+    printf("  Frotz was originally written by Stefan Jokisch.\n");
+    printf("  It complies with standard 1.0 of Graham Nelson's specification.\n");
     printf("  It was ported to Unix by Galen Hazelwood.\n");
     printf("  The core and Unix port are currently maintained by David Griffith.\n");
-    printf("  See https://github.com/DavidGriffith/frotz for Frotz's homepage\n\n");
+    printf("  See https://github.com/DavidGriffith/frotz for Frotz's homepage.\n\n");
     return;
 }

@@ -320,6 +320,7 @@ hash:
 ifneq ($(and $(wildcard .git),$(shell which git)),)
 	@echo "Creating $(COMMON_DIR)/git_hash.h"
 	@echo "#define GIT_HASH \"$$(git rev-parse HEAD)\"" > $(COMMON_DIR)/git_hash.h
+	@echo "#define GIT_HASH_SHORT \"$$(git rev-parse HEAD|head -c7 -)\"" >> $(COMMON_DIR)/git_hash.h
 	@echo "#define GIT_TAG \"$$(git describe --tags)\"" >> $(COMMON_DIR)/git_hash.h
 	@echo "#define GIT_BRANCH \"$$(git rev-parse --abbrev-ref HEAD)\"" >> $(COMMON_DIR)/git_hash.h
 else

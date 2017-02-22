@@ -1,5 +1,5 @@
 /* dumb-input.c
- * $Id: dumb-input.c,v 1.1.1.1 2002/03/26 22:38:34 feedle Exp $
+ *
  * Copyright 1997,1998 Alpine Petrofsky <alpine@petrofsky.berkeley.ca.us>.
  * Any use permitted provided this notice stays intact.
  */

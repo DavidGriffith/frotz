@@ -1,5 +1,4 @@
 /* dumb-pic.c
- * $Id: dumb-pic.c,v 1.1.1.1 2002/03/26 22:38:34 feedle Exp $
  *
  * Copyright 1997,1998 Alcibiades Petrofsky
  * <alcibiades@petrofsky.berkeley.ca.us>.

@@ -11,50 +11,42 @@
 #include "blorb.h"
 #include "blorblow.h"
 
-/* This endian stuff needs to be fixed with something from
- * http://www.ibm.com/developerworks/aix/library/au-endianc/index.html
- */
-
-#ifdef BLORB_BIG_ENDIAN
-static char contentsticker[] = "\nBlorb Library 1.0 (big-endian)\n";
-#define bb_native2(v) (v)
-#define bb_native4(v) (v)
-#endif
-
-#ifdef BLORB_LITTLE_ENDIAN
-static char contentsticker[] = "\nBlorb Library 1.0 (little-endian)\n";
-#define bb_native2(v)   \
-    ( (((uint16)(v) >> 8) & 0x00ff)    \
-    | (((uint16)(v) << 8) & 0xff00))
-#define bb_native4(v)   \
-    ( (((uint32)(v) >> 24) & 0x000000ff)    \
-    | (((uint32)(v) >>  8) & 0x0000ff00)    \
-    | (((uint32)(v) <<  8) & 0x00ff0000)   \
-    | (((uint32)(v) << 24) & 0xff000000))
-#endif
-
-#ifdef CRAPOLA
-#ifndef bb_native4
-#error "You must define either BLORB_BIG_ENDIAN"
-#error "or BLORB_LITTLE_ENDIAN in blorb.h in order"
-#error "to compile this library."
-#endif
-#endif /* CRAPOLA */
-
 static int lib_inited = FALSE;
 
 static bb_err_t bb_initialize_map(bb_map_t *map);
 static bb_err_t bb_initialize(void);
 static int sortsplot(const void *p1, const void *p2);
+static int bigendian;
+
+static uint16 bb_native2(uint16 v)
+{
+    if (bigendian) return v;
+    return ( (((uint16)(v) >> 8) & 0x00ff)
+	   | (((uint16)(v) << 8) & 0xff00));
+}
+
+static uint32 bb_native4(uint32 v)
+{
+    if (bigendian) return v;
+    return ( (((uint32)(v) >> 24) & 0x000000ff)
+	   | (((uint32)(v) >>  8) & 0x0000ff00)
+	   | (((uint32)(v) <<  8) & 0x00ff0000)
+	   | (((uint32)(v) << 24) & 0xff000000));
+}
 
 /* Do some one-time startup tests. */
 static bb_err_t bb_initialize()
 {
+    int i = 1;
+    char *p = (char *)&i;
     union {
         uint32 val;
         unsigned char ch[4];
     } test;
     uint32 val;
+
+    if (p[0] == 1) bigendian = 0;
+    else bigendian = 1;
 
     if (sizeof(uint32) != 4 || sizeof(uint16) != 2)
         return bb_err_CompileTime; /* Basic types are the wrong size. */
@@ -234,7 +226,7 @@ static bb_err_t bb_initialize_map(bb_map_t *map)
                     bb_resdesc_t *resources;
                     bb_resdesc_t **ressorted;
 
-                    if (len != numres*12+4)
+                    if (len != (unsigned int) numres*12+4)
                         return bb_err_Format; /* bad length field */
 
                     resources = (bb_resdesc_t *)malloc(numres * sizeof(bb_resdesc_t));
@@ -370,7 +362,7 @@ static bb_err_t bb_initialize_map(bb_map_t *map)
                 if (len) {
                     bb_aux_pict_t *aux = (bb_aux_pict_t *)malloc(len * sizeof(bb_aux_pict_t));
 
-                    for (jx=0; jx<len; jx++, ptr += 7) {
+                    for (jx=0; (unsigned int) jx<len; jx++, ptr += 7) {
                         bb_result_t res;
 
                         err = bb_load_resource(map, bb_method_DontLoad, &res,
@@ -411,7 +403,7 @@ static bb_err_t bb_initialize_map(bb_map_t *map)
                 if (len) {
                     bb_aux_sound_t *aux = (bb_aux_sound_t *)malloc(len * sizeof(bb_aux_sound_t));
 
-                    for (jx=0; jx<len; jx++, ptr += 2) {
+                    for (jx=0; (unsigned int) jx<len; jx++, ptr += 2) {
                         bb_result_t res;
 
                         err = bb_load_resource(map, bb_method_DontLoad, &res,

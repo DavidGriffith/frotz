@@ -1,7 +1,5 @@
 /*
  * ux_init.c - Unix interface, initialisation
- *	Galen Hazelwood <galenh@micron.net>
- *	David Griffith <dave@661.org>
  *
  * This file is part of Frotz.
  *
@@ -33,9 +31,6 @@
 #include <signal.h>
 #include <libgen.h>
 
-/* We will use our own private getopt functions. */
-#include "getopt.h"
-
 #ifdef USE_NCURSES_H
 #include <ncurses.h>
 #else
@@ -57,9 +52,9 @@ static int geterrmode(char *);
 static int getcolor(char *);
 static int getbool(char *);
 
-static void sigwinch_handler(int);
+/* static void sigwinch_handler(int); */
 static void sigint_handler(int);
-static void redraw(void);
+/* static void redraw(void); */
 
 
 #define INFORMATION "\
@@ -85,28 +80,62 @@ char stripped_story_name[FILENAME_MAX+1];
 char semi_stripped_story_name[FILENAME_MAX+1];
 */
 
+static int zgetopt (int, char **, const char *);
+static int zoptind = 1;
+static int zoptopt = 0;
+static char *zoptarg = NULL;
+
+static void	print_version(void);
+static int	getconfig(char *);
+static int	getbool(char *);
+static int	getcolor(char *);
+static int	geterrmode(char *);
+/* static void	redraw(void); */
+/* static FILE	*pathopen(const char *, const char *, const char *, char *); */
+
+
+/*
+ * os_warn
+ *
+ * Display a warning message and continue with the game.
+ *
+ */
+void os_warn (const char *s, ...)
+{
+    if (u_setup.curses_active) {
+	/* Solaris 2.6's cc complains if the below cast is missing */
+	os_display_string((zchar *)"\n\n");
+	os_beep(BEEP_HIGH);
+	os_set_text_style(BOLDFACE_STYLE);
+	os_display_string((zchar *)"Warning: ");
+	os_set_text_style(0);
+	os_display_string((zchar *)s);
+	os_display_string((zchar *)"\n");
+	new_line();
+    }
+}/* os_warn */
+
 /*
  * os_fatal
  *
  * Display error message and exit program.
  *
  */
-
 void os_fatal (const char *s, ...)
 {
-
     if (u_setup.curses_active) {
-      /* Solaris 2.6's cc complains if the below cast is missing */
-      os_display_string((zchar *)"\n\n");
-      os_beep(BEEP_HIGH);
-      os_set_text_style(BOLDFACE_STYLE);
-      os_display_string((zchar *)"Fatal error: ");
-      os_set_text_style(0);
-      os_display_string((zchar *)s);
-      os_display_string((zchar *)"\n");
-      new_line();
-      os_reset_screen();
-      exit(1);
+	/* Solaris 2.6's cc complains if the below cast is missing */
+	os_display_string((zchar *)"\n\n");
+	os_beep(BEEP_HIGH);
+	os_set_text_style(BOLDFACE_STYLE);
+	os_display_string((zchar *)"Fatal error: ");
+	os_set_text_style(0);
+	os_display_string((zchar *)s);
+	os_display_string((zchar *)"\n");
+	new_line();
+	os_reset_screen();
+	ux_blorb_stop();
+	exit(1);
     }
 
     fputs ("\nFatal error: ", stderr);
@@ -114,13 +143,13 @@ void os_fatal (const char *s, ...)
     fputs ("\n\n", stderr);
 
     exit (1);
-
 }/* os_fatal */
 
 /* extern char script_name[]; */
 /* extern char command_name[]; */
 /* extern char save_name[];*/
 /*extern char auxilary_name[];*/
+
 
 /*
  * os_process_arguments
@@ -145,23 +174,20 @@ void os_fatal (const char *s, ...)
  *
  *
  */
-
 void os_process_arguments (int argc, char *argv[])
 {
     int c;
-
     char *p = NULL;
-    char *blorb_ext = NULL;
+// FIXME: put this back before committing merge fixes
+//    char *blorb_ext = NULL;
 
     char *home;
     char configfile[FILENAME_MAX + 1];
 
-    FILE *blorbfile;
-
 #ifndef WIN32
     if ((getuid() == 0) || (geteuid() == 0)) {
-        fputs("I won't run as root!\n", stderr);
-        exit(1);
+	printf("I won't run as root!\n");
+	exit(1);
     }
 #endif
 
@@ -172,9 +198,10 @@ void os_process_arguments (int argc, char *argv[])
 #endif
 
     if ((home = getenv(HOMEDIR)) == NULL) {
-        fputs("Hard drive on fire!\n", stderr);
-        exit(1);
+	printf("Hard drive on fire!\n");
+	exit(1);
     }
+
 
 /*
  * It doesn't look like Frotz can reliably be resized given its current
@@ -194,42 +221,45 @@ void os_process_arguments (int argc, char *argv[])
     if (signal(SIGINT, SIG_IGN) != SIG_IGN)
 	signal(SIGINT, sigint_handler);
 
-	if (getenv("XDG_CONFIG_HOME")) {
-		snprintf(configfile, FILENAME_MAX,
-			"%s/frotz/frotz.conf", getenv("XDG_CONFIG_HOME"));
-	} else {
-		snprintf(configfile, FILENAME_MAX,
-			"%s/.config/frotz/frotz.conf", home);
-	}
 
-	if (!getconfig(configfile)) {
-		snprintf(configfile, FILENAME_MAX, "%s/.frotzrc", home);
-	}
-    
-	if (!getconfig(configfile)) {
-		snprintf(configfile, FILENAME_MAX, "%s/frotz.conf", CONFIG_DIR);
-		getconfig(configfile);  /* we're not concerned if this fails */
-	}
+    if (signal(SIGTTIN, SIG_IGN) != SIG_IGN)
+	signal(SIGTTIN, SIG_IGN);
+
+    if (signal(SIGTTOU, SIG_IGN) != SIG_IGN)
+	signal(SIGTTOU, SIG_IGN);
+
+    /* First check for a "$HOME/.frotzrc". */
+    /* If not found, look for CONFIG_DIR/frotz.conf */
+    /* $HOME/.frotzrc overrides CONFIG_DIR/frotz.conf */
+
+    strncpy(configfile, home, FILENAME_MAX);
+    strncat(configfile, "/", 1);
+
+    strncat(configfile, USER_CONFIG, strlen(USER_CONFIG));
+    if (!getconfig(configfile)) {
+        strncpy(configfile, CONFIG_DIR, FILENAME_MAX);
+        strncat(configfile, "/", 1);    /* added by DJP */
+        strncat(configfile, MASTER_CONFIG, FILENAME_MAX-10);
+        getconfig(configfile);  /* we're not concerned if this fails */
+    }
 
     /* Parse the options */
-
     do {
-	c = getopt(argc, argv, "aAb:c:def:Fh:il:oOpPqrR:s:S:tu:w:xZ:");
+	c = zgetopt(argc, argv, "aAb:c:def:Fh:il:oOpPqrR:s:S:tu:w:xZ:");
 	switch(c) {
 	  case 'a': f_setup.attribute_assignment = 1; break;
 	  case 'A': f_setup.attribute_testing = 1; break;
-
-	  case 'b': u_setup.background_color = getcolor(optarg);
+	  case 'b': u_setup.background_color = getcolor(zoptarg);
 		u_setup.force_color = 1;
 		u_setup.disable_color = 0;
 		if ((u_setup.background_color < 2) ||
 		    (u_setup.background_color > 9))
 		  u_setup.background_color = -1;
 		break;
-	  case 'c': f_setup.context_lines = atoi(optarg); break;
+	  case 'c': f_setup.context_lines = atoi(zoptarg); break;
 	  case 'd': u_setup.disable_color = 1; break;
 	  case 'e': f_setup.sound = 1; break;
-	  case 'f': u_setup.foreground_color = getcolor(optarg);
+	  case 'f': u_setup.foreground_color = getcolor(zoptarg);
 		    u_setup.force_color = 1;
 		    u_setup.disable_color = 0;
 	            if ((u_setup.foreground_color < 2) ||
@@ -239,26 +269,27 @@ void os_process_arguments (int argc, char *argv[])
 	  case 'F': u_setup.force_color = 1;
 		    u_setup.disable_color = 0;
 		    break;
-          case 'h': u_setup.screen_height = atoi(optarg); break;
+          case 'h': u_setup.screen_height = atoi(zoptarg); break;
 	  case 'i': f_setup.ignore_errors = 1; break;
-	  case 'l': f_setup.left_margin = atoi(optarg); break;
+	  case 'l': f_setup.left_margin = atoi(zoptarg); break;
 	  case 'o': f_setup.object_movement = 1; break;
 	  case 'O': f_setup.object_locating = 1; break;
 	  case 'p': u_setup.plain_ascii = 1; break;
 	  case 'P': f_setup.piracy = 1; break;
 	  case 'q': f_setup.sound = 0; break;
-	  case 'r': f_setup.right_margin = atoi(optarg); break;
+	  case 'r': f_setup.right_margin = atoi(zoptarg); break;
 	  case 'R': f_setup.restore_mode = 1;
 		    f_setup.tmp_save_name = malloc(FILENAME_MAX * sizeof(char) + 1);
-		    strncpy(f_setup.tmp_save_name, optarg, FILENAME_MAX);
+		    strncpy(f_setup.tmp_save_name, zoptarg, FILENAME_MAX);
 		    break;
-	  case 's': u_setup.random_seed = atoi(optarg); break;
-	  case 'S': f_setup.script_cols = atoi(optarg); break;
+	  case 's': u_setup.random_seed = atoi(zoptarg); break;
+	  case 'S': f_setup.script_cols = atoi(zoptarg); break;
 	  case 't': u_setup.tandy_bit = 1; break;
-	  case 'u': f_setup.undo_slots = atoi(optarg); break;
-	  case 'w': u_setup.screen_width = atoi(optarg); break;
+	  case 'u': f_setup.undo_slots = atoi(zoptarg); break;
+	  case 'v': print_version(); exit(2); break;
+	  case 'w': u_setup.screen_width = atoi(zoptarg); break;
 	  case 'x': f_setup.expand_abbreviations = 1; break;
-	  case 'Z': f_setup.err_report_mode = atoi(optarg);
+	  case 'Z': f_setup.err_report_mode = atoi(zoptarg);
 		    if ((f_setup.err_report_mode < ERR_REPORT_NEVER) ||
 			(f_setup.err_report_mode > ERR_REPORT_FATAL))
 		      f_setup.err_report_mode = ERR_DEFAULT_REPORT_MODE;
@@ -267,16 +298,13 @@ void os_process_arguments (int argc, char *argv[])
 
     } while (c != EOF);
 
-    if (optind != argc - 1) {
-	printf("FROTZ V%s\t", VERSION);
-#ifdef OSS_SOUND
-	printf("oss sound driver, ");
-#endif
+    if (zoptind != argc - 1) {
+	printf("FROTZ V%s\t", GIT_TAG);
 
-#ifdef USE_NCURSES
-	printf("ncurses interface.");
+#ifndef NO_SOUND
+	printf("Audio output enabled.");
 #else
-	printf("curses interface.");
+	printf("Audio output disabled.");
 #endif
 	putchar('\n');
 
@@ -296,56 +324,39 @@ void os_process_arguments (int argc, char *argv[])
 
     /* Save the story file name */
 
-    f_setup.story_file = strdup(argv[optind]);
-    f_setup.story_name = strdup(basename(argv[optind]));
+    f_setup.story_file = strdup(argv[zoptind]);
+    f_setup.story_name = strdup(basename(argv[zoptind]));
 
     /* Now strip off the extension. */
     p = strrchr(f_setup.story_name, '.');
     if ((p != NULL) &&
         ((strcmp(p,EXT_BLORB2) == 0) ||
          (strcmp(p,EXT_BLORB3) == 0) ||
-         (strcmp(p,EXT_BLORB4) == 0) ) )
-    {
-        blorb_ext = strdup(p);
+         (strcmp(p,EXT_BLORB4) == 0) ) ) {
+//        blorb_ext = strdup(p);
     }
     else
-    {
-        blorb_ext = strdup(EXT_BLORB);
-    }
+//	blorb_ext = strdup(EXT_BLORB);
+
 
     /* Get rid of extensions with 1 to 6 character extensions. */
     /* This will take care of an extension like ".zblorb". */
     /* More than that, there might be something weird going on */
     /* which is not our concern. */
     if (p != NULL) {
-        if (strlen(p) >= 2 && strlen(p) <= 7) {
-                *p = '\0';      /* extension removed */
-        }
+	if (strlen(p) >= 2 && strlen(p) <= 7) {
+	    *p = '\0';      /* extension removed */
+	}
     }
 
-    f_setup.story_path = strdup(dirname(argv[optind]));
+    f_setup.story_path = strdup(dirname(argv[zoptind]));
 
-    /* Create nice default file names */
-
-    u_setup.blorb_name = malloc(FILENAME_MAX * sizeof(char));
-    strncpy(u_setup.blorb_name, f_setup.story_name,
-	strlen(f_setup.story_name) +1);
-    strncat(u_setup.blorb_name, blorb_ext, strlen(blorb_ext));
-
-    u_setup.blorb_file = malloc(strlen(f_setup.story_path) *
-                sizeof(char) + strlen(u_setup.blorb_name) * sizeof(char) + 4);
-    strncpy(u_setup.blorb_file, f_setup.story_path,
-	strlen(f_setup.story_path));
-    strncat(u_setup.blorb_file, "/", 1);
-    strncat(u_setup.blorb_file, u_setup.blorb_name,
-	strlen(u_setup.blorb_name) + 1);
-
-    f_setup.script_name = malloc(strlen(f_setup.story_name) * sizeof(char) + 5);
-    strncpy(f_setup.script_name, f_setup.story_name, strlen(f_setup.story_name));
+    f_setup.script_name = malloc((strlen(f_setup.story_name) + strlen(EXT_SCRIPT)) * sizeof(char) + 1);
+    strncpy(f_setup.script_name, f_setup.story_name, strlen(f_setup.story_name) + 1);
     strncat(f_setup.script_name, EXT_SCRIPT, strlen(EXT_SCRIPT));
 
-    f_setup.command_name = malloc(strlen(f_setup.story_name) * sizeof(char) + 5);
-    strncpy(f_setup.command_name, f_setup.story_name, strlen(f_setup.story_name));
+    f_setup.command_name = malloc((strlen(f_setup.story_name) + strlen(EXT_COMMAND)) * sizeof(char) + 1);
+    strncpy(f_setup.command_name, f_setup.story_name, strlen(f_setup.story_name) + 1);
     strncat(f_setup.command_name, EXT_COMMAND, strlen(EXT_COMMAND));
 
     if (!f_setup.restore_mode) {
@@ -358,25 +369,12 @@ void os_process_arguments (int argc, char *argv[])
 	free(f_setup.tmp_save_name);
     }
 
-    f_setup.aux_name = malloc(strlen(f_setup.story_name) * sizeof(char) + 5);
-    strncpy(f_setup.aux_name, f_setup.story_name, strlen(f_setup.story_name));
+    f_setup.aux_name = malloc((strlen(f_setup.story_name) + strlen(EXT_AUX)) * sizeof(char) + 1);
+    strncpy(f_setup.aux_name, f_setup.story_name, strlen(f_setup.story_name) + 1);
     strncat(f_setup.aux_name, EXT_AUX, strlen(EXT_AUX));
 
-	if (strncmp(basename(f_setup.story_file),
-		basename(u_setup.blorb_file), 55)) {
-		return;
-	} else if (!(blorbfile = fopen(u_setup.blorb_file, "rb"))) {
-		fprintf(stderr, "Error: Cannot read blorb file %s.\n", u_setup.blorb_file);
-	} else if (bb_create_map(blorbfile, &blorb_map) != bb_err_None) {
-		fputs("Error: Blorb file loaded, but unable to build map.\n", stderr );
-	} else if (bb_load_chunk_by_type(blorb_map, bb_method_FilePos,
-		&blorb_res, bb_make_id('Z','C','O','D'), 0) != bb_err_None) {
-		fputs("Error: Blorb file loaded, but lacks executable chunk.\n", stderr);
-	} else {
-		u_setup.exec_in_blorb = 1;
-		u_setup.use_blorb = 1;
-	}
 }/* os_process_arguments */
+
 
 /*
  * os_init_screen
@@ -406,10 +404,8 @@ void os_process_arguments (int argc, char *argv[])
  *  ugly hacks, neener neener neener. --GH :)
  *
  */
-
 void os_init_screen (void)
 {
-
     /*trace(TRACE_CALLS);*/
 
     if (initscr() == NULL) {    /* Set up curses */
@@ -467,6 +463,9 @@ void os_init_screen (void)
     h_screen_width = h_screen_cols;
     h_screen_height = h_screen_rows;
 
+    if (h_screen_width > 255 || h_screen_width < 1)
+	os_fatal("Invalid screen width. Must be between 1 and 255.");
+
     h_font_width = 1;
     h_font_height = 1;
 
@@ -523,24 +522,23 @@ void os_init_screen (void)
     os_erase_area(1, 1, h_screen_rows, h_screen_cols, 0);
 }/* os_init_screen */
 
+
 /*
  * os_reset_screen
  *
  * Reset the screen before the program stops.
  *
  */
-
 void os_reset_screen (void)
 {
-
     os_stop_sample(0);
     os_set_text_style(0);
-    print_string("[Hit any key to exit.]\n");
+    os_display_string((zchar *)"[Hit any key to exit.]\n");
     os_read_key(0, FALSE);
     scrollok(stdscr, TRUE); scroll(stdscr);
     refresh(); endwin();
-
 }/* os_reset_screen */
+
 
 /*
  * os_restart_game
@@ -553,10 +551,10 @@ void os_reset_screen (void)
  *     RESTART_END - restart is complete
  *
  */
-
-void os_restart_game (int stage)
+void os_restart_game (int UNUSED (stage))
 {
 }
+
 
 /*
  * os_random_seed
@@ -565,7 +563,6 @@ void os_restart_game (int stage)
  * 32767, possibly by using the current system time.
  *
  */
-
 int os_random_seed (void)
 {
 
@@ -576,48 +573,6 @@ int os_random_seed (void)
 
 }/* os_random_seed */
 
-
-/*
- * os_path_open
- *
- * Open a file in the current directory.  If this fails, then search the
- * directories in the ZCODE_PATH environmental variable.  If that's not
- * defined, search INFOCOM_PATH.
- *
- */
-
-FILE *os_path_open(const char *name, const char *mode)
-{
-	FILE *fp;
-	char buf[FILENAME_MAX + 1];
-	char *p;
-
-	/* Let's see if the file is in the currect directory */
-	/* or if the user gave us a full path. */
-	if ((fp = fopen(name, mode))) {
-		return fp;
-	}
-
-	/* If zcodepath is defined in a config file, check that path. */
-	/* If we find the file a match in that path, great. */
-	/* Otherwise, check some environmental variables. */
-	if (f_setup.zcode_path != NULL) {
-		if ((fp = pathopen(name, f_setup.zcode_path, mode, buf)) != NULL) {
-			strncpy(f_setup.story_name, buf, FILENAME_MAX);
-			return fp;
-		}
-	}
-
-	if ( (p = getenv(PATH1) ) == NULL)
-		p = getenv(PATH2);
-
-	if (p != NULL) {
-		fp = pathopen(name, p, mode, buf);
-		strncpy(f_setup.story_name, buf, FILENAME_MAX);
-		return fp;
-	}
-	return NULL;	/* give up */
-} /* os_path_open() */
 
 /*
  * os_load_story
@@ -635,19 +590,37 @@ FILE *os_load_story(void)
 {
     FILE *fp;
 
-    /* Did we build a valid blorb map? */
-    if (u_setup.exec_in_blorb) {
-	fp = fopen(u_setup.blorb_file, "rb");
-	fseek(fp, blorb_res.data.startpos, SEEK_SET);
-    } else {
-	fp = fopen(f_setup.story_file, "rb");
+    switch (ux_blorb_init(f_setup.story_file)) {
+	case bb_err_NoBlorb:
+//	  printf("No blorb file found.\n\n");
+	  break;
+        case bb_err_Format:
+	  printf("Blorb file loaded, but unable to build map.\n\n");
+	  break;
+	case bb_err_NotFound:
+	  printf("Blorb file loaded, but lacks executable chunk.\n\n");
+	  break;
+	case bb_err_None:
+//	  printf("No blorb errors.\n\n");
+	  break;
     }
+
+    fp = fopen(f_setup.story_file, "rb");
+
+    /* Is this a Blorb file containing Zcode? */
+    if (u_setup.exec_in_blorb)
+	fseek(fp, blorb_res.data.startpos, SEEK_SET);
+
     return fp;
 }
 
+
 /*
+ * os_storyfile_seek
+ *
  * Seek into a storyfile, either a standalone file or the
- * ZCODE chunk of a blorb file
+ * ZCODE chunk of a blorb file.
+ *
  */
 int os_storyfile_seek(FILE * fp, long offset, int whence)
 {
@@ -675,10 +648,14 @@ int os_storyfile_seek(FILE * fp, long offset, int whence)
 
 }
 
+
 /*
+ * os_storyfile_tell
+ *
  * Tell the position in a storyfile, either a standalone file
- * or the ZCODE chunk of a blorb file
- */ 
+ * or the ZCODE chunk of a blorb file.
+ *
+ */
 int os_storyfile_tell(FILE * fp)
 {
     /* Is this a Blorb file containing Zcode? */
@@ -693,6 +670,8 @@ int os_storyfile_tell(FILE * fp)
 
 }
 
+
+#ifdef CRAP
 /*
  * pathopen
  *
@@ -701,8 +680,7 @@ int os_storyfile_tell(FILE * fp)
  * path where the file was found in fullname.
  *
  */
-
-FILE *pathopen(const char *name, const char *p, const char *mode, char *fullname)
+static FILE *pathopen(const char *name, const char *p, const char *mode, char *fullname)
 {
 	FILE *fp;
 	char buf[FILENAME_MAX + 1];
@@ -726,6 +704,7 @@ FILE *pathopen(const char *name, const char *p, const char *mode, char *fullname
 	}
 	return NULL;
 } /* FILE *pathopen() */
+#endif
 
 
 /*
@@ -746,11 +725,10 @@ static int getconfig(char *configfile)
 {
 	FILE	*fp;
 
-	int	num, num2;
+	size_t	num, num2;
 
 	char	varname[LINELEN + 1];
 	char	value[LINELEN + 1];
-
 
 	/*
 	 * We shouldn't care if the config file is unreadable or not
@@ -879,7 +857,6 @@ static int getconfig(char *configfile)
 
 		/* The big nasty if-else thingy is finished */
 	} /* while */
-
 	return TRUE;
 } /* getconfig() */
 
@@ -993,9 +970,9 @@ static int geterrmode(char *value)
  * cleanly resize the window.
  *
  */
-
-static void sigwinch_handler(int sig)
-{
+// FIXME: figure out what to do with this
+//static void sigwinch_handler(int UNUSED(sig))
+//{
 /*
 There are some significant problems involved in getting resizes to work
 properly with at least this implementation of the Z Machine and probably
@@ -1003,8 +980,8 @@ the Z-Machine standard itself.  See the file BUGS for a detailed
 explaination for this.  Because of this trouble, this function currently
 does nothing.
 */
+//}
 
-}
 
 /*
  * sigint_handler
@@ -1015,22 +992,23 @@ does nothing.
 static void sigint_handler(int dummy)
 {
     signal(SIGINT, sigint_handler);
+    dummy = dummy;
 
+    os_stop_sample(0);
     scrollok(stdscr, TRUE); scroll(stdscr);
     refresh(); endwin();
 
     exit(1);
 }
 
+/*
 void redraw(void)
 {
-	/* not implemented */
 }
-
+*/
 
 void os_init_setup(void)
 {
-
 	f_setup.attribute_assignment = 0;
 	f_setup.attribute_testing = 0;
 	f_setup.context_lines = 0;
@@ -1090,5 +1068,59 @@ char *strrchr(const char *s, int c)
 	s++;
     }
     return (char *)save;
-}
+#endif	/* NO_STRRCHR */
+
+
+/* A unix-like getopt, but with the names changed to avoid any problems. */
+static int zgetopt (int argc, char *argv[], const char *options)
+{
+    static int pos = 1;
+    const char *p;
+    if (zoptind >= argc || argv[zoptind][0] != '-' || argv[zoptind][1] == 0)
+	return EOF;
+    zoptopt = argv[zoptind][pos++];
+    zoptarg = NULL;
+    if (argv[zoptind][pos] == 0) {
+	pos = 1;
+	zoptind++;
+    }
+    p = strchr (options, zoptopt);
+    if (zoptopt == ':' || p == NULL) {
+	fputs ("illegal option -- ", stderr);
+	goto error;
+    } else if (p[1] == ':') {
+	if (zoptind >= argc) {
+	    fputs ("option requires an argument -- ", stderr);
+	    goto error;
+	} else {
+	    zoptarg = argv[zoptind];
+	    if (pos != 1)
+		zoptarg += pos;
+	    pos = 1; zoptind++;
+	}
+    }
+    return zoptopt;
+error:
+    fputc (zoptopt, stderr);
+    fputc ('\n', stderr);
+    return '?';
+}/* zgetopt */
+
+
+static void print_version(void)
+{
+    printf("FROTZ V%s\t", VERSION);
+#ifndef NO_SOUND
+        printf("Audio output enabled.");
+#else
+	printf("Audio output disabled.");
 #endif
+    printf("\nGit commit:\t%s\n", GIT_HASH);
+    printf("Git tag:\t%s\n", GIT_TAG);
+    printf("Git branch:\t%s\n", GIT_BRANCH);
+    printf("  Frotz was originally written by Stefan Jokisch\n");
+    printf("  It was ported to Unix by Galen Hazelwood.\n");
+    printf("  The core and Unix port are currently maintained by David Griffith.\n");
+    printf("  See https://github.com/DavidGriffith/frotz for Frotz's homepage\n\n");
+    return;
+}

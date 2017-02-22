@@ -5,10 +5,18 @@
  *
  */
 
+#include "defines.h"
 #include "../common/frotz.h"
 #include "../blorb/blorb.h"
+#include "../blorb/blorblow.h"
 #include "ux_setup.h"
 
+#ifndef rindex
+    #define rindex strrchr
+#endif
+
+#define MASTER_CONFIG		"frotz.conf"
+#define USER_CONFIG		".frotzrc"
 #define ASCII_DEF		1
 #define ATTRIB_ASSIG_DEF	0
 #define ATTRIB_TEST_DEF		0
@@ -55,10 +63,6 @@
 #define	PATH1		"ZCODE_PATH"
 #define PATH2		"INFOCOM_PATH"
 
-#define NO_SOUND
-#ifdef OSS_SOUND
-# undef NO_SOUND
-#endif
 
 /* Some regular curses (not ncurses) libraries don't do this correctly. */
 #ifndef getmaxyx
@@ -75,12 +79,11 @@ extern char *gamepath;	/* use to find sound files */
 extern f_setup_t f_setup;
 extern u_setup_t u_setup;
 
-
 /*** Blorb related stuff ***/
-bb_err_t	blorb_err;
-bb_map_t	*blorb_map;
-bb_result_t	blorb_res;
-
+extern bb_err_t		blorb_err;
+extern bb_map_t		*blorb_map;
+extern bb_result_t	blorb_res;
+extern FILE *blorb_fp;
 
 /*** Functions specific to the Unix port of Frotz ***/
 
@@ -89,8 +92,6 @@ bool unix_init_pictures(void);		/* ux_pic.c */
 void unix_init_scrollback(void);	/* ux_screen.c */
 void unix_save_screen(int);		/* ux_screen.c */
 void unix_do_scrollback(void);		/* ux_screen.c */
-
-FILE	*pathopen(const char *, const char *, const char *, char *);
 
 #ifdef NO_STRRCHR
 char *strrchr(const char *, int);

@@ -8,89 +8,63 @@ RANLIB = /usr/bin/ranlib
 # MacOS users should use "cc" even though it's really "gcc".
 #
 CC = gcc
-#CC = cc
 
-# Enable compiler warnings. This is ab absolute minimum.
-CFLAGS += -Wall -Wextra
+# Enable compiler warnings. This is an absolute minimum.
+CFLAGS += -Wall -Wextra -std=gnu99
 
-# Define your optimization flags.  Most compilers understand -O and -O2,
-# Standard (note: Solaris on UltraSparc using gcc 2.8.x might not like this.)
+# Define your optimization flags.
 #
-OPTS = -O2
+# These are good for regular use.
+#OPTS = -O2 -fomit-frame-pointer -falign-functions=2 -falign-loops=2 -falign-jumps=2
+# These are handy for debugging.
+OPTS = $(CFLAGS) -g
 
-# Pentium with gcc 2.7.0 or better
-#OPTS = -O2 -fomit-frame-pointer -malign-functions=2 -malign-loops=2 \
-#-malign-jumps=2
-
-# Define where you want Frotz installed.  Usually this is /usr/local
+# Define where you want Frotz installed (typically /usr/local).
+#
 PREFIX = /usr/local
-
 MAN_PREFIX = $(PREFIX)
-#MAN_PREFIX = /usr/local/share
+CONFIG_DIR = /etc
+#CONFIG_DIR = $(PREFIX)/etc
 
-CONFIG_DIR = $(PREFIX)/etc
-#CONFIG_DIR = /etc
-
-# Define where you want Frotz to look for frotz.conf.
+# Pick your sound support.  The most featureful form of sound support is
+# through libao.  Comment all of these out if you don't want sound.
 #
-CONFIG_DIR = /usr/local/etc
-#CONFIG_DIR = /etc
-#CONFIG_DIR = /usr/pkg/etc
-#CONFIG_DIR =
+#SOUND = none
+SOUND = ao
+#SOUND = sun
+#SOUND = oss
 
-# Uncomment this if you want color support.  Most, but not all curses
-# libraries that work with Frotz will support color.
+
+##########################################################################
+# The configuration options below are intended mainly for older flavors
+# of Unix.  For Linux, BSD, and Solaris released since 2003, you can
+# ignore this section.
+##########################################################################
+
+# If your machine's version of curses doesn't support color...
 #
-COLOR_DEFS = -DCOLOR_SUPPORT
+COLOR = yes
 
-# Uncomment this if you have an OSS soundcard driver and want classical
-# Infocom sound support.
+# If this matters, you can choose libcurses or libncurses.
 #
-#SOUND_DEFS = -DOSS_SOUND
+CURSES = -lncurses
+#CURSES = -lcurses
 
-# Uncomment this too if you're running BSD of some sort and are using
-# the OSS sound driver.
-#
-#SOUND_LIB = -lossaudio
-
-# Define your sound device
-# This should probably be a command-line/config-file option.
-#
-SOUND_DEV = /dev/dsp
-#SOUND_DEV = /dev/sound
-#SOUND_DEV = /dev/audio
-
-# If your vendor-supplied curses library won't work, uncomment the
-# location where ncurses.h is.
+# Just in case your operating system keeps its user-added header files
+# somewhere unusual...
 #
 #INCL = -I/usr/local/include
 #INCL = -I/usr/pkg/include
 #INCL = -I/usr/freeware/include
 #INCL = -I/5usr/include
-#INCL = -I/path/to/ncurses.h
 
-# If your vendor-supplied curses library won't work, uncomment the
-# location where the ncurses library is.
+# Just in case your operating system keeps its user-added libraries
+# somewhere unusual...
 #
 #LIB = -L/usr/local/lib
 #LIB = -L/usr/pkg/lib
 #LIB = -L/usr/freeware/lib
 #LIB = -L/5usr/lib
-#LIB = -L/path/to/libncurses.so
-
-# One of these must always be uncommented.  If your vendor-supplied
-# curses library won't work, comment out the first option and uncomment
-# the second.
-#
-CURSES = -lcurses
-#CURSES = -lncurses
-
-# Uncomment this if your need to use ncurses instead of the
-# vendor-supplied curses library.  This just tells the compile process
-# which header to include, so don't worry if ncurses is all you have
-# (like on Linux).  You'll be fine.
-#
-#CURSES_DEF = -DUSE_NCURSES_H
 
 # Uncomment this if you're compiling Unix Frotz on a machine that lacks 
 # the strrchr() libc library call.  If you don't know what this means,
@@ -102,33 +76,30 @@ CURSES = -lcurses
 # the memmove(3) system call.  If you don't know what this means, leave it
 # alone.
 #
-#MEMMOVE_DEF = -DNO_MEMMOVE
+#NO_MEMMOVE = yes
 
-# Uncomment this if for some wacky reason you want to compile Unix Frotz
-# under Cygwin under Windoze.  This sort of thing is not recomended.
-#
-#EXTENSION = .exe
+# Default sample rate for sound effects.
+# All modern sound interfaces can be expected to support 44100 Hz sample
+# rates.  Earlier ones, particularly ones in Sun 4c workstations support
+# only up to 8000 Hz.
+SAMPLERATE = 44100
 
-SDLINC = `sdl-config --cflags`
-FTCFLAGS = `freetype-config --cflags`
-FTLIBS = `freetype-config --libs`
+# Audio buffer size in frames
+BUFFSIZE = 4096
 
-SDL_DEFS = $(SDLINC) $(FTCFLAGS) $(FTLIBS)
-SDL_LIBS = -ljpeg -lpng -lz -lSDL -lSDL_mixer
+# Default sample rate converter type
+DEFAULT_CONVERTER = SRC_SINC_MEDIUM_QUALITY
 
-#####################################################
-# Nothing under this line should need to be changed.
-#####################################################
+#########################################################################
+# This section is where Frotz is actually built.
+# Under normal circumstances, nothing in this section should be changed.
+#########################################################################
 
 SRCDIR = src
-
-VERSION = 2.44
-
+VERSION = 2.45pre
 NAME = frotz
 BINNAME = $(NAME)
-
 DISTFILES = bugtest
-
 DISTNAME = $(BINNAME)-$(VERSION)
 distdir = $(DISTNAME)
 
@@ -162,8 +133,10 @@ CURSES_OBJECT = $(CURSES_DIR)/ux_init.o \
 		$(CURSES_DIR)/ux_screen.o \
 		$(CURSES_DIR)/ux_text.o \
 		$(CURSES_DIR)/ux_blorb.o \
+		$(CURSES_DIR)/ux_audio.o \
+		$(CURSES_DIR)/ux_resource.o \
 		$(CURSES_DIR)/ux_audio_none.o \
-		$(CURSES_DIR)/ux_audio_oss.o
+		$(CURSES_DIR)/ux_locks.o
 
 DUMB_DIR = $(SRCDIR)/dumb
 DUMB_TARGET = $(SRCDIR)/frotz_dumb.a
@@ -172,53 +145,37 @@ DUMB_OBJECT =	$(DUMB_DIR)/dumb_init.o \
 		$(DUMB_DIR)/dumb_output.o \
 		$(DUMB_DIR)/dumb_pic.o
 
-SDL_DIR = $(SRCDIR)/sdl
-SDL_TARGET = $(SRCDIR)/frotz_sdl.a
-SDL_OBJECT =	$(SDL_DIR)/sf_aiffwav.o \
-		$(SDL_DIR)/sf_deffont.o \
-		$(SDL_DIR)/sf_font3.o \
-		$(SDL_DIR)/sf_fonts.o \
-		$(SDL_DIR)/sf_ftype.o \
-		$(SDL_DIR)/sf_images.o \
-		$(SDL_DIR)/sf_msg_en.o \
-		$(SDL_DIR)/sf_osfdlg.o \
-		$(SDL_DIR)/sf_resample.o \
-		$(SDL_DIR)/sf_resource.o \
-		$(SDL_DIR)/sf_sig.o \
-		$(SDL_DIR)/sf_sound.o \
-		$(SDL_DIR)/sf_util.o \
-		$(SDL_DIR)/sf_video.o
-
-# Blorb file handling
-#
 BLORB_DIR = $(SRCDIR)/blorb
 BLORB_TARGET =  $(SRCDIR)/blorblib.a
 BLORB_OBJECT =  $(BLORB_DIR)/blorblib.o
 
-
 TARGETS = $(COMMON_TARGET) $(CURSES_TARGET) $(BLORB_TARGET)
 
-OPT_DEFS = -DCONFIG_DIR="\"$(CONFIG_DIR)\"" $(CURSES_DEF) \
-	-DVERSION="\"$(VERSION)\"" -DSOUND_DEV="\"$(SOUND_DEV)\""
+FLAGS = $(OPTS) $(INCL)
 
-CURSES_DEFS = $(OPT_DEFS) $(COLOR_DEFS) $(SOUND_DEFS) $(SOUNDCARD) \
-	$(MEMMOVE_DEF) $(STRRCHR_DEF)
+SOUND_LIB = -lao -ldl -lpthread -lm -lsndfile -lvorbisfile -lmodplug -lsamplerate
 
+#########################################################################
+#########################################################################
+# Targets
+#
 
-$(NAME): $(NAME)-curses
-curses:  $(NAME)-curses
-$(NAME)-curses: $(COMMON_TARGET) $(CURSES_TARGET) $(BLORB_TARGET)
+.PHONY: all help dist clean distclean install install_dumb uninstall uninstall_dumb hash
+
+$(NAME): hash $(COMMON_DIR)/defines.h $(CURSES_DIR)/defines.h $(COMMON_TARGET) $(CURSES_TARGET) $(BLORB_TARGET)
+ifeq ($(SOUND), ao)
 	$(CC) -o $(BINNAME)$(EXTENSION) $(TARGETS) $(LIB) $(CURSES) $(SOUND_LIB)
+else ifeq ($(SOUND), none)
+	$(CC) -o $(BINNAME)$(EXTENSION) $(TARGETS) $(LIB) $(CURSES)
+else ifndef SOUND
+	$(CC) -o $(BINNAME)$(EXTENSION) $(TARGETS) $(LIB) $(CURSES)
+else
+	@echo "Invalid sound choice $(SOUND)."
+endif
 
-dumb:		$(NAME)-dumb
-d$(NAME):	$(NAME)-dumb
-$(NAME)-dumb:		$(COMMON_TARGET) $(DUMB_TARGET)
+
+d$(NAME):		$(COMMON_TARGET) $(DUMB_TARGET)
 	$(CC) -o d$(BINNAME)$(EXTENSION) $(COMMON_TARGET) $(DUMB_TARGET) $(LIB)
-
-sdl:		$(NAME)-sdl
-s$(NAME):	$(NAME)-sdl
-$(NAME)-sdl:	$(COMMON_TARGET) $(SDL_TARGET) $(BLORB_TARGET)
-	$(CC) -o s$(BINNAME) $(COMMON_TARGET) $(SDL_TARGET) $(BLORB_TARGET) $(SDL_LIBS)
 
 all:	$(NAME) d$(NAME)
 
@@ -227,7 +184,7 @@ all:	$(NAME) d$(NAME)
 .SUFFIXES: .c .o .h
 
 $(COMMON_OBJECT): %.o: %.c
-	$(CC) $(CFLAGS) $(OPTS) $(COMMON_DEFS) -o $@ -c $<
+	$(CC) $(OPTS) -o $@ -c $<
 
 $(BLORB_OBJECT): %.o: %.c
 	$(CC) $(CFLAGS) $(OPTS) -o $@ -c $<
@@ -236,12 +193,42 @@ $(DUMB_OBJECT): %.o: %.c
 	$(CC) $(CFLAGS) $(OPTS) -o $@ -c $<
 
 $(CURSES_OBJECT): %.o: %.c
-	$(CC) $(CFLAGS) $(OPTS) $(CURSES_DEFS) $(INCL) -o $@ -c $<
-
-$(SDL_OBJECT): %.o: %.c
-	$(CC) $(CFLAGS) $(OPTS) $(SDL_DEFS) $(INCL) -o $@ -c $<
+	$(CC) $(OPTS) -o $@ -c $<
 
 
+####################################
+# Get the defines set up just right
+#
+$(COMMON_DIR)/defines.h:
+	@echo "Generating $@"
+	@echo "#define VERSION \"$(VERSION)\"" > $@
+
+$(CURSES_DIR)/defines.h:
+	@echo "Generating $@"
+	@echo "#define CONFIG_DIR \"$(CONFIG_DIR)\"" >> $@
+	@echo "#define SOUND \"$(SOUND)\"" >> $@
+	@echo "#define SAMPLERATE $(SAMPLERATE)" >> $@
+	@echo "#define BUFFSIZE $(BUFFSIZE)" >> $@
+	@echo "#define DEFAULT_CONVERTER $(DEFAULT_CONVERTER)" >> $@
+
+ifeq ($(SOUND), none)
+	@echo "#define NO_SOUND" >> $@
+endif
+
+ifndef SOUND
+	@echo "#define NO_SOUND" >> $@
+endif
+
+ifdef COLOR
+	@echo "#define COLOR_SUPPORT" >> $@
+endif
+
+ifdef NO_MEMMOVE
+	@echo "#define NO_MEMMOVE" >> $@
+endif
+
+
+########################################################################
 # If you're going to make this target manually, you'd better know which
 # config target to make first.
 #
@@ -253,7 +240,7 @@ $(COMMON_TARGET): $(COMMON_OBJECT)
 	$(RANLIB) $(COMMON_TARGET)
 	@echo
 
-curses_lib:	config_curses $(CURSES_TARGET)
+curses_lib:	$(CURSES_TARGET)
 $(CURSES_TARGET): $(CURSES_OBJECT)
 	@echo
 	@echo "Archiving curses interface code..."
@@ -269,14 +256,6 @@ $(DUMB_TARGET): $(DUMB_OBJECT)
 	$(RANLIB) $(DUMB_TARGET)
 	@echo
 
-sdl_lib:	$(SDL_TARGET)
-$(SDL_TARGET): $(SDL_OBJECT)
-	@echo
-	@echo "Archiving SDL interface code..."
-	$(AR) rc $(SDL_TARGET) $(SDL_OBJECT)
-	$(RANLIB) $(SDL_TARGET)
-	@echo
-
 blorb_lib:	$(BLORB_TARGET)
 $(BLORB_TARGET): $(BLORB_OBJECT)
 	@echo
@@ -284,12 +263,6 @@ $(BLORB_TARGET): $(BLORB_OBJECT)
 	$(AR) rc $(BLORB_TARGET) $(BLORB_OBJECT)
 	$(RANLIB) $(BLORB_TARGET)
 	@echo
-
-
-soundcard.h:
-	@if [ ! -f $(SRCDIR)/soundcard.h ] ; then \
-		 sh $(SRCDIR)/misc/findsound.sh $(SRCDIR); \
-	fi
 
 install: $(NAME)
 	@install -D -m 755 $(BINNAME)$(EXTENSION) "$(DESTDIR)$(PREFIX)/bin/$(BINNAME)$(EXTENSION)"
@@ -299,8 +272,6 @@ uninstall:
 	@rm -f "$(DESTDIR)$(PREFIX)/bin/$(NAME)"
 	@rm -f "$(DESTDIR)$(MAN_PREFIX)/man/man6/$(NAME).6"
 
-deinstall: uninstall
-
 install_dumb: d$(NAME)
 	@install -D -m 755 d$(BINNAME)$(EXTENSION) "$(DESTDIR)$(PREFIX)/bin/d$(BINNAME)$(EXTENSION)"
 	@install -D -m 644 doc/d$(NAME).6 "$(DESTDIR)$(MAN_PREFIX)/man/man6/d$(NAME).6"
@@ -309,11 +280,7 @@ uninstall_dumb:
 	@rm -f "$(DESTDIR)$(PREFIX)/bin/d$(NAME)"
 	@rm -f "$(DESTDIR)$(MAN_PREFIX)/man/man6/d$(NAME).6"
 
-deinstall_dumb: uninstall_dumb
-
-distro: dist
-
-dist: distclean
+dist: distclean hash
 	mkdir $(distdir)
 	@for file in `ls`; do \
 		if test $$file != $(distdir); then \
@@ -330,8 +297,11 @@ dist: distclean
 
 clean:
 	rm -f $(SRCDIR)/*.h $(SRCDIR)/*.a
-	find . -iname *.o -exec rm -f {} \;
-	find . -iname *.obj -exec rm -f {} \;
+	rm -f $(COMMON_DIR)/defines.h
+	rm -f $(COMMON_DIR)/git_hash.h
+	rm -f $(CURSES_DIR)/defines.h
+	find . -name *.o -exec rm -f {} \;
+	find . -name *.O -exec rm -f {} \;
 
 distclean: clean
 	rm -f $(BINNAME)$(EXTENSION) d$(BINNAME)$(EXTENSION) s$(BINNAME)
@@ -342,9 +312,23 @@ distclean: clean
 	-rm -rf $(distdir)
 	-rm -f $(distdir).tar $(distdir).tar.gz
 
-realclean: distclean
-
-clobber: distclean
+# If we're building from a Git repository, fetch the commit tag and put 
+#   it into $(COMMON_DIR)/git_hash.h.
+# If not, that should mean that we're building from a tarball.  In that 
+#  case, $(COMMON_DIR)/git_hash.h should already be there.
+hash:
+ifneq ($(and $(wildcard .git),$(shell which git)),)
+	@echo "Creating $(COMMON_DIR)/git_hash.h"
+	@echo "#define GIT_HASH \"$$(git rev-parse HEAD)\"" > $(COMMON_DIR)/git_hash.h
+	@echo "#define GIT_TAG \"$$(git describe --tags)\"" >> $(COMMON_DIR)/git_hash.h
+	@echo "#define GIT_BRANCH \"$$(git rev-parse --abbrev-ref HEAD)\"" >> $(COMMON_DIR)/git_hash.h
+else
+  ifneq ($(wildcard $(COMMON_DIR)/git_hash.h),)
+	@echo "Found $(COMMON_DIR)/git_hash.h"
+  else
+	$(error $(COMMON_DIR)/git_hash.h is missing!.)
+  endif
+endif
 
 help:
 	@echo
@@ -353,7 +337,9 @@ help:
 	@echo "    dfrotz"
 	@echo "    install"
 	@echo "    uninstall"
+	@echo "    install_dfrotz"
+	@echo "    uninstall_dfrotz"
 	@echo "    clean"
 	@echo "    distclean"
+	@echo "    dist"
 	@echo
-

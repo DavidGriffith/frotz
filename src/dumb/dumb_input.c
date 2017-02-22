@@ -5,6 +5,7 @@
  */
 
 #include "dumb_frotz.h"
+
 f_setup_t f_setup;
 
 static char runtime_usage[] =
@@ -249,7 +250,7 @@ static bool dumb_read_line(char *s, char *prompt, bool show_cursor,
       if (type != INPUT_LINE_CONTINUED)
 	fprintf(stderr, "DUMB-FROTZ: No input to discard\n");
       else {
-	dumb_discard_old_input(strlen(continued_line_chars));
+	dumb_discard_old_input(strlen((char*) continued_line_chars));
 	continued_line_chars[0] = '\0';
 	type = INPUT_LINE;
       }
@@ -264,7 +265,7 @@ static bool dumb_read_line(char *s, char *prompt, bool show_cursor,
 	  for (i = 0; (i < h_screen_rows - 2) && *next_page; i++)
 	    next_page = strchr(next_page, '\n') + 1;
 	  /* next_page - current_page is width */
-	  printf("%.*s", next_page - current_page, current_page);
+	  printf("%.*s", (int) (next_page - current_page), current_page);
 	  current_page = next_page;
 	  if (!*current_page)
 	    break;
@@ -331,7 +332,7 @@ zchar os_read_key (int timeout, bool show_cursor)
   return c;
 }
 
-zchar os_read_line (int max, zchar *buf, int timeout, int width, int continued)
+zchar os_read_line (int UNUSED (max), zchar *buf, int timeout, int UNUSED(width), int continued)
 {
   char *p;
   int terminator;
@@ -372,7 +373,7 @@ zchar os_read_line (int max, zchar *buf, int timeout, int width, int continued)
   dumb_display_user_input(read_line_buffer);
 
   /* copy to the buffer and save the rest for next time.  */
-  strcat(buf, read_line_buffer);
+  strcat((char*) buf, read_line_buffer);
   p = read_line_buffer + strlen(read_line_buffer) + 1;
   memmove(read_line_buffer, p, strlen(p) + 1);
 

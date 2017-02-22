@@ -41,7 +41,6 @@
 #define PIC_HEADER_HEIGHT 4
 
 static void safe_mvaddch(int, int, int);
-static void save_scrnset(int, int, int, int);
 
 static struct {
   int z_num;
@@ -52,15 +51,18 @@ static struct {
 } *pict_info;
 static int num_pictures = 0;
 
+
 static unsigned char lookupb(unsigned char *p, int n)
 {
   return p[n];
 }
 
+
 static unsigned short lookupw(unsigned char *p, int n)
 {
   return (p[n + 1] << 8) | p[n];
 }
+
 
 /*
  * Do a rounding division, rounding to even if fraction part is 1/2.
@@ -72,7 +74,7 @@ static int round_div(int x, int y)
 	int quotient = x / y;
 	int dblremain = (x % y) << 1;
 
-	if ((dblremain > y) || (dblremain == y) && (quotient & 1))
+	if ((dblremain > y) || ((dblremain == y) && (quotient & 1)))
 		quotient++;
 	return quotient;
 }
@@ -95,9 +97,9 @@ bool unix_init_pictures (void)
   basename = strrchr(f_setup.story_name, '/');
   if (basename) basename++; else basename = f_setup.story_name;
   dotpos = strrchr(basename, '.');
-  namelen = (dotpos ? dotpos - basename : strlen(basename));
+  namelen = (dotpos ? dotpos - basename : (int) strlen(basename));
   sprintf(filename, "%.*sgraphics/%.*s.mg1",
-          basename - f_setup.story_name, f_setup.story_name, namelen, basename);
+          (int)(basename - f_setup.story_name), f_setup.story_name, namelen, basename);
 
   do {
     int i, entry_size, flags, x_scale, y_scale;
@@ -126,7 +128,6 @@ bool unix_init_pictures (void)
     /* Copy and scale.  */
     for (i = 1; i <= num_pictures; i++) {
       unsigned char *p = raw_info + entry_size * (i - 1);
-      int height, width;
       pict_info[i].z_num = lookupw(p, PIC_HEADER_NUMBER);
       pict_info[i].orig_height = lookupw(p, PIC_HEADER_HEIGHT);
       pict_info[i].orig_width = lookupw(p, PIC_HEADER_WIDTH);
@@ -151,6 +152,7 @@ bool unix_init_pictures (void)
   return success;
 }
 
+
 /* Convert a Z picture number to an index into pict_info.  */
 static int z_num_to_index(int n)
 {
@@ -160,6 +162,7 @@ static int z_num_to_index(int n)
       return i;
   return -1;
 }
+
 
 /*
  * os_picture_data
@@ -189,6 +192,7 @@ int os_picture_data(int num, int *height, int *width)
   return TRUE;
 }
 
+
 /*
  * Do a mvaddch if the coordinates aren't too large.
  *
@@ -198,6 +202,7 @@ static void safe_mvaddch(int y, int x, int ch)
 	if ((y < h_screen_rows) && (x < h_screen_cols))
 		mvaddch(y, x, ch);
 }
+
 
 /*
  * Set n chars starting at (x, y), doing bounds checking.
@@ -214,18 +219,17 @@ static void safe_scrnset(int y, int x, int ch, int n)
 	}
 }
 
+
 /*
  * os_draw_picture
  *
  * Display a picture at the given coordinates. Top left is (1,1).
  *
  */
-
 /* TODO: handle truncation correctly.  Spec 8.8.3 says all graphics should
  * be clipped to the current window.  To do that, we should probably
  * modify z_draw_picture in the frotz core to pass some extra parameters.
  */
-
 void os_draw_picture (int num, int row, int col)
 {
   int width, height, r, c;
@@ -305,6 +309,7 @@ void os_draw_picture (int num, int row, int col)
   move(saved_y, saved_x);
 }
 
+
 /*
  * os_peek_colour
  *
@@ -319,7 +324,6 @@ void os_draw_picture (int num, int row, int col)
  * instead.
  *
  */
-
 int os_peek_colour (void)
 {
   if (u_setup.color_enabled) {

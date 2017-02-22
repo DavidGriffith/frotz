@@ -27,8 +27,21 @@
 #endif
 
 #include "ux_frotz.h"
-
 #ifdef NO_SOUND	/* don't compile this unless we're using no audio */
+
+
+/*
+ * os_init_sound
+ *
+ * Do any required setup for sound output.
+ *
+ */
+void os_init_sound(void)
+{
+
+    /* Not implemented */
+
+}
 
 /*
  * os_beep
@@ -38,7 +51,7 @@
  *
  */
 
-void os_beep (int number)
+void os_beep (int UNUSED(number))
 {
 
     beep();
@@ -52,7 +65,7 @@ void os_beep (int number)
  *
  */
 
-void os_prepare_sample (int number)
+void os_prepare_sample (int UNUSED(number))
 {
 
     /* Not implemented */
@@ -71,7 +84,7 @@ void os_prepare_sample (int number)
  *
  */
 
-void os_start_sample (int number, int volume, int repeats, zword eos)
+void os_start_sample (int UNUSED(number), int UNUSED(volume), int UNUSED(repeats), zword UNUSED(eos))
 {
 
     /* Not implemented */
@@ -85,7 +98,7 @@ void os_start_sample (int number, int volume, int repeats, zword eos)
  *
  */
 
-void os_stop_sample (int number)
+void os_stop_sample (int UNUSED(number))
 {
 
     /* Not implemented */
@@ -99,7 +112,7 @@ void os_stop_sample (int number)
  *
  */
 
-void os_finish_with_sample (int number)
+void os_finish_with_sample (int UNUSED(number))
 {
 
     /* Not implemented */

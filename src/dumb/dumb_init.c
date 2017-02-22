@@ -182,7 +182,7 @@ int os_random_seed (void)
     else return user_random_seed;
 }
 
-void os_restart_game (int stage) {}
+void os_restart_game (int UNUSED (stage)) {}
 
 void os_fatal (const char *s, ...)
 {
@@ -207,14 +207,13 @@ int os_storyfile_seek(FILE * fp, long offset, int whence)
 
 /*
  * Tell the position in a storyfile, either a standalone file
- * or the ZCODE chunk of a blorb file (dumb does not support 
+ * or the ZCODE chunk of a blorb file (dumb does not support
  * blorb so this is just a wrapper for fseek)
- */ 
+ */
 int os_storyfile_tell(FILE * fp)
 {
     return ftell(fp);
 }
-
 
 void os_init_setup(void)
 {
@@ -235,7 +234,6 @@ void os_init_setup(void)
 	f_setup.restore_mode = 0;
 
 }
-
 
 char *my_strdup(char *src)
 {

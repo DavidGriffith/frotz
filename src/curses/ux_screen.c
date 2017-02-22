@@ -44,7 +44,7 @@
  * being erased.  This is not relevant for the curses interface.
  *
  */
-void os_erase_area (int top, int left, int bottom, int right, int win)
+void os_erase_area (int top, int left, int bottom, int right, int UNUSED(win))
 {
     int y, x, i, j;
 

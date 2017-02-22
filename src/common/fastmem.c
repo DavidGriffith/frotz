@@ -57,7 +57,6 @@ extern void split_window (zword);
 extern void script_open (void);
 extern void script_close (void);
 
-extern FILE *os_path_open (const char *, const char *);
 extern FILE *os_load_story (void);
 extern int os_storyfile_seek (FILE * fp, long offset, int whence);
 extern int os_storyfile_tell (FILE * fp);
@@ -396,11 +395,9 @@ void init_memory (void)
 	    story_size *= 2;
 
     } else {		/* some old games lack the file size entry */
-
 	os_storyfile_seek (story_fp, 0, SEEK_END);
 	story_size = os_storyfile_tell (story_fp);
 	os_storyfile_seek (story_fp, 64, SEEK_SET);
-
     }
 
     LOW_WORD (H_CHECKSUM, h_checksum);
@@ -524,7 +521,7 @@ static void free_undo (int count)
  */
 void reset_memory (void)
 {
-    if (story_fp)
+    if (story_fp != NULL)
 	fclose (story_fp);
     story_fp = NULL;
 
@@ -715,10 +712,10 @@ void z_restore (void)
 
     } else {
 
-	long pc;
-	zword release;
-	zword addr;
-	int i;
+//	long pc;
+//	zword release;
+//	zword addr;
+//	int i;
 
 	/* Get the file name */
 
@@ -955,11 +952,11 @@ void z_save (void)
 
     } else {
 
-	long pc;
-	zword addr;
-	zword nsp, nfp;
-	int skip;
-	int i;
+//	long pc;
+//	zword addr;
+//	zword nsp, nfp;
+//	int skip;
+//	int i;
 
 	/* Get the file name */
 
@@ -1090,7 +1087,6 @@ void z_verify (void)
     /* Sum all bytes in story file except header bytes */
 
     os_storyfile_seek (story_fp, 64, SEEK_SET);
-
 
     for (i = 64; i < story_size; i++)
 	checksum += fgetc (story_fp);

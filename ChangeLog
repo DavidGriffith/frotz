@@ -3,9 +3,13 @@ Summary of changes between Frotz 2.44 and Frotz 2.45:
 
 Frotz 2.45 was released on ????
 
-NEW FEATURE
+NEW FEATURES
 
 - Added -R option for restoring save file directly from the command line.
+
+- Sound effects in AIFF, MOD, and OGG formats supported per the Blorb specs.
+
+- Sound driver selection is automated through the use of libao.
 
 
 Summary of changes between Frotz 2.43 and Frotz 2.44:
@@ -21,6 +25,8 @@ NEW FEATURES
 
 - Makefile and code for compiling for 16-bit DOS.
 
+- DOS Frotz now distributed in the same source file as Unix Frotz.
+
 
 BUG FIXES
 
@@ -32,6 +38,8 @@ BUG FIXES
   the Quetzal save file format is supported now.
 
 - Fixed assorted minor 64-bitness problems.
+
+- Makefile cleaned up.
 
 
 Summary of changes between Unix Frotz 2.42 and Unix Frotz 2.43:

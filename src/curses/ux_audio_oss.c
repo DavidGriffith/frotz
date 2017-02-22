@@ -47,7 +47,7 @@
 #include <sys/ioctl.h>
 #include <sys/wait.h>
 
-#include "../soundcard.h"
+#include <sys/soundcard.h>
 
 extern void end_of_sound(void);
 

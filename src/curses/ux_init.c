@@ -62,18 +62,18 @@ An interpreter for all Infocom and other Z-Machine games.\n\
 Complies with standard 1.0 of Graham Nelson's specification.\n\
 \n\
 Syntax: frotz [options] story-file\n\
-  -a   watch attribute setting  \t -O   watch object locating\n\
-  -A   watch attribute testing  \t -p   plain ASCII output only\n\
-  -b # background color         \t -P   alter piracy opcode\n\
-  -c # context lines            \t -q   quiet (disable sound effects)\n\
-  -d   disable color            \t -r # right margin\n\
-  -e   enable sound             \t -R <name> load this save file\n\
-  -f # foreground color         \t -s # random number seed value\n\
-  -F   Force color mode         \t -S # transcript width\n\
-  -h # screen height            \t -t   set Tandy bit\n\
-  -i   ignore fatal errors      \t -u # slots for multiple undo\n\
-  -l # left margin              \t -w # screen width\n\
-  -o   watch object movement	\t -x   expand abbreviations g/x/z\n"
+  -a   watch attribute setting    \t -O   watch object locating\n\
+  -A   watch attribute testing    \t -p   plain ASCII output only\n\
+  -b <colorname> background color \t -P   alter piracy opcode\n\
+  -c # context lines              \t -q   quiet (disable sound effects)\n\
+  -d   disable color              \t -r # right margin\n\
+  -e   enable sound               \t -R <filename> load this save file\n\
+  -f <colorname> foreground color \t -s # random number seed value\n\
+  -F   Force color mode           \t -S # transcript width\n\
+  -h # screen height              \t -t   set Tandy bit\n\
+  -i   ignore fatal errors        \t -u # slots for multiple undo\n\
+  -l # left margin                \t -w # screen width\n\
+  -o   watch object movement	  \t -x   expand abbreviations g/x/z\n"
 
 /*
 char stripped_story_name[FILENAME_MAX+1];

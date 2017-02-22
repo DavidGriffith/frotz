@@ -173,8 +173,8 @@ else
 	@echo "Invalid sound choice $(SOUND)."
 endif
 
-
-d$(NAME):		$(COMMON_TARGET) $(DUMB_TARGET)
+dumb:		d$(NAME)
+d$(NAME):	hash $(COMMON_DIR)/defines.h $(COMMON_TARGET) $(DUMB_TARGET)
 	$(CC) -o d$(BINNAME)$(EXTENSION) $(COMMON_TARGET) $(DUMB_TARGET) $(LIB)
 
 all:	$(NAME) d$(NAME)

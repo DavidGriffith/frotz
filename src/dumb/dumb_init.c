@@ -10,21 +10,22 @@
 f_setup_t f_setup;
 
 static char *my_strdup(char *);
+static void print_version(void);
 
 #define INFORMATION "\
 An interpreter for all Infocom and other Z-Machine games.\n\
-Complies with standard 1.0 of Graham Nelson's specification.\n\
 \n\
 Syntax: dfrotz [options] story-file\n\
-  -a   watch attribute setting \t -r xxx  do runtime setting \\xxx\n\
-  -A   watch attribute testing \t    before starting (can be used repeatedly)\n\
-  -h # screen height           \t -R <filename> load this save file\n\
-  -i   ignore fatal errors     \t -s # random number seed value\n\
-  -I # interpreter number      \t -S # transcript width\n\
-  -o   watch object movement   \t -t   set Tandy bit\n\
-  -O   watch object locating   \t -u # slots for multiple undo\n\
-  -p   plain ASCII output only \t -w # screen width\n\
-  -P   alter piracy opcode     \t -x   expand abbreviations g/x/z"
+  -a   watch attribute setting  \t -R <filename> load this save file\n\
+  -A   watch attribute testing  \t -s # random number seed value\n\
+  -h # screen height            \t -S # transcript width\n\
+  -i   ignore fatal errors         \t -t   set Tandy bit\n\
+  -I # interpreter number          \t -u # slots for multiple undo\n\
+  -o   watch object movement       \t -v show version information\n\
+  -O   watch object locating       \t -w # screen width\n\
+  -p   plain ASCII output only     \t -x   expand abbreviations g/x/z\n\
+  -P   alter piracy opcode \n\
+  -r xxx set runtime option \\xxx before starting (can be used repeatedly)\n"
 
 /* A unix-like getopt, but with the names changed to avoid any problems.  */
 static int zoptind = 1;
@@ -78,7 +79,7 @@ void os_process_arguments(int argc, char *argv[])
     do_more_prompts = TRUE;
     /* Parse the options */
     do {
-	c = zgetopt(argc, argv, "aAh:iI:moOpPs:r:R:S:tu:w:xZ:");
+	c = zgetopt(argc, argv, "-aAh:iI:moOpPs:r:R:S:tu:vw:xZ:");
 	switch(c) {
 	  case 'a': f_setup.attribute_assignment = 1; break;
 	  case 'A': f_setup.attribute_testing = 1; break;
@@ -98,6 +99,7 @@ void os_process_arguments(int argc, char *argv[])
 	  case 'S': f_setup.script_cols = atoi(zoptarg); break;
 	case 't': user_tandy_bit = 1; break;
 	  case 'u': f_setup.undo_slots = atoi(zoptarg); break;
+	case 'v': print_version(); exit(2); break;
 	case 'w': user_screen_width = atoi(zoptarg); break;
 	  case 'x': f_setup.expand_abbreviations = 1; break;
 	  case 'Z': f_setup.err_report_mode = atoi(zoptarg);
@@ -109,7 +111,7 @@ void os_process_arguments(int argc, char *argv[])
     } while (c != EOF);
 
     if (((argc - zoptind) != 1) && ((argc - zoptind) != 2)) {
-	printf("FROTZ V%s\tdumb interface.\n", VERSION);
+	printf("FROTZ V%s\tDumb interface.\n", VERSION);
 	puts(INFORMATION);
 	printf("\t-Z # error checking mode (default = %d)\n"
 	    "\t     %d = don't report errors   %d = report first error\n"
@@ -250,3 +252,20 @@ char *my_strdup(char *src)
 	*p = '\0';
 	return str;
 }
+
+
+static void print_version(void)
+{
+    printf("FROTZ V%s\t", VERSION);
+    printf("Dumb interface.\n");
+    printf("Git commit:\t%s\n", GIT_HASH);
+    printf("Git tag:\t%s\n", GIT_TAG);
+    printf("Git branch:\t%s\n", GIT_BRANCH);
+    printf("  Frotz was originally written by Stefan Jokisch.\n");
+    printf("  It complies with standard 1.0 of Graham Nelson's specification.\n");
+    printf("  It was ported to Unix by Galen Hazelwood.\n");
+    printf("  The core and dumb port are currently maintained by David Griffith.\n");
+    printf("  See https://github.com/DavidGriffith/frotz for Frotz's homepage.\n\n");
+    return;
+}
+

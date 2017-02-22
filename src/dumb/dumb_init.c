@@ -15,14 +15,14 @@ static void print_version(void);
 An interpreter for all Infocom and other Z-Machine games.\n\
 \n\
 Syntax: dfrotz [options] story-file\n\
-  -a   watch attribute setting  \t -R <filename> load this save file\n\
-  -A   watch attribute testing  \t -s # random number seed value\n\
-  -h # screen height            \t -S # transcript width\n\
-  -i   ignore fatal errors         \t -t   set Tandy bit\n\
-  -I # interpreter number          \t -u # slots for multiple undo\n\
-  -o   watch object movement       \t -v show version information\n\
-  -O   watch object locating       \t -w # screen width\n\
-  -p   plain ASCII output only     \t -x   expand abbreviations g/x/z\n\
+  -a   watch attribute setting   \t -R <filename> load this save file\n\
+  -A   watch attribute testing   \t -s # random number seed value\n\
+  -h # screen height             \t -S # transcript width\n\
+  -i   ignore fatal errors       \t -t   set Tandy bit\n\
+  -I # interpreter number        \t -u # slots for multiple undo\n\
+  -o   watch object movement     \t -v show version information\n\
+  -O   watch object locating     \t -w # screen width\n\
+  -p   plain ASCII output only   \t -x   expand abbreviations g/x/z\n\
   -P   alter piracy opcode \n\
   -r xxx set runtime option \\xxx before starting (can be used repeatedly)\n"
 

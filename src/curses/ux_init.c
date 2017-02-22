@@ -245,7 +245,7 @@ void os_process_arguments (int argc, char *argv[])
 
     /* Parse the options */
     do {
-	c = zgetopt(argc, argv, "aAb:c:def:Fh:il:oOpPqrR:s:S:tu:vw:xZ:");
+	c = zgetopt(argc, argv, "-aAb:c:def:Fh:il:oOpPqrR:s:S:tu:vw:xZ:");
 	switch(c) {
 	  case 'a': f_setup.attribute_assignment = 1; break;
 	  case 'A': f_setup.attribute_testing = 1; break;

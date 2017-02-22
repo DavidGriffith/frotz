@@ -101,7 +101,8 @@ bb_err_t ux_blorb_init(char *filename)
 	/* Check if foo.blb is there. */
         if ((blorb_fp = fopen(mystring, "rb")) == NULL) {
 	    p = rindex(mystring, '.');
-	    *p = '\0';
+	    if (p != NULL)
+		*p = '\0';
             strncat(mystring, EXT_BLORB3, len2 * sizeof(char));
 	    blorb_fp = fopen(mystring, "rb");
 	}

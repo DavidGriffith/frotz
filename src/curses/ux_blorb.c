@@ -87,9 +87,10 @@ bb_err_t ux_blorb_init(char *filename)
 	len2 = strlen(filename) + strlen(EXT_BLORB3);
 
 	mystring = malloc(len2 * sizeof(char) + 1);
-        strncat(mystring, filename, len1 * sizeof(char));
+        strncpy(mystring, filename, len1 * sizeof(char));
 	p = rindex(mystring, '.');
-	*p = '\0';
+	if (p != NULL)
+	    *p = '\0';
 
         strncat(mystring, EXT_BLORB, len1 * sizeof(char));
 

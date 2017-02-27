@@ -80,7 +80,7 @@ bb_err_t ux_blorb_init(char *filename)
      * zcode file and our resources are in a seperate blorb file.
      */
     if (isblorb(fp)) {			/* Now we know to look */
-	u_setup.exec_in_blorb = 1;	/* for zcode in the blorb */
+	f_setup.exec_in_blorb = 1;	/* for zcode in the blorb */
         blorb_fp = fopen(filename, "rb");
     } else {
 	len1 = strlen(filename) + strlen(EXT_BLORB);
@@ -112,7 +112,7 @@ bb_err_t ux_blorb_init(char *filename)
 
 	/* At this point we know that we're using a naked zcode file */
 	/* with resources in a seperate Blorb file. */
-	u_setup.use_blorb = 1;
+	f_setup.use_blorb = 1;
     }
 
     /* Create a Blorb map from this file.
@@ -126,10 +126,10 @@ bb_err_t ux_blorb_init(char *filename)
     /* Locate the EXEC chunk within the blorb file and record its
      * location so os_load_story() can find it.
      */
-    if (u_setup.exec_in_blorb) {
+    if (f_setup.exec_in_blorb) {
 	blorb_err = bb_load_chunk_by_type(blorb_map, bb_method_FilePos,
 		&blorb_res, bb_make_id('Z','C','O','D'), 0);
-	u_setup.exec_in_blorb = 1;
+	f_setup.exec_in_blorb = 1;
     }
 
     fclose(fp);

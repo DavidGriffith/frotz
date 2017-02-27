@@ -609,7 +609,7 @@ FILE *os_load_story(void)
     fp = fopen(f_setup.story_file, "rb");
 
     /* Is this a Blorb file containing Zcode? */
-    if (u_setup.exec_in_blorb)
+    if (f_setup.exec_in_blorb)
 	fseek(fp, blorb_res.data.startpos, SEEK_SET);
 
     return fp;
@@ -626,7 +626,7 @@ FILE *os_load_story(void)
 int os_storyfile_seek(FILE * fp, long offset, int whence)
 {
     /* Is this a Blorb file containing Zcode? */
-    if (u_setup.exec_in_blorb)
+    if (f_setup.exec_in_blorb)
     {
 	switch (whence)
 	{
@@ -660,7 +660,7 @@ int os_storyfile_seek(FILE * fp, long offset, int whence)
 int os_storyfile_tell(FILE * fp)
 {
     /* Is this a Blorb file containing Zcode? */
-    if (u_setup.exec_in_blorb)
+    if (f_setup.exec_in_blorb)
     {
 	return ftell(fp) - blorb_res.data.startpos;
     }
@@ -1026,8 +1026,8 @@ void os_init_setup(void)
 	f_setup.err_report_mode = ERR_DEFAULT_REPORT_MODE;
 	f_setup.restore_mode = 0;
 
-	u_setup.use_blorb = 0;
-	u_setup.exec_in_blorb = 0;
+	f_setup.use_blorb = 0;
+	f_setup.exec_in_blorb = 0;
 
 	u_setup.disable_color = 0;
 	u_setup.force_color = 0;

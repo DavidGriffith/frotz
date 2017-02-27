@@ -164,6 +164,7 @@ SOUND_LIB = -lao -ldl -lpthread -lm -lsndfile -lvorbisfile -lmodplug -lsamplerat
 .PHONY: all help dist clean distclean install install_dumb uninstall uninstall_dumb hash
 
 $(NAME): hash $(COMMON_DIR)/defines.h $(CURSES_DIR)/defines.h $(COMMON_TARGET) $(CURSES_TARGET) $(BLORB_TARGET)
+	@echo Linking $(NAME)...
 ifeq ($(SOUND), ao)
 	$(CC) -o $(BINNAME)$(EXTENSION) $(TARGETS) $(LIB) $(CURSES) $(SOUND_LIB)
 else ifeq ($(SOUND), none)
@@ -176,6 +177,7 @@ endif
 
 dumb:		d$(NAME)
 d$(NAME):	hash $(COMMON_DIR)/defines.h $(COMMON_TARGET) $(DUMB_TARGET) $(BLORB_TARGET)
+	@echo Linking d$(NAME)...
 	$(CC) -o d$(BINNAME)$(EXTENSION) $(COMMON_TARGET) $(DUMB_TARGET) $(BLORB_TARGET) $(LIB)
 
 all:	$(NAME) d$(NAME)

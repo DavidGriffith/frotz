@@ -80,10 +80,10 @@ extern f_setup_t f_setup;
 extern u_setup_t u_setup;
 
 /*** Blorb related stuff ***/
-extern bb_err_t		blorb_err;
-extern bb_map_t		*blorb_map;
-extern bb_result_t	blorb_res;
-extern FILE *blorb_fp;
+//extern bb_err_t		blorb_err;
+//extern bb_map_t		*blorb_map;
+//extern bb_result_t	blorb_res;
+//extern FILE *blorb_fp;
 
 /*** Functions specific to the Unix port of Frotz ***/
 

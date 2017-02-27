@@ -37,6 +37,7 @@
 #endif
 
 #include "ux_frotz.h"
+#include "ux_blorb.h"
 #include "ux_locks.h"
 
 #ifndef NO_SOUND

@@ -25,6 +25,10 @@ typedef struct {
     FILE *fp;
 } myresource;
 
+extern bb_err_t		blorb_err;
+extern bb_map_t		*blorb_map;
+extern bb_result_t	blorb_res;
+extern FILE *blorb_fp;
 
 bb_err_t ux_blorb_init(char *);
 void ux_blorb_stop(void);

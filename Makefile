@@ -143,7 +143,8 @@ DUMB_TARGET = $(SRCDIR)/frotz_dumb.a
 DUMB_OBJECT =	$(DUMB_DIR)/dumb_init.o \
 		$(DUMB_DIR)/dumb_input.o \
 		$(DUMB_DIR)/dumb_output.o \
-		$(DUMB_DIR)/dumb_pic.o
+		$(DUMB_DIR)/dumb_pic.o \
+		$(DUMB_DIR)/dumb_blorb.o
 
 BLORB_DIR = $(SRCDIR)/blorb
 BLORB_TARGET =  $(SRCDIR)/blorblib.a
@@ -174,8 +175,8 @@ else
 endif
 
 dumb:		d$(NAME)
-d$(NAME):	hash $(COMMON_DIR)/defines.h $(COMMON_TARGET) $(DUMB_TARGET)
-	$(CC) -o d$(BINNAME)$(EXTENSION) $(COMMON_TARGET) $(DUMB_TARGET) $(LIB)
+d$(NAME):	hash $(COMMON_DIR)/defines.h $(COMMON_TARGET) $(DUMB_TARGET) $(BLORB_TARGET)
+	$(CC) -o d$(BINNAME)$(EXTENSION) $(COMMON_TARGET) $(DUMB_TARGET) $(BLORB_TARGET) $(LIB)
 
 all:	$(NAME) d$(NAME)
 

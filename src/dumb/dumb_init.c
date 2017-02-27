@@ -19,7 +19,9 @@
  * Or visit http://www.fsf.org/
  */
 
+#include <libgen.h>
 #include "dumb_frotz.h"
+#include "dumb_blorb.h"
 
 f_setup_t f_setup;
 
@@ -208,7 +210,30 @@ void os_fatal (const char *s, ...)
 
 FILE *os_load_story(void)
 {
-    return fopen(f_setup.story_file, "rb");
+    FILE *fp;
+
+    switch (dumb_blorb_init(f_setup.story_file)) {
+	case bb_err_NoBlorb:
+//	  printf("No blorb file found.\n\n");
+	  break;
+	case bb_err_Format:
+	  printf("Blorb file loaded, but unable to build map.\n\n");
+	  break;
+	case bb_err_NotFound:
+	  printf("Blorb file loaded, but lacks executable chunk.\n\n");
+	  break;
+	case bb_err_None:
+//	  printf("No blorb errors.\n\n");
+	  break;
+    }
+
+    fp = fopen(f_setup.story_file, "rb");
+
+    /* Is this a Blorb file containing Zcode? */
+    if (f_setup.exec_in_blorb)
+	 fseek(fp, blorb_res.data.startpos, SEEK_SET);
+
+    return fp;
 }
 
 /*

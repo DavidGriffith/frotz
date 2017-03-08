@@ -86,6 +86,8 @@ bool unix_init_pictures(void);		/* ux_pic.c */
 void unix_init_scrollback(void);	/* ux_screen.c */
 void unix_save_screen(int);		/* ux_screen.c */
 void unix_do_scrollback(void);		/* ux_screen.c */
+void unix_resize_display(void);		/* ux_screen.c */
+
 
 #ifdef NO_STRRCHR
 char *strrchr(const char *, int);

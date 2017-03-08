@@ -33,6 +33,8 @@
 
 #include "ux_frotz.h"
 
+extern void resize_screen(void);
+extern void restart_header(void);
 
 /*
  * os_erase_area
@@ -131,3 +133,39 @@ void os_scroll_area (int top, int left, int bottom, int right, int units)
   else if (units < 0)
     os_erase_area(top + 1, left + 1, top - units, right + 1, 0);
 }/* os_scroll_area */
+
+
+/*
+ * unix_resize_display
+ *
+ * Resize the display and redraw.
+ *
+ */
+void unix_resize_display(void)
+{
+    int x, y;
+
+    /* Notify the game that the display needs refreshing */
+    if (h_version == V6)
+	h_flags |= REFRESH_FLAG;
+
+    /* Get new terminal dimensions */
+    getmaxyx(stdscr, y, x);
+
+    /* Update the game's header */
+    h_screen_width  = (zword) x;
+    h_screen_height = (zword) y;
+    h_screen_cols   = (zbyte) (h_screen_width / h_font_width);
+    h_screen_rows   = (zbyte)(h_screen_height / h_font_height);
+
+    if (zmp != NULL) {
+	resize_screen();
+	restart_header();
+    }
+
+    clearok(stdscr, 1);
+    redrawwin(stdscr);
+    refresh();
+    clearok(stdscr, 0);
+
+}/* unix_redraw_display */

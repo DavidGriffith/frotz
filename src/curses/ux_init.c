@@ -53,10 +53,8 @@ static int geterrmode(char *);
 static int getcolor(char *);
 static int getbool(char *);
 
-/* static void sigwinch_handler(int); */
+static void sigwinch_handler(int);
 static void sigint_handler(int);
-/* static void redraw(void); */
-
 
 #define INFORMATION "\
 An interpreter for all Infocom and other Z-Machine games.\n\
@@ -91,7 +89,6 @@ static int	getconfig(char *);
 static int	getbool(char *);
 static int	getcolor(char *);
 static int	geterrmode(char *);
-/* static void	redraw(void); */
 /* static FILE	*pathopen(const char *, const char *, const char *, char *); */
 
 
@@ -214,10 +211,9 @@ void os_process_arguments (int argc, char *argv[])
  *
  */
 
-/*
-    if (signal(SIGWINCH, SIG_IGN) != SIG_IGN)
+
+//    if (signal(SIGWINCH, SIG_IGN) != SIG_IGN)
 	signal(SIGWINCH, sigwinch_handler);
-*/
 
     if (signal(SIGINT, SIG_IGN) != SIG_IGN)
 	signal(SIGINT, sigint_handler);
@@ -971,17 +967,12 @@ static int geterrmode(char *value)
  * cleanly resize the window.
  *
  */
-// FIXME: figure out what to do with this
-//static void sigwinch_handler(int UNUSED(sig))
-//{
-/*
-There are some significant problems involved in getting resizes to work
-properly with at least this implementation of the Z Machine and probably
-the Z-Machine standard itself.  See the file BUGS for a detailed
-explaination for this.  Because of this trouble, this function currently
-does nothing.
-*/
-//}
+static void sigwinch_handler(int UNUSED(sig))
+{
+  signal(SIGWINCH, SIG_IGN);
+  unix_resize_display();
+  signal(SIGWINCH, sigwinch_handler);
+}
 
 
 /*
@@ -1002,11 +993,6 @@ static void sigint_handler(int dummy)
     exit(1);
 }
 
-/*
-void redraw(void)
-{
-}
-*/
 
 void os_init_setup(void)
 {

@@ -673,8 +673,6 @@ static void erase_screen (zword win)
 
 }/* erase_screen */
 
-/* #ifdef AMIGA */
-
 
 /*
  * resize_screen
@@ -692,12 +690,9 @@ void resize_screen (void)
 	wp[7].x_size = h_screen_width;
 
 	wp[0].y_size = h_screen_height - wp[1].y_size - wp[7].y_size;
-
     }
 
 }/* resize_screen */
-
-/* #endif */
 
 
 /*

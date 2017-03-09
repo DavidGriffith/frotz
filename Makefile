@@ -161,22 +161,22 @@ SOUND_LIB = -lao -ldl -lpthread -lm -lsndfile -lvorbisfile -lmodplug -lsamplerat
 # Targets
 #
 
-.PHONY: all help dist clean distclean install install_dumb uninstall uninstall_dumb hash
+.PHONY: all help dist clean distclean install install_dumb uninstall uninstall_dumb
 
-$(NAME): hash $(COMMON_DIR)/defines.h $(CURSES_DIR)/defines.h $(COMMON_TARGET) $(CURSES_TARGET) $(BLORB_TARGET)
+$(NAME): $(COMMON_DIR)/git_hash.h $(COMMON_DIR)/defines.h $(CURSES_DIR)/defines.h $(COMMON_TARGET) $(CURSES_TARGET) $(BLORB_TARGET)
 	@echo Linking $(NAME)...
 ifeq ($(SOUND), ao)
 	$(CC) -o $(BINNAME)$(EXTENSION) $(TARGETS) $(LIB) $(CURSES) $(SOUND_LIB)
 else ifeq ($(SOUND), none)
-	$(CC) -o $(BINNAME)$(EXTENSION) $(TARGETS) $(LIB) $(CURSES)
+	$(CC) -o $(BINNAME)$(EXTENSION) $(TARGETS) $(LIB) $(CURSES) -DNO_SOUND
 else ifndef SOUND
-	$(CC) -o $(BINNAME)$(EXTENSION) $(TARGETS) $(LIB) $(CURSES)
+	$(CC) -o $(BINNAME)$(EXTENSION) $(TARGETS) $(LIB) $(CURSES) -DNO_SOUND
 else
 	@echo "Invalid sound choice $(SOUND)."
 endif
 
 dumb:		d$(NAME)
-d$(NAME):	hash $(COMMON_DIR)/defines.h $(COMMON_TARGET) $(DUMB_TARGET) $(BLORB_TARGET)
+d$(NAME):	$(COMMON_DIR)/git_hash.h $(COMMON_DIR)/defines.h $(COMMON_TARGET) $(DUMB_TARGET) $(BLORB_TARGET)
 	@echo Linking d$(NAME)...
 	$(CC) -o d$(BINNAME)$(EXTENSION) $(COMMON_TARGET) $(DUMB_TARGET) $(BLORB_TARGET) $(LIB)
 
@@ -228,6 +228,24 @@ endif
 
 ifdef NO_MEMMOVE
 	@echo "#define NO_MEMMOVE" >> $@
+endif
+
+
+# If we're building from a Git repository, fetch the commit tag and put 
+#   it into $(COMMON_DIR)/git_hash.h.
+# If not, that should mean that we're building from a tarball.  In that 
+#  case, $(COMMON_DIR)/git_hash.h should already be there.
+#
+hash: $(COMMON_DIR)/git_hash.h
+$(COMMON_DIR)/git_hash.h:
+ifneq ($(and $(wildcard .git),$(shell which git)),)
+	@echo "Creating $(COMMON_DIR)/git_hash.h"
+	@echo "#define GIT_HASH \"$$(git rev-parse HEAD)\"" > $(COMMON_DIR)/git_hash.h
+	@echo "#define GIT_HASH_SHORT \"$$(git rev-parse HEAD|head -c7 -)\"" >> $(COMMON_DIR)/git_hash.h
+	@echo "#define GIT_TAG \"$$(git describe --tags)\"" >> $(COMMON_DIR)/git_hash.h
+	@echo "#define GIT_BRANCH \"$$(git rev-parse --abbrev-ref HEAD)\"" >> $(COMMON_DIR)/git_hash.h
+else
+	$(error $(COMMON_DIR)/git_hash.h is missing!.)
 endif
 
 
@@ -301,7 +319,9 @@ dist: distclean hash
 clean:
 	rm -f $(SRCDIR)/*.h $(SRCDIR)/*.a
 	rm -f $(COMMON_DIR)/defines.h
+ifneq ($(and $(wildcard .git),$(shell which git)),)
 	rm -f $(COMMON_DIR)/git_hash.h
+endif
 	rm -f $(CURSES_DIR)/defines.h
 	find . -name *.o -exec rm -f {} \;
 	find . -name *.O -exec rm -f {} \;
@@ -314,25 +334,6 @@ distclean: clean
 	rm -f *core $(SRCDIR)/*core
 	-rm -rf $(distdir)
 	-rm -f $(distdir).tar $(distdir).tar.gz
-
-# If we're building from a Git repository, fetch the commit tag and put 
-#   it into $(COMMON_DIR)/git_hash.h.
-# If not, that should mean that we're building from a tarball.  In that 
-#  case, $(COMMON_DIR)/git_hash.h should already be there.
-hash:
-ifneq ($(and $(wildcard .git),$(shell which git)),)
-	@echo "Creating $(COMMON_DIR)/git_hash.h"
-	@echo "#define GIT_HASH \"$$(git rev-parse HEAD)\"" > $(COMMON_DIR)/git_hash.h
-	@echo "#define GIT_HASH_SHORT \"$$(git rev-parse HEAD|head -c7 -)\"" >> $(COMMON_DIR)/git_hash.h
-	@echo "#define GIT_TAG \"$$(git describe --tags)\"" >> $(COMMON_DIR)/git_hash.h
-	@echo "#define GIT_BRANCH \"$$(git rev-parse --abbrev-ref HEAD)\"" >> $(COMMON_DIR)/git_hash.h
-else
-  ifneq ($(wildcard $(COMMON_DIR)/git_hash.h),)
-	@echo "Found $(COMMON_DIR)/git_hash.h"
-  else
-	$(error $(COMMON_DIR)/git_hash.h is missing!.)
-  endif
-endif
 
 help:
 	@echo

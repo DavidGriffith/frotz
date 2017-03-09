@@ -35,6 +35,7 @@
 
 extern void resize_screen(void);
 extern void restart_header(void);
+extern void restart_screen(void);
 
 /*
  * os_erase_area
@@ -150,11 +151,11 @@ void unix_resize_display(void)
 	h_flags |= REFRESH_FLAG;
 
     /* Get new terminal dimensions */
-    getmaxyx(stdscr, y, x);
+//    getmaxyx(stdscr, y, x);
 
     /* Update the game's header */
-    h_screen_width  = (zword) x;
-    h_screen_height = (zword) y;
+    h_screen_width  = (zword) COLS;
+    h_screen_height = (zword) LINES;
     h_screen_cols   = (zbyte) (h_screen_width / h_font_width);
     h_screen_rows   = (zbyte)(h_screen_height / h_font_height);
 
@@ -163,9 +164,12 @@ void unix_resize_display(void)
 	restart_header();
     }
 
-    clearok(stdscr, 1);
-    redrawwin(stdscr);
+    endwin();
     refresh();
-    clearok(stdscr, 0);
+
+//    clearok(stdscr, 1);
+//    redrawwin(stdscr);
+//    refresh();
+//    clearok(stdscr, 0);
 
 }/* unix_redraw_display */

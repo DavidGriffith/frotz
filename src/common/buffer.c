@@ -57,10 +57,6 @@ void flush_buffer (void)
 
     stream_word (buffer);
 
-#ifdef SPEECH_OUTPUT
-    os_speech_output(buffer);
-#endif
-
     locked = FALSE;
 
     /* Reset the buffer */

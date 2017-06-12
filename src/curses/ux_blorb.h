@@ -21,7 +21,8 @@ typedef struct sampledata_struct {
  */
 typedef struct {
     bb_result_t bbres;
-    ulong type;
+    // ulong type;
+    uint32_t type;
     FILE *fp;
 } myresource;
 

@@ -993,7 +993,7 @@ does nothing.
 static void sigint_handler(int dummy)
 {
     signal(SIGINT, sigint_handler);
-    dummy = dummy;
+    // dummy = dummy;
 
     os_stop_sample(0);
     scrollok(stdscr, TRUE); scroll(stdscr);

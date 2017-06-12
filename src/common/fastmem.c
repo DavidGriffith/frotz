@@ -682,7 +682,7 @@ void z_restore (void)
 {
     char new_name[MAX_FILE_NAME + 1];
     char default_name[MAX_FILE_NAME + 1];
-    FILE *gfp;
+    FILE *gfp = NULL;
 
     zword success = 0;
 

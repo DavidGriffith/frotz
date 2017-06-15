@@ -259,8 +259,7 @@ static int unix_read_char(int extkeys)
 	 * to use one of the emacs keys that isn't implemented and he
 	 * gets a random hot key function.  It's less jarring to catch
 	 * them and do nothing.  [APP] */
-      if ((c >= ZC_HKEY_MIN) && (c <= ZC_HKEY_MAX))
-	continue;
+      if ((c >= ZC_HKEY_MIN) && (c <= ZC_HKEY_MAX)) continue;
 
 	/* Finally, if we're in full line mode (os_read_line), we
 	   might return codes which aren't legal Z-machine keys but

@@ -22,7 +22,7 @@ typedef struct sampledata_struct {
 typedef struct {
     bb_result_t bbres;
     // ulong type;
-    uint32_t type;
+    unsigned long type;
     FILE *fp;
 } myresource;
 

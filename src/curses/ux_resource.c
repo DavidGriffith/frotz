@@ -24,7 +24,7 @@ int ux_getresource( int num, int ispic, int method, myresource * res)
 {
     int st;
     // ulong usage;
-    uint32_t usage;
+    unsigned long usage;
 
     res->bbres.data.ptr = NULL;
     res->fp = NULL;

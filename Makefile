@@ -57,6 +57,8 @@ CURSES = -lncurses
 #INCL = -I/usr/pkg/include
 #INCL = -I/usr/freeware/include
 #INCL = -I/5usr/include
+## INCL path for Apple MacOS Sierra 10.12 plus MacPorts
+INCL = -I/opt/local/include
 
 # Just in case your operating system keeps its user-added libraries
 # somewhere unusual...
@@ -65,6 +67,8 @@ CURSES = -lncurses
 #LIB = -L/usr/pkg/lib
 #LIB = -L/usr/freeware/lib
 #LIB = -L/5usr/lib
+## LIB path for Apple MacOS Sierra 10.12 plus MacPorts
+LIB = -L/opt/local/lib
 
 # Uncomment this if you're compiling Unix Frotz on a machine that lacks 
 # the strrchr() libc library call.  If you don't know what this means,
@@ -187,7 +191,8 @@ all:	$(NAME) d$(NAME)
 .SUFFIXES: .c .o .h
 
 $(COMMON_OBJECT): %.o: %.c
-	$(CC) $(OPTS) -o $@ -c $<
+	#$(CC) $(OPTS) -o $@ -c $<
+	$(CC) $(OPTS) $(INCL) -o $@ -c $<
 
 $(BLORB_OBJECT): %.o: %.c
 	$(CC) $(CFLAGS) $(OPTS) -o $@ -c $<
@@ -196,7 +201,8 @@ $(DUMB_OBJECT): %.o: %.c
 	$(CC) $(CFLAGS) $(OPTS) -o $@ -c $<
 
 $(CURSES_OBJECT): %.o: %.c
-	$(CC) $(OPTS) -o $@ -c $<
+	#$(CC) $(OPTS) -o $@ -c $<
+	$(CC) $(OPTS) $(INCL) -o $@ -c $<
 
 
 ####################################

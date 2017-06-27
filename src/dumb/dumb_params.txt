@@ -1,0 +1,18 @@
+-a   watch attribute setting
+-A   watch attribute testing
+-h # screen height
+-i   ignore fatal errors
+-I # interpreter number
+-o   watch object movement
+-O   watch object locating
+-p   plain ASCII output only
+-P   alter piracy opcode
+-R <filename> load this save file
+-s # random number seed value
+-S # transcript width
+-t   set Tandy bit
+-u # slots for multiple undo
+-v show version information
+-w # screen width
+-W <path> write only to this path
+-x   expand abbreviations g/x/z

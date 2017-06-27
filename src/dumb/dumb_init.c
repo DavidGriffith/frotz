@@ -95,7 +95,7 @@ void os_process_arguments(int argc, char *argv[])
     do_more_prompts = TRUE;
     /* Parse the options */
     do {
-	c = zgetopt(argc, argv, "-aAh:iI:moOpPs:r:R:S:tu:vw:xZ:");
+	c = zgetopt(argc, argv, "-aAh:iI:moOpPs:r:R:S:tu:vw:W:xZ:");
 	switch(c) {
 	  case 'a': f_setup.attribute_assignment = 1; break;
 	  case 'A': f_setup.attribute_testing = 1; break;
@@ -117,6 +117,7 @@ void os_process_arguments(int argc, char *argv[])
 	  case 'u': f_setup.undo_slots = atoi(zoptarg); break;
 	case 'v': print_version(); exit(2); break;
 	case 'w': user_screen_width = atoi(zoptarg); break;
+	case 'W': f_setup.write_path = strndup(zoptarg, PATH_MAX); break;
 	  case 'x': f_setup.expand_abbreviations = 1; break;
 	  case 'Z': f_setup.err_report_mode = atoi(zoptarg);
 		if ((f_setup.err_report_mode < ERR_REPORT_NEVER) ||

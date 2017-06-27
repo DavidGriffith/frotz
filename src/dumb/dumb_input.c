@@ -405,6 +405,8 @@ int os_read_file_name (char *file_name, const char *default_name, int flag)
 {
   char buf[INPUT_BUFFER_SIZE], prompt[INPUT_BUFFER_SIZE];
   FILE *fp;
+  char *tempname;
+  int i;
 
   /* If we're restoring a game before the interpreter starts,
    * our filename is already provided.  Just go ahead silently.
@@ -422,6 +424,22 @@ int os_read_file_name (char *file_name, const char *default_name, int flag)
   }
 
   strcpy (file_name, buf[0] ? buf : default_name);
+
+  /* Check if we're restricted to one directory. */
+  if (f_setup.write_path != NULL) {
+    for (i = strlen(file_name); i > 0; i--) {
+      if (file_name[i] == PATH_SEPARATOR) {
+        i++;
+        break;
+      }
+    }
+    tempname = strdup(file_name + i);
+    strcpy(file_name, f_setup.write_path);
+    if (file_name[strlen(file_name)-1] != PATH_SEPARATOR) {
+      strcat(file_name, "/");
+    }
+    strcat(file_name, tempname);
+  }
 
   /* Warn if overwriting a file.  */
   if ((flag == FILE_SAVE || flag == FILE_SAVE_AUX || flag == FILE_RECORD)

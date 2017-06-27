@@ -27,6 +27,25 @@ typedef int bool;
 #define FALSE 0
 #endif
 
+#ifndef PATH_MAX
+#  ifdef MAXPATHLEN                /* defined in <sys/param.h> some systems */
+#    define PATH_MAX      MAXPATHLEN
+#  else
+#    if FILENAME_MAX > 255         /* used like PATH_MAX on some systems */
+#      define PATH_MAX    FILENAME_MAX
+#    else
+#      define PATH_MAX    (FILNAMSIZ - 1)
+#    endif
+#  endif /* ?MAXPATHLEN */
+#endif /* !PATH_MAX */
+
+
+#if defined(WIN32) || defined(_WIN32) || defined(WIN64) || defined(_WIN64) || defined (__CYGWIN__)
+#define PATH_SEPARATOR '\\'
+#else
+#define PATH_SEPARATOR '/'
+#endif
+
 /* typedef unsigned short zbyte; */
 typedef unsigned char zbyte;
 typedef unsigned short zword;

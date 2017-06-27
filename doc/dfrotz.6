@@ -134,6 +134,18 @@ common abbreviations which were introduced in later games.  Use it with
 caution: A few games might use "g", "x" or "z" for different purposes.
 
 .TP
+.B \-W <path>
+Write only to the directory specified by the provided pathname.
+Ordinarily Frotz will write its saves, transcripts, and move recordings
+to whatever path or directory the user provides when the SAVE, SCRIPT,
+or RECORDING commands are given.  This can be undesirable if Frotz is
+run in a restricted environment -- for example by a chatbot.  This
+option will cause Frotz to write ONLY to the provided path and nowhere
+else.  Then the controlling process can then watch that directory for
+changes and need not worry about someone scribbling something
+who-knows-where.
+
+.TP
 .B \-Z N
 Error checking mode.
 .br

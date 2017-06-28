@@ -14,5 +14,5 @@
 -u # slots for multiple undo
 -v show version information
 -w # screen width
--W <path> write only to this path
+-W <path> write/read only to this path
 -x   expand abbreviations g/x/z

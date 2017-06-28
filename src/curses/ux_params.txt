@@ -9,18 +9,18 @@
 -h # screen height
 -i   ignore fatal errors
 -l # left margin
+-L <file> load this save file
 -o   watch object movement
 -O   watch object locating
 -p   plain ASCII output only
 -P   alter piracy opcode
 -q   quiet (disable sound effects)
 -r # right margin
--R <filename> load this save file
+-R <path> restricted read/write
 -s # random number seed value
 -S # transcript width
 -t   set Tandy bit
 -u # slots for multiple undo
 -v   show version information
 -w # screen width
--W <path> write/read only to this path
 -x   expand abbreviations g/x/z

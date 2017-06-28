@@ -32,15 +32,15 @@ static void print_version(void);
 An interpreter for all Infocom and other Z-Machine games.\n\
 \n\
 Syntax: dfrotz [options] story-file\n\
-  -a   watch attribute setting    \t -R <filename> load this save file\n\
-  -A   watch attribute testing    \t -s # random number seed value\n\
-  -h # screen height              \t -S # transcript width\n\
-  -i   ignore fatal errors        \t -t   set Tandy bit\n\
-  -I # interpreter number         \t -u # slots for multiple undo\n\
-  -o   watch object movement      \t -v show version information\n\
-  -O   watch object locating      \t -w # screen width\n\
-  -p   plain ASCII output only    \t -W <path> write/read only to this path\n\
-  -P   alter piracy opcode        \t -x   expand abbreviations g/x/z\n\
+  -a   watch attribute setting    \t -P   alter piracy opcode\n\
+  -A   watch attribute testing    \t -R <path> restricted read/write\n\
+  -h # screen height              \t -s # random number seed value\n\
+  -i   ignore fatal errors        \t -S # transcript width\n\
+  -I # interpreter number         \t -t   set Tandy bit\n\
+  -o   watch object movement      \t -u # slots for multiple undo\n\
+  -O   watch object locating      \t -v show version information\n\
+  -L <file> load this save file   \t -w # screen width\n\
+  -p   plain ASCII output only    \t -x   expand abbreviations g/x/z\n\
   -r xxx set runtime option \\xxx before starting (can be used repeatedly)\n"
 
 /* A unix-like getopt, but with the names changed to avoid any problems.  */
@@ -95,29 +95,29 @@ void os_process_arguments(int argc, char *argv[])
     do_more_prompts = TRUE;
     /* Parse the options */
     do {
-	c = zgetopt(argc, argv, "-aAh:iI:moOpPs:r:R:S:tu:vw:W:xZ:");
+	c = zgetopt(argc, argv, "-aAh:iI:L:moOpPs:r:R:S:tu:vw:xZ:");
 	switch(c) {
 	  case 'a': f_setup.attribute_assignment = 1; break;
 	  case 'A': f_setup.attribute_testing = 1; break;
 	case 'h': user_screen_height = atoi(zoptarg); break;
 	  case 'i': f_setup.ignore_errors = 1; break;
 	  case 'I': f_setup.interpreter_number = atoi(zoptarg); break;
+	case 'L': f_setup.restore_mode = 1;
+		  f_setup.tmp_save_name = my_strdup(zoptarg);
+		  break;
 	  case 'm': do_more_prompts = FALSE; break;
 	  case 'o': f_setup.object_movement = 1; break;
 	  case 'O': f_setup.object_locating = 1; break;
 	  case 'P': f_setup.piracy = 1; break;
 	case 'p': plain_ascii = 1; break;
-	case 'R': f_setup.restore_mode = 1;
-		  f_setup.tmp_save_name = my_strdup(zoptarg);
-		  break;
 	case 'r': dumb_handle_setting(zoptarg, FALSE, TRUE); break;
+	case 'R': f_setup.restricted_path = strndup(zoptarg, PATH_MAX); break;
 	case 's': user_random_seed = atoi(zoptarg); break;
 	  case 'S': f_setup.script_cols = atoi(zoptarg); break;
 	case 't': user_tandy_bit = 1; break;
 	  case 'u': f_setup.undo_slots = atoi(zoptarg); break;
 	case 'v': print_version(); exit(2); break;
 	case 'w': user_screen_width = atoi(zoptarg); break;
-	case 'W': f_setup.write_path = strndup(zoptarg, PATH_MAX); break;
 	  case 'x': f_setup.expand_abbreviations = 1; break;
 	  case 'Z': f_setup.err_report_mode = atoi(zoptarg);
 		if ((f_setup.err_report_mode < ERR_REPORT_NEVER) ||

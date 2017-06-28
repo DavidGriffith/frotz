@@ -651,6 +651,8 @@ int os_read_file_name (char *file_name, const char *default_name, int UNUSED(fla
 {
     int saved_replay = istream_replay;
     int saved_record = ostream_record;
+    int i;
+    char *tempname;
 
     /* Turn off playback and recording temporarily */
 
@@ -673,6 +675,22 @@ int os_read_file_name (char *file_name, const char *default_name, int UNUSED(fla
 
     if (file_name[0] == 0)
         strcpy (file_name, default_name);
+
+    /* Check if we're restricted to one directory. */
+    if (f_setup.restricted_path != NULL) {
+	for (i = strlen(file_name); i > 0; i--) {
+	    if (file_name[i] == PATH_SEPARATOR) {
+		i++;
+		break;
+	    }
+	}
+	tempname = strdup(file_name + i);
+	strcpy(file_name, f_setup.restricted_path);
+	if (file_name[strlen(file_name)-1] != PATH_SEPARATOR) {
+	    strcat(file_name, "/");
+	}
+	strcat(file_name, tempname);
+    }
 
     /* Restore state of playback and recording */
 

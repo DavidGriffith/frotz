@@ -30,7 +30,7 @@ typedef struct frotz_setup_struct {
         char *aux_name;
         char *story_path;
         char *zcode_path;
-	char *write_path;
+	char *restricted_path;
 	int restore_mode; /* for a save file passed from command line*/
 
 	bool use_blorb;

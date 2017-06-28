@@ -426,7 +426,7 @@ int os_read_file_name (char *file_name, const char *default_name, int flag)
   strcpy (file_name, buf[0] ? buf : default_name);
 
   /* Check if we're restricted to one directory. */
-  if (f_setup.write_path != NULL) {
+  if (f_setup.restricted_path != NULL) {
     for (i = strlen(file_name); i > 0; i--) {
       if (file_name[i] == PATH_SEPARATOR) {
         i++;
@@ -434,7 +434,7 @@ int os_read_file_name (char *file_name, const char *default_name, int flag)
       }
     }
     tempname = strdup(file_name + i);
-    strcpy(file_name, f_setup.write_path);
+    strcpy(file_name, f_setup.restricted_path);
     if (file_name[strlen(file_name)-1] != PATH_SEPARATOR) {
       strcat(file_name, "/");
     }

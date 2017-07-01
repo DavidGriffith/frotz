@@ -677,6 +677,7 @@ int os_read_file_name (char *file_name, const char *default_name, int UNUSED(fla
         strcpy (file_name, default_name);
 
     /* Check if we're restricted to one directory. */
+
     if (f_setup.restricted_path != NULL) {
 	for (i = strlen(file_name); i > 0; i--) {
 	    if (file_name[i] == PATH_SEPARATOR) {

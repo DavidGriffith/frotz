@@ -15,6 +15,7 @@
 -O   watch object locating
 -p   alter piracy opcode
 -r # right margin
+-R <path> restricted read/write
 -s # random number seed value
 -S # transscript width
 -t   set Tandy bit

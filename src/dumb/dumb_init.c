@@ -38,7 +38,7 @@ Syntax: dfrotz [options] story-file\n\
   -i   ignore fatal errors        \t -S # transcript width\n\
   -I # interpreter number         \t -t   set Tandy bit\n\
   -o   watch object movement      \t -u # slots for multiple undo\n\
-  -O   watch object locating      \t -v show version information\n\
+  -O   watch object locating      \t -v   show version information\n\
   -L <file> load this save file   \t -w # screen width\n\
   -m   turn off MORE prompts      \t -x   expand abbreviations g/x/z\n\
   -p   plain ASCII output only\n"

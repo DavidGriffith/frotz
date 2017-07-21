@@ -40,8 +40,8 @@ Syntax: dfrotz [options] story-file\n\
   -o   watch object movement      \t -u # slots for multiple undo\n\
   -O   watch object locating      \t -v show version information\n\
   -L <file> load this save file   \t -w # screen width\n\
-  -p   plain ASCII output only    \t -x   expand abbreviations g/x/z\n\
-  -r xxx set runtime option \\xxx before starting (can be used repeatedly)\n"
+  -m   turn off MORE prompts      \t -x   expand abbreviations g/x/z\n\
+  -p   plain ASCII output only\n"
 
 /* A unix-like getopt, but with the names changed to avoid any problems.  */
 static int zoptind = 1;

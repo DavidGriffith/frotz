@@ -6,6 +6,7 @@
 -o   watch object movement
 -O   watch object locating
 -L <file> load this save file
+-m   turn off MORE prompts
 -p   plain ASCII output only
 -P   alter piracy opcode
 -R <path> restricted read/write

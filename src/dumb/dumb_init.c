@@ -165,6 +165,10 @@ void os_process_arguments(int argc, char *argv[])
     f_setup.script_name = malloc(strlen(f_setup.story_name) * sizeof(char) + 5);
     strncpy(f_setup.script_name, f_setup.story_name, strlen(f_setup.story_name));
     strncat(f_setup.script_name, EXT_SCRIPT, strlen(EXT_SCRIPT));
+
+    f_setup.command_name = malloc((strlen(f_setup.story_name) + strlen(EXT_COMMAND)) * sizeof(char) + 1);
+    strncpy(f_setup.command_name, f_setup.story_name, strlen(f_setup.story_name) + 1);
+    strncat(f_setup.command_name, EXT_COMMAND, strlen(EXT_COMMAND));
 }
 
 void os_init_screen(void)

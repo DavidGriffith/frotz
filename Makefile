@@ -50,6 +50,11 @@ COLOR = yes
 CURSES = -lncurses
 #CURSES = -lcurses
 
+# Uncomment this if your machine's version of install doesn't recognize
+# the -D option.
+#
+#INSTALL_NO_D_FLAG = true
+
 # Just in case your operating system keeps its user-added header files
 # somewhere unusual...
 #
@@ -292,16 +297,26 @@ $(BLORB_TARGET): $(BLORB_OBJECT)
 	@echo
 
 install: $(NAME)
+ifeq ($(INSTALL_NO_D_FLAG), true)
+	@install -d $(DESTDIR)$(PREFIX)/bin -m 755 $(BINNAME)$(EXTENSION) "$(DESTDIR)$(PREFIX)/bin/$(BINNAME)$(EXTENSION)"
+	@install -d $(DESTDIR)$(MAN_PREFIX)/man/man6 -m 644 doc/$(NAME).6 "$(DESTDIR)$(MAN_PREFIX)/man/man6/$(NAME).6"
+else
 	@install -D -m 755 $(BINNAME)$(EXTENSION) "$(DESTDIR)$(PREFIX)/bin/$(BINNAME)$(EXTENSION)"
 	@install -D -m 644 doc/$(NAME).6 "$(DESTDIR)$(MAN_PREFIX)/man/man6/$(NAME).6"
+endif
 
 uninstall:
 	@rm -f "$(DESTDIR)$(PREFIX)/bin/$(NAME)"
 	@rm -f "$(DESTDIR)$(MAN_PREFIX)/man/man6/$(NAME).6"
 
 install_dumb: d$(NAME)
+ifeq ($(INSTALL_NO_D_FLAG), true)
+	@install -d $(DESTDIR)$(PREFIX)/bin -m 755 d$(BINNAME)$(EXTENSION) "$(DESTDIR)$(PREFIX)/bin/d$(BINNAME)$(EXTENSION)"
+	@install -d $(DESTDIR)$(MAN_PREFIX)/man/man6 -m 644 doc/d$(NAME).6 "$(DESTDIR)$(MAN_PREFIX)/man/man6/d$(NAME).6"
+else
 	@install -D -m 755 d$(BINNAME)$(EXTENSION) "$(DESTDIR)$(PREFIX)/bin/d$(BINNAME)$(EXTENSION)"
 	@install -D -m 644 doc/d$(NAME).6 "$(DESTDIR)$(MAN_PREFIX)/man/man6/d$(NAME).6"
+endif
 
 uninstall_dumb:
 	@rm -f "$(DESTDIR)$(PREFIX)/bin/d$(NAME)"

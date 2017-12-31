@@ -920,6 +920,8 @@ static int getcolor(char *value)
 		return CYAN_COLOUR;
 	if (strcmp(value, "white") == 0)
 		return WHITE_COLOUR;
+	if (strcmp(value, "yellow") == 0)
+		return YELLOW_COLOUR;
 
 	if (strcmp(value, "purple") == 0)
 		return MAGENTA_COLOUR;

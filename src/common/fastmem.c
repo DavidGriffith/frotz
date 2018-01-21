@@ -867,8 +867,6 @@ static void mem_undiff (zbyte *diff, long diff_length, zbyte *dest)
  */
 int restore_undo (void)
 {
-    long pc = curr_undo->pc;
-
     if (f_setup.undo_slots == 0)	/* undo feature unavailable */
 
 	return -1;
@@ -880,7 +878,7 @@ int restore_undo (void)
     /* undo possible */
 
     memcpy (zmp, prev_zmp, h_dynamic_size);
-    SET_PC (pc);
+    SET_PC (curr_undo->pc);
     sp = stack + STACK_SIZE - curr_undo->stack_size;
     fp = stack + curr_undo->frame_offset;
     frame_count = curr_undo->frame_count;

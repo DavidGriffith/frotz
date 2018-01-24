@@ -48,6 +48,8 @@
 f_setup_t f_setup;
 u_setup_t u_setup;
 
+volatile sig_atomic_t terminal_resized = 0;
+
 static int getconfig(char *);
 static int geterrmode(char *);
 static int getcolor(char *);
@@ -967,14 +969,14 @@ static int geterrmode(char *value)
  * sigwinch_handler
  *
  * Called whenever Frotz recieves a SIGWINCH signal to make curses
- * cleanly resize the window.
+ * cleanly resize the window.  To be safe, just set a flag here.
+ * It is checked and cleared in unix_read_char.
  *
  */
 static void sigwinch_handler(int UNUSED(sig))
 {
-  signal(SIGWINCH, SIG_IGN);
-  unix_resize_display();
-  signal(SIGWINCH, sigwinch_handler);
+    terminal_resized = 1;
+    signal(SIGWINCH, sigwinch_handler);
 }
 
 

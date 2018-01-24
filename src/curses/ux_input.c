@@ -130,6 +130,10 @@ static int unix_read_char(int extkeys)
     int c;
 
     while(1) {
+        while (terminal_resized) {
+            terminal_resized = 0;
+            unix_resize_display();
+        }
 	timeout( timeout_to_ms());
 	c = getch();
 

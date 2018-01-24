@@ -5,6 +5,8 @@
  *
  */
 
+#include <signal.h>
+
 #include "defines.h"
 #include "../common/frotz.h"
 #include "../blorb/blorb.h"
@@ -78,6 +80,8 @@ extern char *gamepath;	/* use to find sound files */
 
 extern f_setup_t f_setup;
 extern u_setup_t u_setup;
+
+extern volatile sig_atomic_t terminal_resized;
 
 /*** Functions specific to the Unix port of Frotz ***/
 

@@ -144,7 +144,10 @@ void os_scroll_area (int top, int left, int bottom, int right, int units)
  */
 void unix_resize_display(void)
 {
-    int x, y;
+//    int x, y;
+
+    endwin();
+    refresh();
 
     /* Notify the game that the display needs refreshing */
     if (h_version == V6)
@@ -163,9 +166,6 @@ void unix_resize_display(void)
 	resize_screen();
 	restart_header();
     }
-
-    endwin();
-    refresh();
 
 //    clearok(stdscr, 1);
 //    redrawwin(stdscr);

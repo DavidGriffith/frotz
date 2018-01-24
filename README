@@ -25,12 +25,6 @@ For information on known bugs in Frotz, see the file "BUGS".
 For bug reports, check the Unix Frotz website to see if there's a new
 release.  If not, send your bug report to me at dave@661.org.
 
-For information on porting Frotz to new platforms, see the file "PORTING".
-
-For those who are involved in creating and distributing binary packages
-containing Frotz and including Frotz in BSD-style ports/pkgsrc trees,
-see the file "PACKAGING".
-
 The latest information on and source code of Unix Frotz is available at 
 https://github.com/DavidGriffith/frotz
 

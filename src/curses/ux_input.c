@@ -259,8 +259,7 @@ static int unix_read_char(int extkeys)
 	 * to use one of the emacs keys that isn't implemented and he
 	 * gets a random hot key function.  It's less jarring to catch
 	 * them and do nothing.  [APP] */
-      if ((c >= ZC_HKEY_MIN) && (c <= ZC_HKEY_MAX))
-	continue;
+      if ((c >= ZC_HKEY_MIN) && (c <= ZC_HKEY_MAX)) continue;
 
 	/* Finally, if we're in full line mode (os_read_line), we
 	   might return codes which aren't legal Z-machine keys but
@@ -652,6 +651,8 @@ int os_read_file_name (char *file_name, const char *default_name, int UNUSED(fla
 {
     int saved_replay = istream_replay;
     int saved_record = ostream_record;
+    int i;
+    char *tempname;
 
     /* Turn off playback and recording temporarily */
 
@@ -674,6 +675,23 @@ int os_read_file_name (char *file_name, const char *default_name, int UNUSED(fla
 
     if (file_name[0] == 0)
         strcpy (file_name, default_name);
+
+    /* Check if we're restricted to one directory. */
+
+    if (f_setup.restricted_path != NULL) {
+	for (i = strlen(file_name); i > 0; i--) {
+	    if (file_name[i] == PATH_SEPARATOR) {
+		i++;
+		break;
+	    }
+	}
+	tempname = strdup(file_name + i);
+	strcpy(file_name, f_setup.restricted_path);
+	if (file_name[strlen(file_name)-1] != PATH_SEPARATOR) {
+	    strcat(file_name, "/");
+	}
+	strcat(file_name, tempname);
+    }
 
     /* Restore state of playback and recording */
 

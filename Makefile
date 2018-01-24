@@ -50,6 +50,11 @@ COLOR = yes
 CURSES = -lncurses
 #CURSES = -lcurses
 
+# Uncomment this if your machine's version of install doesn't recognize
+# the -D option.
+#
+#INSTALL_NO_D_FLAG = true
+
 # Just in case your operating system keeps its user-added header files
 # somewhere unusual...
 #
@@ -57,6 +62,8 @@ CURSES = -lncurses
 #INCL = -I/usr/pkg/include
 #INCL = -I/usr/freeware/include
 #INCL = -I/5usr/include
+## INCL path for Apple MacOS Sierra 10.12 plus MacPorts
+INCL = -I/opt/local/include
 
 # Just in case your operating system keeps its user-added libraries
 # somewhere unusual...
@@ -65,6 +72,8 @@ CURSES = -lncurses
 #LIB = -L/usr/pkg/lib
 #LIB = -L/usr/freeware/lib
 #LIB = -L/5usr/lib
+## LIB path for Apple MacOS Sierra 10.12 plus MacPorts
+LIB = -L/opt/local/lib
 
 # Uncomment this if you're compiling Unix Frotz on a machine that lacks 
 # the strrchr() libc library call.  If you don't know what this means,
@@ -187,7 +196,8 @@ all:	$(NAME) d$(NAME)
 .SUFFIXES: .c .o .h
 
 $(COMMON_OBJECT): %.o: %.c
-	$(CC) $(OPTS) -o $@ -c $<
+	#$(CC) $(OPTS) -o $@ -c $<
+	$(CC) $(OPTS) $(INCL) -o $@ -c $<
 
 $(BLORB_OBJECT): %.o: %.c
 	$(CC) $(CFLAGS) $(OPTS) -o $@ -c $<
@@ -196,7 +206,8 @@ $(DUMB_OBJECT): %.o: %.c
 	$(CC) $(CFLAGS) $(OPTS) -o $@ -c $<
 
 $(CURSES_OBJECT): %.o: %.c
-	$(CC) $(OPTS) -o $@ -c $<
+	#$(CC) $(OPTS) -o $@ -c $<
+	$(CC) $(OPTS) $(INCL) -o $@ -c $<
 
 
 ####################################
@@ -286,16 +297,26 @@ $(BLORB_TARGET): $(BLORB_OBJECT)
 	@echo
 
 install: $(NAME)
+ifeq ($(INSTALL_NO_D_FLAG), true)
+	@install -d $(DESTDIR)$(PREFIX)/bin -m 755 $(BINNAME)$(EXTENSION) "$(DESTDIR)$(PREFIX)/bin/$(BINNAME)$(EXTENSION)"
+	@install -d $(DESTDIR)$(MAN_PREFIX)/man/man6 -m 644 doc/$(NAME).6 "$(DESTDIR)$(MAN_PREFIX)/man/man6/$(NAME).6"
+else
 	@install -D -m 755 $(BINNAME)$(EXTENSION) "$(DESTDIR)$(PREFIX)/bin/$(BINNAME)$(EXTENSION)"
 	@install -D -m 644 doc/$(NAME).6 "$(DESTDIR)$(MAN_PREFIX)/man/man6/$(NAME).6"
+endif
 
 uninstall:
 	@rm -f "$(DESTDIR)$(PREFIX)/bin/$(NAME)"
 	@rm -f "$(DESTDIR)$(MAN_PREFIX)/man/man6/$(NAME).6"
 
 install_dumb: d$(NAME)
+ifeq ($(INSTALL_NO_D_FLAG), true)
+	@install -d $(DESTDIR)$(PREFIX)/bin -m 755 d$(BINNAME)$(EXTENSION) "$(DESTDIR)$(PREFIX)/bin/d$(BINNAME)$(EXTENSION)"
+	@install -d $(DESTDIR)$(MAN_PREFIX)/man/man6 -m 644 doc/d$(NAME).6 "$(DESTDIR)$(MAN_PREFIX)/man/man6/d$(NAME).6"
+else
 	@install -D -m 755 d$(BINNAME)$(EXTENSION) "$(DESTDIR)$(PREFIX)/bin/d$(BINNAME)$(EXTENSION)"
 	@install -D -m 644 doc/d$(NAME).6 "$(DESTDIR)$(MAN_PREFIX)/man/man6/d$(NAME).6"
+endif
 
 uninstall_dumb:
 	@rm -f "$(DESTDIR)$(PREFIX)/bin/d$(NAME)"

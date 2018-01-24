@@ -60,19 +60,19 @@ static void sigint_handler(int);
 An interpreter for all Infocom and other Z-Machine games.\n\
 \n\
 Syntax: frotz [options] story-file\n\
-  -a   watch attribute setting    \t -p   plain ASCII output only\n\
-  -A   watch attribute testing    \t -P   alter piracy opcode\n\
-  -b <colorname> background color \t -q   quiet (disable sound effects)\n\
-  -c # context lines              \t -r # right margin\n\
-  -d   disable color              \t -R <filename> load this save file\n\
-  -e   enable sound               \t -s # random number seed value\n\
-  -f <colorname> foreground color \t -S # transcript width\n\
-  -F   Force color mode           \t -t   set Tandy bit\n\
-  -h # screen height              \t -u # slots for multiple undo\n\
-  -i   ignore fatal errors        \t -v   show version information\n\
-  -l # left margin                \t -w # screen width\n\
-  -o   watch object movement	  \t -x   expand abbreviations g/x/z\n\
-  -O   watch object locating\n"
+  -a   watch attribute setting    \t -O   watch object locating\n\
+  -A   watch attribute testing    \t -p   plain ASCII output only\n\
+  -b <colorname> background color \t -P   alter piracy opcode\n\
+  -c # context lines              \t -q   quiet (disable sound effects)\n\
+  -d   disable color              \t -r # right margin\n\
+  -e   enable sound               \t -R <path> restricted read/write\n\
+  -f <colorname> foreground color \t -s # random number seed value\n\
+  -F   Force color mode           \t -S # transcript width\n\
+  -h # screen height              \t -t   set Tandy bit\n\
+  -i   ignore fatal errors        \t -u # slots for multiple undo\n\
+  -l # left margin                \t -v   show version information\n\
+  -L <file> load this save file   \t -w # screen width\n\
+  -o   watch object movement      \t -x   expand abbreviations g/x/z\n"
 
 /*
 char stripped_story_name[FILENAME_MAX+1];
@@ -242,7 +242,7 @@ void os_process_arguments (int argc, char *argv[])
 
     /* Parse the options */
     do {
-	c = zgetopt(argc, argv, "-aAb:c:def:Fh:il:oOpPqrR:s:S:tu:vw:xZ:");
+	c = zgetopt(argc, argv, "-aAb:c:def:Fh:il:oOpPqrR:s:S:tu:vw:W:xZ:");
 	switch(c) {
 	  case 'a': f_setup.attribute_assignment = 1; break;
 	  case 'A': f_setup.attribute_testing = 1; break;
@@ -269,16 +269,17 @@ void os_process_arguments (int argc, char *argv[])
           case 'h': u_setup.screen_height = atoi(zoptarg); break;
 	  case 'i': f_setup.ignore_errors = 1; break;
 	  case 'l': f_setup.left_margin = atoi(zoptarg); break;
+	  case 'L': f_setup.restore_mode = 1;
+		    f_setup.tmp_save_name = malloc(FILENAME_MAX * sizeof(char) + 1);
+		    strncpy(f_setup.tmp_save_name, zoptarg, FILENAME_MAX);
+		    break;
 	  case 'o': f_setup.object_movement = 1; break;
 	  case 'O': f_setup.object_locating = 1; break;
 	  case 'p': u_setup.plain_ascii = 1; break;
 	  case 'P': f_setup.piracy = 1; break;
 	  case 'q': f_setup.sound = 0; break;
 	  case 'r': f_setup.right_margin = atoi(zoptarg); break;
-	  case 'R': f_setup.restore_mode = 1;
-		    f_setup.tmp_save_name = malloc(FILENAME_MAX * sizeof(char) + 1);
-		    strncpy(f_setup.tmp_save_name, zoptarg, FILENAME_MAX);
-		    break;
+	  case 'R': f_setup.restricted_path = strndup(zoptarg, PATH_MAX); break;
 	  case 's': u_setup.random_seed = atoi(zoptarg); break;
 	  case 'S': f_setup.script_cols = atoi(zoptarg); break;
 	  case 't': u_setup.tandy_bit = 1; break;
@@ -915,6 +916,8 @@ static int getcolor(char *value)
 		return CYAN_COLOUR;
 	if (strcmp(value, "white") == 0)
 		return WHITE_COLOUR;
+	if (strcmp(value, "yellow") == 0)
+		return YELLOW_COLOUR;
 
 	if (strcmp(value, "purple") == 0)
 		return MAGENTA_COLOUR;
@@ -984,7 +987,7 @@ static void sigwinch_handler(int UNUSED(sig))
 static void sigint_handler(int dummy)
 {
     signal(SIGINT, sigint_handler);
-    dummy = dummy;
+    // dummy = dummy;
 
     os_stop_sample(0);
     scrollok(stdscr, TRUE); scroll(stdscr);

@@ -928,6 +928,9 @@ int os_read_file_name (char *file_name, const char *default_name, int flag)
     bool saved_replay = istream_replay;
     bool saved_record = ostream_record;
 
+    int i;
+    char *tempname;
+
     /* Turn off playback and recording temporarily */
 
     istream_replay = FALSE;
@@ -960,6 +963,23 @@ int os_read_file_name (char *file_name, const char *default_name, int flag)
 	strcpy (file_name, default_name);
     if (strchr (file_name, '.') == NULL)
 	strcat (file_name, extension);
+
+    /* FIXME: UNTESTED Check if we're restricted to one directory. */
+
+    if (f_setup.restricted_path != NULL) {
+	for (i = strlen(file_name); i > 0; i--) {
+	    if (file_name[i] == PATH_SEPARATOR) {
+		i++;
+		break;
+	    }
+	}
+	tempname = strdup(file_name + i);
+	strcpy(file_name, f_setup.restricted_path);
+	if (file_name[strlen(file_name)-1] != PATH_SEPARATOR) {
+	    strcat(file_name, "\\");
+	}
+	strcat(file_name, tempname);
+    }
 
     /* Make sure it is safe to use this file name */
 

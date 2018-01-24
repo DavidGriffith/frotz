@@ -55,6 +55,11 @@ CURSES = -lncurses
 #
 #INSTALL_NO_D_FLAG = true
 
+# Uncomment this if you plan on using Frotz in a terminal window more
+# than 255 characters wide.
+#
+#WIDE_SCREEN = -DWIDE_SCREEN
+
 # Just in case your operating system keeps its user-added header files
 # somewhere unusual...
 #
@@ -175,11 +180,11 @@ SOUND_LIB = -lao -ldl -lpthread -lm -lsndfile -lvorbisfile -lmodplug -lsamplerat
 $(NAME): $(COMMON_DIR)/git_hash.h $(COMMON_DIR)/defines.h $(CURSES_DIR)/defines.h $(COMMON_TARGET) $(CURSES_TARGET) $(BLORB_TARGET)
 	@echo Linking $(NAME)...
 ifeq ($(SOUND), ao)
-	$(CC) -o $(BINNAME)$(EXTENSION) $(TARGETS) $(LIB) $(CURSES) $(SOUND_LIB)
+	$(CC) -o $(BINNAME)$(EXTENSION) $(TARGETS) $(LIB) $(CURSES) $(WIDE_SCREEN) $(SOUND_LIB)
 else ifeq ($(SOUND), none)
-	$(CC) -o $(BINNAME)$(EXTENSION) $(TARGETS) $(LIB) $(CURSES) -DNO_SOUND
+	$(CC) -o $(BINNAME)$(EXTENSION) $(TARGETS) $(LIB) $(CURSES) $(WIDE_SCREEN) -DNO_SOUND
 else ifndef SOUND
-	$(CC) -o $(BINNAME)$(EXTENSION) $(TARGETS) $(LIB) $(CURSES) -DNO_SOUND
+	$(CC) -o $(BINNAME)$(EXTENSION) $(TARGETS) $(LIB) $(CURSES) $(WIDE_SCREEN) -DNO_SOUND
 else
 	@echo "Invalid sound choice $(SOUND)."
 endif

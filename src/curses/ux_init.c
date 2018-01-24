@@ -45,19 +45,6 @@
 #include "ux_frotz.h"
 #include "ux_blorb.h"
 
-f_setup_t f_setup;
-u_setup_t u_setup;
-
-static int getconfig(char *);
-static int geterrmode(char *);
-static int getcolor(char *);
-static int getbool(char *);
-
-/* static void sigwinch_handler(int); */
-static void sigint_handler(int);
-/* static void redraw(void); */
-
-
 #define INFORMATION "\
 An interpreter for all Infocom and other Z-Machine games.\n\
 \n\
@@ -80,6 +67,13 @@ Syntax: frotz [options] story-file\n\
 char stripped_story_name[FILENAME_MAX+1];
 char semi_stripped_story_name[FILENAME_MAX+1];
 */
+
+f_setup_t f_setup;
+u_setup_t u_setup;
+
+/* static void sigwinch_handler(int); */
+static void sigint_handler(int);
+/* static void redraw(void); */
 
 static int zgetopt (int, char **, const char *);
 static int zoptind = 1;
@@ -465,8 +459,16 @@ void os_init_screen (void)
     h_screen_width = h_screen_cols;
     h_screen_height = h_screen_rows;
 
+#ifdef WIDE_SCREEN
+    if (h_screen_width < 1)
+	os_fatal("Invalid screen width. Must be between 1 and 255.");
+
+    if (h_screen_width > 255)
+	h_screen_width = 255;
+#else
     if (h_screen_width > 255 || h_screen_width < 1)
 	os_fatal("Invalid screen width. Must be between 1 and 255.");
+#endif
 
     h_font_width = 1;
     h_font_height = 1;

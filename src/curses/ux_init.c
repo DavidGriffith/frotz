@@ -376,6 +376,33 @@ void os_process_arguments (int argc, char *argv[])
 }/* os_process_arguments */
 
 
+void unix_get_terminal_size()
+{
+    int y, x;
+    getmaxyx(stdscr, y, x);
+
+    if (u_setup.screen_height != -1)
+        h_screen_rows = u_setup.screen_height;
+    else
+        /* 255 disables paging entirely. */
+        h_screen_rows = MIN(254, y);
+
+    if (u_setup.screen_width != -1)
+        h_screen_cols = u_setup.screen_width;
+    else
+        h_screen_cols = MIN(255, x);
+
+    if (h_screen_cols < 1)
+        os_fatal("Invalid screen width. Must be between 1 and 255.");
+
+    h_font_width = 1;
+    h_font_height = 1;
+
+    h_screen_width = h_screen_cols;
+    h_screen_height = h_screen_rows;
+}
+
+
 /*
  * os_init_screen
  *
@@ -453,21 +480,7 @@ void os_init_screen (void)
         if (f_setup.undo_slots == 0)
             h_flags &= ~UNDO_FLAG;
 
-    getmaxyx(stdscr, h_screen_rows, h_screen_cols);
-
-    if (u_setup.screen_height != -1)
-	h_screen_rows = u_setup.screen_height;
-    if (u_setup.screen_width != -1)
-	h_screen_cols = u_setup.screen_width;
-
-    h_screen_width = h_screen_cols;
-    h_screen_height = h_screen_rows;
-
-    if (h_screen_width > 255 || h_screen_width < 1)
-	os_fatal("Invalid screen width. Must be between 1 and 255.");
-
-    h_font_width = 1;
-    h_font_height = 1;
+    unix_get_terminal_size();
 
     /* Must be after screen dimensions are computed.  */
     if (h_version == V6) {

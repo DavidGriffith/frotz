@@ -144,32 +144,16 @@ void os_scroll_area (int top, int left, int bottom, int right, int units)
  */
 void unix_resize_display(void)
 {
-//    int x, y;
-
     endwin();
     refresh();
+    unix_get_terminal_size();
 
     /* Notify the game that the display needs refreshing */
     if (h_version == V6)
 	h_flags |= REFRESH_FLAG;
 
-    /* Get new terminal dimensions */
-//    getmaxyx(stdscr, y, x);
-
-    /* Update the game's header */
-    h_screen_width  = (zword) COLS;
-    h_screen_height = (zword) LINES;
-    h_screen_cols   = (zbyte) (h_screen_width / h_font_width);
-    h_screen_rows   = (zbyte)(h_screen_height / h_font_height);
-
     if (zmp != NULL) {
 	resize_screen();
 	restart_header();
     }
-
-//    clearok(stdscr, 1);
-//    redrawwin(stdscr);
-//    refresh();
-//    clearok(stdscr, 0);
-
 }/* unix_redraw_display */

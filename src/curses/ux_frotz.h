@@ -65,6 +65,8 @@
 #define	PATH1		"ZCODE_PATH"
 #define PATH2		"INFOCOM_PATH"
 
+#define MAX(x,y) ((x)>(y)) ? (x) : (y)
+#define MIN(x,y) ((x)<(y)) ? (x) : (y)
 
 /* Some regular curses (not ncurses) libraries don't do this correctly. */
 #ifndef getmaxyx
@@ -86,11 +88,11 @@ extern volatile sig_atomic_t terminal_resized;
 /*** Functions specific to the Unix port of Frotz ***/
 
 bool unix_init_pictures(void);		/* ux_pic.c */
-bool unix_init_pictures(void);		/* ux_pic.c */
-void unix_init_scrollback(void);	/* ux_screen.c */
-void unix_save_screen(int);		/* ux_screen.c */
-void unix_do_scrollback(void);		/* ux_screen.c */
+/* void unix_init_scrollback(void);	/* ux_screen.c */
+/* void unix_save_screen(int);		/* ux_screen.c */
+/* void unix_do_scrollback(void);		/* ux_screen.c */
 void unix_resize_display(void);		/* ux_screen.c */
+void unix_get_terminal_size(void);      /* ux_init.c */
 
 
 #ifdef NO_STRRCHR

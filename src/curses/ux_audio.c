@@ -49,9 +49,6 @@
 #include <vorbis/vorbisfile.h>
 #include <libmodplug/modplug.h>
 
-#define MAX(x,y) ((x)>(y)) ? (x) : (y)
-#define MIN(x,y) ((x)<(y)) ? (x) : (y)
-
 enum sound_type {
     FORM,
     OGGV,

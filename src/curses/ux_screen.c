@@ -137,6 +137,61 @@ void os_scroll_area (int top, int left, int bottom, int right, int units)
 
 
 /*
+ * Copy the screen into a buffer.  The buffer must be at least
+ * cols * lines + 1 elements long and will contain the top left part of
+ * the screen with the given dimensions.  Line n on the screen will start
+ * at position col * n in the array.
+ *
+ * Reading stops on error, typically if the screen has fewer lines than
+ * requested.  If n lines were successfully read, a zero is written at
+ * position cols * n of the array (hence the size requirement).  If the
+ * screen has fewer columns than requested, lines are read up to the last
+ * column.  They may or may not be terminated by zero - it depends on
+ * the curses implementation.
+ *
+ * The cursor position is affected.  The number of successfully read lines
+ * is returned.
+ */
+static int save_screen(int lines, int cols, chtype *buf)
+{
+    int li;
+    for (li = 0; li < lines; ++li)
+        if (ERR == mvinchnstr(li, 0, buf + li * cols, cols))
+            break;
+    buf[li * cols] = 0;
+    return li;
+}
+
+
+/*
+ * Restore the screen from a buffer.  This is the inverse of save_screen.
+ * The buffer must be at least cols * lines elements long.  See save_screen
+ * about the layout.
+ *
+ * The screen is cleared first.  Areas are left blank if the buffer has
+ * fewer columns or lines than the screen.  If the buffer has more columns
+ * or lines than the screen, the leftmost columns and topmost lines are
+ * printed, as much as will fit.  (This is probably what you want for
+ * columns but not for lines, so add an appropriate offset to buf.)
+ *
+ * Writing stops early if a line in buf starts with zero or if there is an
+ * error.  The cursor position is affected.  Returns the number of successfully
+ * written lines.
+ */
+static int restore_screen(int lines, int cols, const chtype *buf)
+{
+    int li, n = MIN(lines, LINES);
+    clear();
+    for (li = 0; li < n; ++li) {
+        const chtype *p = buf + li * cols;
+        if (!*p || ERR == mvaddchnstr(li, 0, p, cols))
+            break;
+    }
+    return li;
+}
+
+
+/*
  * unix_resize_display
  *
  * Resize the display and redraw.
@@ -144,9 +199,37 @@ void os_scroll_area (int top, int left, int bottom, int right, int units)
  */
 void unix_resize_display(void)
 {
+    int x, y,
+        lines = h_screen_rows, cols = h_screen_cols;
+    chtype
+        *const buf = malloc(sizeof(chtype) * (cols * lines + 1)),
+        *pos = buf;
+
+    getyx(stdscr, y, x);
+    lines = save_screen(lines, cols, buf);
+
     endwin();
     refresh();
     unix_get_terminal_size();
+
+    if (lines > h_screen_rows) {
+        /* Lose some of the topmost lines that won't fit. */
+        int lost = lines - h_screen_rows;
+        /* Don't lose the cursor position though,
+           drop some trailing lines instead. */
+        if (y < lost)
+            lost = y;
+        lines = h_screen_rows;
+        y -= lost;
+        pos += cols * lost;
+    }
+    if (y >= h_screen_rows)
+        y = h_screen_rows - 1;
+    if (x >= h_screen_cols)
+        x = h_screen_cols - 1;
+    restore_screen(lines, cols, pos);
+    free(buf);
+    move(y, x);
 
     /* Notify the game that the display needs refreshing */
     if (h_version == V6)

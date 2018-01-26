@@ -459,8 +459,12 @@ void os_init_screen (void)
     h_screen_width = h_screen_cols;
     h_screen_height = h_screen_rows;
 
-    if (h_screen_width > 255 || h_screen_width < 1)
+    if (h_screen_width < 1)
 	os_fatal("Invalid screen width. Must be between 1 and 255.");
+
+    /* Screen width is an 8-bit value in the Z-machine design itself. */
+    if (h_screen_width > 255)
+	h_screen_width = 255;
 
     h_font_width = 1;
     h_font_height = 1;

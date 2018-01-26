@@ -991,10 +991,9 @@ does nothing.
  * is not done.
  *
  */
-static void sigint_handler(int dummy)
+static void sigint_handler(int UNUSED(dummy))
 {
     signal(SIGINT, sigint_handler);
-    // dummy = dummy;
 
     os_stop_sample(0);
     scrollok(stdscr, TRUE); scroll(stdscr);

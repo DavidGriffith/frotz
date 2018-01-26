@@ -45,19 +45,6 @@
 #include "ux_frotz.h"
 #include "ux_blorb.h"
 
-f_setup_t f_setup;
-u_setup_t u_setup;
-
-static int getconfig(char *);
-static int geterrmode(char *);
-static int getcolor(char *);
-static int getbool(char *);
-
-/* static void sigwinch_handler(int); */
-static void sigint_handler(int);
-/* static void redraw(void); */
-
-
 #define INFORMATION "\
 An interpreter for all Infocom and other Z-Machine games.\n\
 \n\
@@ -80,6 +67,13 @@ Syntax: frotz [options] story-file\n\
 char stripped_story_name[FILENAME_MAX+1];
 char semi_stripped_story_name[FILENAME_MAX+1];
 */
+
+f_setup_t f_setup;
+u_setup_t u_setup;
+
+/* static void sigwinch_handler(int); */
+static void sigint_handler(int);
+/* static void redraw(void); */
 
 static int zgetopt (int, char **, const char *);
 static int zoptind = 1;

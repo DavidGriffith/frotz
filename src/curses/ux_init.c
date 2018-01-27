@@ -389,8 +389,11 @@ void unix_get_terminal_size()
     else
         h_screen_cols = MIN(255, x);
 
-    if (h_screen_cols < 1)
+    if (h_screen_cols < 1) {
+        endwin();
+        u_setup.curses_active = FALSE;
         os_fatal("Invalid screen width. Must be between 1 and 255.");
+    }
 
     h_font_width = 1;
     h_font_height = 1;

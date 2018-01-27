@@ -277,14 +277,13 @@ int os_char_width (zchar c)
 
         int width = 0;
         const char *ptr = latin1_to_ascii + 3 * (c - ZC_LATIN1_MIN);
-	char c1 = *ptr++;
-	char c2 = *ptr++;
-	char c3 = *ptr++;
+	char c2, c3;
 
-	/* Why, oh, why did you declare variables that way??? */
+	ptr++;
+	c2 = *ptr++;
+	c3 = *ptr++;
 
-	if (c1 == c1)  /* let's avoid confusing the compiler (and me) */
-	  width++;
+	width++;
 	if (c2 != ' ')
 	  width++;
 	if (c3 != ' ')

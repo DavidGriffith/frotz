@@ -12,3 +12,5 @@ dfrotz
 src/*/defines.h
 src/common/git_hash.h
 *.z?
+src/test/*mem
+src/test/*rec

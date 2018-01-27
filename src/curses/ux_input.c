@@ -130,12 +130,12 @@ static int unix_read_char(int extkeys)
     int c;
 
     while(1) {
+	timeout( timeout_to_ms());
+	c = getch();
         while (terminal_resized) {
             terminal_resized = 0;
             unix_resize_display();
         }
-	timeout( timeout_to_ms());
-	c = getch();
 
 	/* Catch 98% of all input right here... */
 	if ((c >= ZC_ASCII_MIN && c <= ZC_ASCII_MAX)

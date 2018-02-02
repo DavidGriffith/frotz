@@ -1,13 +1,24 @@
-# Define path for ar
-AR = /usr/bin/ar
+# Versioning
 
-# Define path for ranlib
-RANLIB = /usr/bin/ranlib
+MAJOR=2
+MINOR=44
+VERSION = $(MAJOR).$(MINOR)
 
-# Define your C compiler.  I recommend gcc if you have it.
-# MacOS users should use "cc" even though it's really "gcc".
-#
-CC = gcc
+# If we're working from git, we have access to proper variables. If
+# not, make it clear that we're working from a release.
+GIT_DIR ?= .git
+ifneq ($(and $(wildcard $(GIT_DIR)),$(shell which git)),)
+	GIT_BRANCH = $(shell git rev-parse --abbref-ref HEAD)
+	GIT_HASH = $(shell git rev-parse HEAD)
+	GIT_HASH_SHORT = $(shell git rev-parse --short HEAD)
+	GIT_TAG = $(shell git describe --abbrev=0 --tags)
+	
+else
+	GIT_BRANCH = none
+	GIT_HASH = none
+	GIT_HASH_SHORT = none
+	GIT_TAG = $(VERSION)
+endif
 
 # Enable compiler warnings. This is an absolute minimum.
 CFLAGS += -Wall -Wextra -std=gnu99
@@ -15,25 +26,52 @@ CFLAGS += -Wall -Wextra -std=gnu99
 # Define your optimization flags.
 #
 # These are good for regular use.
-#OPTS = -O2 -fomit-frame-pointer -falign-functions=2 -falign-loops=2 -falign-jumps=2
+#CFLAGS += -O2 -fomit-frame-pointer -falign-functions=2 -falign-loops=2 -falign-jumps=2
 # These are handy for debugging.
-OPTS = $(CFLAGS) -g
+CFLAGS += -g
 
-# Define where you want Frotz installed (typically /usr/local).
-#
-PREFIX = /usr/local
-MAN_PREFIX = $(PREFIX)
-CONFIG_DIR = /etc
-#CONFIG_DIR = $(PREFIX)/etc
+# Define where you want Frotz installed
+PREFIX ?= /usr/local
+MANDIR ?= $(PREFIX)/share/man
+SYSCONFDIR ?= /etc
+INCLUDEDIR ?= $(PREFIX)/include
+LIBDIR ?= $(PREFIX)/lib
 
-# Pick your sound support.  The most featureful form of sound support is
-# through libao.  Comment all of these out if you don't want sound.
-#
-#SOUND = none
-SOUND = ao
-#SOUND = sun
-#SOUND = oss
+## INCLUDEDIR path for Apple MacOS Sierra 10.12 plus MacPorts
+#INCLUDEDIR ?= /opt/local/include
+## LIBDIR path for Apple MacOS Sierra 10.12 plus MacPorts
+#LIBDIR ?= /opt/local/lib
 
+CFLAGS += -I$(INCLUDEDIR)
+LDFLAGS += -L$(LIBDIR)
+
+RANLIB ?= $(shell which ranlib)
+
+# Choose your sound support
+# OPTIONS: ao, none
+SOUND ?= ao
+
+# Default sample rate for sound effects.
+# All modern sound interfaces can be expected to support 44100 Hz sample
+# rates.  Earlier ones, particularly ones in Sun 4c workstations support
+# only up to 8000 Hz.
+SAMPLERATE ?= 44100
+
+# Audio buffer size in frames
+BUFFSIZE ?= 4096
+
+# Default sample rate converter type
+DEFAULT_CONVERTER ?= SRC_SINC_MEDIUM_QUALITY
+
+ifeq ($(SOUND), ao)
+	CFLAGS += -lao -ldl -lpthread -lm -lsndfile -lvorbisfile -lmodplug -lsamplerate
+else ifeq ($(SOUND), none)
+	CFLAGS += -DNO_SOUND
+else ifndef SOUND
+	CFLAGS += -DNO_SOUND
+else
+	@echo "Invalid sound choice $(SOUND)."
+endif
 
 ##########################################################################
 # The configuration options below are intended mainly for older flavors
@@ -43,37 +81,10 @@ SOUND = ao
 
 # If your machine's version of curses doesn't support color...
 #
-COLOR = yes
+COLOR ?= yes
 
-# If this matters, you can choose libcurses or libncurses.
-#
-CURSES = -lncurses
-#CURSES = -lcurses
-
-# Uncomment this if your machine's version of install doesn't recognize
-# the -D option.
-#
-#INSTALL_NO_D_FLAG = true
-
-# Just in case your operating system keeps its user-added header files
-# somewhere unusual...
-#
-#INCL = -I/usr/local/include
-#INCL = -I/usr/pkg/include
-#INCL = -I/usr/freeware/include
-#INCL = -I/5usr/include
-## INCL path for Apple MacOS Sierra 10.12 plus MacPorts
-INCL = -I/opt/local/include
-
-# Just in case your operating system keeps its user-added libraries
-# somewhere unusual...
-#
-#LIB = -L/usr/local/lib
-#LIB = -L/usr/pkg/lib
-#LIB = -L/usr/freeware/lib
-#LIB = -L/5usr/lib
-## LIB path for Apple MacOS Sierra 10.12 plus MacPorts
-LIB = -L/opt/local/lib
+# If this matters, you can choose -lcurses or -lncurses
+CURSES ?= -lncurses
 
 # Uncomment this if you're compiling Unix Frotz on a machine that lacks 
 # the strrchr() libc library call.  If you don't know what this means,
@@ -87,139 +98,98 @@ LIB = -L/opt/local/lib
 #
 #NO_MEMMOVE = yes
 
-# Default sample rate for sound effects.
-# All modern sound interfaces can be expected to support 44100 Hz sample
-# rates.  Earlier ones, particularly ones in Sun 4c workstations support
-# only up to 8000 Hz.
-SAMPLERATE = 44100
-
-# Audio buffer size in frames
-BUFFSIZE = 4096
-
-# Default sample rate converter type
-DEFAULT_CONVERTER = SRC_SINC_MEDIUM_QUALITY
-
 #########################################################################
 # This section is where Frotz is actually built.
 # Under normal circumstances, nothing in this section should be changed.
 #########################################################################
 
+# Source locations
+
 SRCDIR = src
-VERSION = 2.45pre
-NAME = frotz
-BINNAME = $(NAME)
-DISTFILES = bugtest
-DISTNAME = $(BINNAME)-$(VERSION)
-distdir = $(DISTNAME)
 
 COMMON_DIR = $(SRCDIR)/common
-COMMON_TARGET = $(SRCDIR)/frotz_common.a
 COMMON_OBJECT = $(COMMON_DIR)/buffer.o \
-		$(COMMON_DIR)/err.o \
-		$(COMMON_DIR)/fastmem.o \
-		$(COMMON_DIR)/files.o \
-		$(COMMON_DIR)/hotkey.o \
-		$(COMMON_DIR)/input.o \
-		$(COMMON_DIR)/main.o \
-		$(COMMON_DIR)/math.o \
-		$(COMMON_DIR)/object.o \
-		$(COMMON_DIR)/process.o \
-		$(COMMON_DIR)/quetzal.o \
-		$(COMMON_DIR)/random.o \
-		$(COMMON_DIR)/redirect.o \
-		$(COMMON_DIR)/screen.o \
-		$(COMMON_DIR)/sound.o \
-		$(COMMON_DIR)/stream.o \
-		$(COMMON_DIR)/table.o \
-		$(COMMON_DIR)/text.o \
-		$(COMMON_DIR)/variable.o
+	$(COMMON_DIR)/err.o \
+	$(COMMON_DIR)/fastmem.o \
+	$(COMMON_DIR)/files.o \
+	$(COMMON_DIR)/hotkey.o \
+	$(COMMON_DIR)/input.o \
+	$(COMMON_DIR)/main.o \
+	$(COMMON_DIR)/math.o \
+	$(COMMON_DIR)/object.o \
+	$(COMMON_DIR)/process.o \
+	$(COMMON_DIR)/quetzal.o \
+	$(COMMON_DIR)/random.o \
+	$(COMMON_DIR)/redirect.o \
+	$(COMMON_DIR)/screen.o \
+	$(COMMON_DIR)/sound.o \
+	$(COMMON_DIR)/stream.o \
+	$(COMMON_DIR)/table.o \
+	$(COMMON_DIR)/text.o \
+	$(COMMON_DIR)/variable.o
 
 CURSES_DIR = $(SRCDIR)/curses
-CURSES_TARGET = $(SRCDIR)/frotz_curses.a
 CURSES_OBJECT = $(CURSES_DIR)/ux_init.o \
-		$(CURSES_DIR)/ux_input.o \
-		$(CURSES_DIR)/ux_pic.o \
-		$(CURSES_DIR)/ux_screen.o \
-		$(CURSES_DIR)/ux_text.o \
-		$(CURSES_DIR)/ux_blorb.o \
-		$(CURSES_DIR)/ux_audio.o \
-		$(CURSES_DIR)/ux_resource.o \
-		$(CURSES_DIR)/ux_audio_none.o \
-		$(CURSES_DIR)/ux_locks.o
+	$(CURSES_DIR)/ux_input.o \
+	$(CURSES_DIR)/ux_pic.o \
+	$(CURSES_DIR)/ux_screen.o \
+	$(CURSES_DIR)/ux_text.o \
+	$(CURSES_DIR)/ux_blorb.o \
+	$(CURSES_DIR)/ux_audio.o \
+	$(CURSES_DIR)/ux_resource.o \
+	$(CURSES_DIR)/ux_audio_none.o \
+	$(CURSES_DIR)/ux_locks.o
 
 DUMB_DIR = $(SRCDIR)/dumb
-DUMB_TARGET = $(SRCDIR)/frotz_dumb.a
-DUMB_OBJECT =	$(DUMB_DIR)/dumb_init.o \
-		$(DUMB_DIR)/dumb_input.o \
-		$(DUMB_DIR)/dumb_output.o \
-		$(DUMB_DIR)/dumb_pic.o \
-		$(DUMB_DIR)/dumb_blorb.o
+DUMB_OBJECT = $(DUMB_DIR)/dumb_init.o \
+	$(DUMB_DIR)/dumb_input.o \
+	$(DUMB_DIR)/dumb_output.o \
+	$(DUMB_DIR)/dumb_pic.o \
+	$(DUMB_DIR)/dumb_blorb.o
 
 BLORB_DIR = $(SRCDIR)/blorb
-BLORB_TARGET =  $(SRCDIR)/blorblib.a
 BLORB_OBJECT =  $(BLORB_DIR)/blorblib.o
 
-TARGETS = $(COMMON_TARGET) $(CURSES_TARGET) $(BLORB_TARGET)
+# Main programs
 
-FLAGS = $(OPTS) $(INCL)
+frotz: $(SRCDIR)/frotz_common.a $(SRCDIR)/frotz_curses.a $(SRCDIR)/blorblib.a
+	$(CC) $(CFLAGS) $(CURSES) $(LDFLAGS) $^ -o $@$(EXTENSION)
 
-SOUND_LIB = -lao -ldl -lpthread -lm -lsndfile -lvorbisfile -lmodplug -lsamplerate
+dfrotz:  $(SRCDIR)/frotz_common.a $(SRCDIR)/frotz_dumb.a $(SRCDIR)/blorblib.a
+	$(CC) $(CFLAGS) $(LDFLAGS) $^ -o $@$(EXTENSION)
 
-#########################################################################
-#########################################################################
-# Targets
-#
+all: frotz dfrotz
 
-.PHONY: all help dist clean distclean install install_dumb uninstall uninstall_dumb
+# Libs
 
-$(NAME): $(COMMON_DIR)/git_hash.h $(COMMON_DIR)/defines.h $(CURSES_DIR)/defines.h $(COMMON_TARGET) $(CURSES_TARGET) $(BLORB_TARGET)
-	@echo Linking $(NAME)...
-ifeq ($(SOUND), ao)
-	$(CC) -o $(BINNAME)$(EXTENSION) $(TARGETS) $(LIB) $(CURSES) $(SOUND_LIB)
-else ifeq ($(SOUND), none)
-	$(CC) -o $(BINNAME)$(EXTENSION) $(TARGETS) $(LIB) $(CURSES) -DNO_SOUND
-else ifndef SOUND
-	$(CC) -o $(BINNAME)$(EXTENSION) $(TARGETS) $(LIB) $(CURSES) -DNO_SOUND
-else
-	@echo "Invalid sound choice $(SOUND)."
-endif
+%.a:
+	$(AR) rc $@ $^
+	$(RANLIB) $@
 
-dumb:		d$(NAME)
-d$(NAME):	$(COMMON_DIR)/git_hash.h $(COMMON_DIR)/defines.h $(COMMON_TARGET) $(DUMB_TARGET) $(BLORB_TARGET)
-	@echo Linking d$(NAME)...
-	$(CC) -o d$(BINNAME)$(EXTENSION) $(COMMON_TARGET) $(DUMB_TARGET) $(BLORB_TARGET) $(LIB)
+%.o: %.c
+	$(CC) $(CFLAGS) -fPIC -fpic -o $@ -c $<
 
-all:	$(NAME) d$(NAME)
+common_lib: $(SRCDIR)/frotz_common.a
+$(SRCDIR)/frotz_common.a: $(COMMON_DIR)/git_hash.h $(COMMON_DIR)/defines.h $(COMMON_OBJECT)
+ 
+curses_lib: $(SRCDIR)/frotz_curses.a
+$(SRCDIR)/frotz_curses.a: $(CURSES_DIR)/defines.h $(CURSES_OBJECT)
 
+dumb_lib:	$(SRCDIR)/frotz_dumb.a
+$(SRCDIR)/frotz_dumb.a: $(DUMB_OBJECT)
 
-.SUFFIXES:
-.SUFFIXES: .c .o .h
+blorb_lib:	$(SRCDIR)/blorblib.a
+$(SRCDIR)/blorblib.a: $(BLORB_OBJECT)
 
-$(COMMON_OBJECT): %.o: %.c
-	#$(CC) $(OPTS) -o $@ -c $<
-	$(CC) $(OPTS) $(INCL) -o $@ -c $<
+# Defines
 
-$(BLORB_OBJECT): %.o: %.c
-	$(CC) $(CFLAGS) $(OPTS) -o $@ -c $<
-
-$(DUMB_OBJECT): %.o: %.c
-	$(CC) $(CFLAGS) $(OPTS) -o $@ -c $<
-
-$(CURSES_OBJECT): %.o: %.c
-	#$(CC) $(OPTS) -o $@ -c $<
-	$(CC) $(OPTS) $(INCL) -o $@ -c $<
-
-
-####################################
-# Get the defines set up just right
-#
 $(COMMON_DIR)/defines.h:
 	@echo "Generating $@"
 	@echo "#define VERSION \"$(VERSION)\"" > $@
 
 $(CURSES_DIR)/defines.h:
 	@echo "Generating $@"
-	@echo "#define CONFIG_DIR \"$(CONFIG_DIR)\"" >> $@
+	@echo "#define CONFIG_DIR \"$(SYSCONFDIR)\"" >> $@
 	@echo "#define SOUND \"$(SOUND)\"" >> $@
 	@echo "#define SAMPLERATE $(SAMPLERATE)" >> $@
 	@echo "#define BUFFSIZE $(BUFFSIZE)" >> $@
@@ -241,131 +211,59 @@ ifdef NO_MEMMOVE
 	@echo "#define NO_MEMMOVE" >> $@
 endif
 
-
-# If we're building from a Git repository, fetch the commit tag and put 
-#   it into $(COMMON_DIR)/git_hash.h.
-# If not, that should mean that we're building from a tarball.  In that 
-#  case, $(COMMON_DIR)/git_hash.h should already be there.
-#
 hash: $(COMMON_DIR)/git_hash.h
 $(COMMON_DIR)/git_hash.h:
-ifneq ($(and $(wildcard .git),$(shell which git)),)
 	@echo "Creating $(COMMON_DIR)/git_hash.h"
-	@echo "#define GIT_HASH \"$$(git rev-parse HEAD)\"" > $(COMMON_DIR)/git_hash.h
-	@echo "#define GIT_HASH_SHORT \"$$(git rev-parse HEAD|head -c7 -)\"" >> $(COMMON_DIR)/git_hash.h
-	@echo "#define GIT_TAG \"$$(git describe --tags)\"" >> $(COMMON_DIR)/git_hash.h
-	@echo "#define GIT_BRANCH \"$$(git rev-parse --abbrev-ref HEAD)\"" >> $(COMMON_DIR)/git_hash.h
-else
-	$(error $(COMMON_DIR)/git_hash.h is missing!.)
-endif
+	@echo "#define GIT_BRANCH \"$(GIT_BRANCH)\"" > $(COMMON_DIR)/git_hash.h
+	@echo "#define GIT_HASH \"$(GIT_HASH)\"" >> $(COMMON_DIR)/git_hash.h
+	@echo "#define GIT_HASH_SHORT \"$(GIT_HASH_SHORT)\"" >> $(COMMON_DIR)/git_hash.h
+	@echo "#define GIT_TAG \"$(GIT_TAG)\"" >> $(COMMON_DIR)/git_hash.h
 
+# Administrative stuff
 
-########################################################################
-# If you're going to make this target manually, you'd better know which
-# config target to make first.
-#
-common_lib:	$(COMMON_TARGET)
-$(COMMON_TARGET): $(COMMON_OBJECT)
-	@echo
-	@echo "Archiving common code..."
-	$(AR) rc $(COMMON_TARGET) $(COMMON_OBJECT)
-	$(RANLIB) $(COMMON_TARGET)
-	@echo
-
-curses_lib:	$(CURSES_TARGET)
-$(CURSES_TARGET): $(CURSES_OBJECT)
-	@echo
-	@echo "Archiving curses interface code..."
-	$(AR) rc $(CURSES_TARGET) $(CURSES_OBJECT)
-	$(RANLIB) $(CURSES_TARGET)
-	@echo
-
-dumb_lib:	$(DUMB_TARGET)
-$(DUMB_TARGET): $(DUMB_OBJECT)
-	@echo
-	@echo "Archiving dumb interface code..."
-	$(AR) rc $(DUMB_TARGET) $(DUMB_OBJECT)
-	$(RANLIB) $(DUMB_TARGET)
-	@echo
-
-blorb_lib:	$(BLORB_TARGET)
-$(BLORB_TARGET): $(BLORB_OBJECT)
-	@echo
-	@echo "Archiving Blorb file handling code..."
-	$(AR) rc $(BLORB_TARGET) $(BLORB_OBJECT)
-	$(RANLIB) $(BLORB_TARGET)
-	@echo
-
-install: $(NAME)
-ifeq ($(INSTALL_NO_D_FLAG), true)
-	@install -d $(DESTDIR)$(PREFIX)/bin -m 755 $(BINNAME)$(EXTENSION) "$(DESTDIR)$(PREFIX)/bin/$(BINNAME)$(EXTENSION)"
-	@install -d $(DESTDIR)$(MAN_PREFIX)/man/man6 -m 644 doc/$(NAME).6 "$(DESTDIR)$(MAN_PREFIX)/man/man6/$(NAME).6"
-else
-	@install -D -m 755 $(BINNAME)$(EXTENSION) "$(DESTDIR)$(PREFIX)/bin/$(BINNAME)$(EXTENSION)"
-	@install -D -m 644 doc/$(NAME).6 "$(DESTDIR)$(MAN_PREFIX)/man/man6/$(NAME).6"
-endif
+install: frotz
+	install -d "$(DESTDIR)$(PREFIX)/bin" "$(DESTDIR)$(MANDIR)/man6"
+	install "frotz$(EXTENSION)" "$(DESTDIR)$(PREFIX)/bin/"
+	install -m 644 doc/frotz.6 "$(DESTDIR)$(MANDIR)/man6/"
 
 uninstall:
-	@rm -f "$(DESTDIR)$(PREFIX)/bin/$(NAME)"
-	@rm -f "$(DESTDIR)$(MAN_PREFIX)/man/man6/$(NAME).6"
+	rm -f "$(DESTDIR)$(PREFIX)/bin/frotz"
+	rm -f "$(DESTDIR)$(MANDIR)/man6/frotz.6"
 
-install_dumb: d$(NAME)
-ifeq ($(INSTALL_NO_D_FLAG), true)
-	@install -d $(DESTDIR)$(PREFIX)/bin -m 755 d$(BINNAME)$(EXTENSION) "$(DESTDIR)$(PREFIX)/bin/d$(BINNAME)$(EXTENSION)"
-	@install -d $(DESTDIR)$(MAN_PREFIX)/man/man6 -m 644 doc/d$(NAME).6 "$(DESTDIR)$(MAN_PREFIX)/man/man6/d$(NAME).6"
-else
-	@install -D -m 755 d$(BINNAME)$(EXTENSION) "$(DESTDIR)$(PREFIX)/bin/d$(BINNAME)$(EXTENSION)"
-	@install -D -m 644 doc/d$(NAME).6 "$(DESTDIR)$(MAN_PREFIX)/man/man6/d$(NAME).6"
-endif
+install_dfrotz install_dumb: dfrotz
+	install -d "$(DESTDIR)$(PREFIX)/bin" "$(DESTDIR)$(MANDIR)/man6"
+	install "dfrotz$(EXTENSION)" "$(DESTDIR)$(PREFIX)/bin/"
+	install -m 644 doc/dfrotz.6 "$(DESTDIR)$(MANDIR)/man6/"
 
-uninstall_dumb:
-	@rm -f "$(DESTDIR)$(PREFIX)/bin/d$(NAME)"
-	@rm -f "$(DESTDIR)$(MAN_PREFIX)/man/man6/d$(NAME).6"
+uninstall_dfrotz uninstall_dumb:
+	rm -f "$(DESTDIR)$(PREFIX)/bin/dfrotz"
+	rm -f "$(DESTDIR)$(MANDIR)/man6/dfrotz.6"
 
-dist: distclean hash
-	mkdir $(distdir)
-	@for file in `ls`; do \
-		if test $$file != $(distdir); then \
-			cp -Rp $$file $(distdir)/$$file; \
-		fi; \
-	done
-	find $(distdir) -type l -exec rm -f {} \;
-	tar chof $(distdir).tar $(distdir)
-	gzip -f --best $(distdir).tar
-	rm -rf $(distdir)
-	@echo
-	@echo "$(distdir).tar.gz created"
-	@echo
-
+dist: frotz-$(GIT_TAG).tar.gz
+frotz-$(GIT_TAG).tar.gz:
+	git archive --format=tar.gz -o "frotz-$(GIT_TAG).tar.gz" "$(GIT_TAG)"
+	
 clean:
-	rm -f $(SRCDIR)/*.h $(SRCDIR)/*.a
-	rm -f $(COMMON_DIR)/defines.h
-ifneq ($(and $(wildcard .git),$(shell which git)),)
-	rm -f $(COMMON_DIR)/git_hash.h
-endif
-	rm -f $(CURSES_DIR)/defines.h
-	find . -name *.o -exec rm -f {} \;
-	find . -name *.O -exec rm -f {} \;
-
-distclean: clean
-	rm -f $(BINNAME)$(EXTENSION) d$(BINNAME)$(EXTENSION) s$(BINNAME)
-	find . -iname *.exe -exec rm -f {} \;
-	find . -iname *.bak -exec rm -f {} \;
-	find . -iname *.lib -exec rm -f {} \;
-	rm -f *core $(SRCDIR)/*core
-	-rm -rf $(distdir)
-	-rm -f $(distdir).tar $(distdir).tar.gz
+	rm -f $(SRCDIR)/*.h $(SRCDIR)/*.a $(COMMON_DIR)/defines.h \
+		$(COMMON_DIR)/git_hash.h $(CURSES_DIR)/defines.h \
+		frotz*.tar.gz
+	find . -iname *.o -delete
 
 help:
-	@echo
 	@echo "Targets:"
-	@echo "    frotz"
-	@echo "    dfrotz"
+	@echo "    frotz: the standard edition"
+	@echo "    dfrotz: for dumb terminals and wrapper scripts"
 	@echo "    install"
 	@echo "    uninstall"
 	@echo "    install_dfrotz"
 	@echo "    uninstall_dfrotz"
 	@echo "    clean"
-	@echo "    distclean"
-	@echo "    dist"
-	@echo
+	@echo "    dist: create a source tarball of the latest tagged release"
+
+.SUFFIXES:
+.SUFFIXES: .c .o .h
+
+.PHONY: all clean dist dumb hash help \
+	blorb_lib common_lib curses_lib dumb_lib \
+	install install_dfrotz install_dumb \
+	uninstall uninstall_dfrotz uninstall_dumb

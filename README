@@ -7,7 +7,7 @@ Reference code and Unix port currently maintained by David Griffith.
 
 - Compiles and runs on most common flavors of Unix, both open source and not.
 - Plays all Z-code games including V6.
-- Old-style sound support through OSS driver.
+- Sound support through libao.
 - Config files.
 - Configurable error checking.
 - Distributed under the GNU Public License.

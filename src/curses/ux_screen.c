@@ -211,20 +211,15 @@ void unix_resize_display(void)
     endwin();
     refresh();
     unix_get_terminal_size();
-
     if (lines > h_screen_rows) {
-        /* Lose some of the topmost lines that won't fit. */
-        int lost = lines - h_screen_rows;
-        /* Don't lose the cursor position though,
-           drop some trailing lines instead. */
-        if (y < lost)
-            lost = y;
         lines = h_screen_rows;
-        y -= lost;
-        pos += cols * lost;
+        if (y >= h_screen_rows) {
+            /* Lose some topmost lines to keep the cursor on screen. */
+            int lost = y + 1 - h_screen_rows;
+            y = h_screen_rows - 1;
+            pos += cols * lost;
+        }
     }
-    if (y >= h_screen_rows)
-        y = h_screen_rows - 1;
     if (x >= h_screen_cols)
         x = h_screen_cols - 1;
     restore_screen(lines, cols, pos);

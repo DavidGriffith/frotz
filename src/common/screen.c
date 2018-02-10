@@ -684,12 +684,20 @@ void resize_screen (void)
 {
 
     if (h_version != V6) {
-
 	wp[0].x_size = h_screen_width;
+	if (wp[0].x_cursor > h_screen_width)
+	    wp[0].x_cursor = h_screen_width;
 	wp[1].x_size = h_screen_width;
+        if (wp[1].x_cursor > h_screen_width)
+            wp[1].x_cursor = h_screen_width;
 	wp[7].x_size = h_screen_width;
+        if (wp[7].x_cursor > h_screen_width)
+            wp[7].x_cursor = h_screen_width;
 
+        /*XXX This needs to be in sync with unix_resize_display. */
 	wp[0].y_size = h_screen_height - wp[1].y_size - wp[7].y_size;
+        if (wp[0].y_cursor > wp[0].y_size)
+            wp[0].y_cursor = wp[0].y_size;
     }
 
 }/* resize_screen */

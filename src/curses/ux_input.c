@@ -435,9 +435,12 @@ static void scrnset(int start, int c, int n)
  * to implement word completion (similar to tcsh under Unix).
  *
  */
-zchar os_read_line (int max, zchar *buf, int timeout, int width, int continued)
+zchar os_read_line (int bufmax, zchar *buf, int timeout, int width,
+                    int continued)
 {
     int ch, y, x, len = strlen( (char *)buf);
+    const int margin = MAX(h_screen_width - width, 0);
+
     /* These are static to allow input continuation to work smoothly. */
     static int scrpos = 0, searchpos = -1, insert_flag = 1;
 
@@ -445,11 +448,10 @@ zchar os_read_line (int max, zchar *buf, int timeout, int width, int continued)
     getyx(stdscr, y, x);
     x -= len;
 
-    if (width < max) max = width;
     /* Better be careful here or it might segv.  I wonder if we should just
        ignore 'continued' and check for len > 0 instead?  Might work better
        with Beyond Zork. */
-    if (!(continued && scrpos <= len && searchpos <= len)) {
+    if (!continued || scrpos > len || searchpos > len) {
 	scrpos = len;
 	history_view = history_next; /* Reset user's history view. */
 	searchpos = -1;		/* -1 means initialize from len. */
@@ -458,11 +460,20 @@ zchar os_read_line (int max, zchar *buf, int timeout, int width, int continued)
 
     unix_set_global_timeout(timeout);
     for (;;) {
+        int x2, max;
 	move(y, x + scrpos);
 	/* Maybe there's a cleaner way to do this, but refresh() is */
 	/* still needed here to print spaces.  --DG */
 	refresh();
-        switch (ch = unix_read_char(1)) {
+	ch = unix_read_char(1);
+	getyx(stdscr, y, x2);
+        max = MIN(h_screen_width - margin, bufmax);
+	if (len >= max) {
+	    /* The terminal has become too narrow for the current input. */
+	    buf[len] = '\0';
+	    return ZC_BAD;
+	}
+        switch (ch) {
 	case ZC_BACKSPACE:	/* Delete preceeding character */
 	    if (scrpos != 0) {
 		len--; scrpos--; searchpos = -1;

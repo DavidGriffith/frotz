@@ -27,7 +27,9 @@
 #include <string.h>
 #include <limits.h>
 
+#include <errno.h>
 #include <sys/time.h>
+#include <sys/select.h>
 
 #ifdef USE_NCURSES_H
 #include <ncurses.h>
@@ -112,6 +114,7 @@ static bool timeout_left(struct timeval *diff)
     return true;
 }
 
+
 /*
  * Time left until input timeout.  Return the number of milliseconds left
  * until the input timeout elapses, zero if it has already elapsed, -1 if
@@ -142,15 +145,34 @@ static int timeout_to_ms()
  */
 static int unix_read_char(int extkeys)
 {
-    int c;
+    int c, sel, fd = fileno(stdin);
+    fd_set rsel;
+    struct timeval tval, *t_left;
 
     while(1) {
-	timeout( timeout_to_ms());
-	c = getch();
+        /* Wait with select so that we get interrupted on SIGWINCH. */
+        FD_ZERO(&rsel);
+        FD_SET(fd, &rsel);
         while (terminal_resized) {
             terminal_resized = 0;
             unix_resize_display();
         }
+        refresh();
+        t_left = timeout_left(&tval) ? &tval : NULL;
+        sel = select(fd + 1, &rsel, NULL, NULL, t_left);
+        if (terminal_resized)
+            continue;
+        switch (sel) {
+        case -1:
+            if (errno != EINTR)
+                os_fatal(strerror(errno));
+            continue;
+        case 0:
+            return ZC_TIME_OUT;
+        }
+
+        timeout(0);
+	c = getch();
 
 	/* Catch 98% of all input right here... */
 	if ((c >= ZC_ASCII_MIN && c <= ZC_ASCII_MAX)
@@ -166,29 +188,17 @@ static int unix_read_char(int extkeys)
 	if (c == killchar()) return ZC_ESCAPE;
 
 	switch(c) {
-	/* Normally ERR means timeout.  I suppose we might also get
-	   ERR if a signal hits getch. */
+	/* This should not happen because select said we have input. */
 	case ERR:
-	    if (timeout_to_ms() == 0)
-		return ZC_TIME_OUT;
-	    else
-		continue;
-
-/*
- * Under ncurses, getch() will return OK (defined to 0) when Ctrl-@ or
- * Ctrl-Space is pressed.  0 is also the ZSCII character code for
- * ZC_TIME_OUT.  This causes a fatal error "Call to non-routine", after
- * which Frotz aborts.  This doesn't happen with all games nor is the
- * crashing consistent.  Sometimes repeated tests on a single game will
- * yield some crashes and some non-crashes.  When linked with ncurses,
- * we must make sure that unix_read_char() does not return a bogus
- * ZC_TIME_OUT.
- *
- */
-#ifdef USE_NCURSES_H
+	/* Ignore NUL (ctrl+space or ctrl+@ on many terminals) because it
+	   would be misinterpreted as timeout (ZC_TIME_OUT == 0). */
 	case 0:
-		continue;
-#endif /* USE_NCURSES_H */
+	/* Ncurses appears to produce KEY_RESIZE even if we handle SIGWINCH
+	   ourselves. */
+#ifdef KEY_RESIZE
+	case KEY_RESIZE:
+#endif
+	    continue;
 
 	/* Screen decluttering. */
 	case MOD_CTRL ^ 'L': case MOD_CTRL ^ 'R':
@@ -278,7 +288,7 @@ static int unix_read_char(int extkeys)
 	 * to use one of the emacs keys that isn't implemented and he
 	 * gets a random hot key function.  It's less jarring to catch
 	 * them and do nothing.  [APP] */
-      if ((c >= ZC_HKEY_MIN) && (c <= ZC_HKEY_MAX)) continue;
+        if ((c >= ZC_HKEY_MIN) && (c <= ZC_HKEY_MAX)) continue;
 
 	/* Finally, if we're in full line mode (os_read_line), we
 	   might return codes which aren't legal Z-machine keys but

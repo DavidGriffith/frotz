@@ -87,28 +87,43 @@ static void unix_set_global_timeout(int timeout)
 
 
 /*
- * timeout_to_ms
- *
- * This returns the number of milliseconds until the input timeout
- * elapses or zero if it has already elapsed.  -1 is returned if no
- * timeout is in effect, otherwise the return value is non-negative.
+ * Time left until input timeout.  Return whether an input timeout
+ * is in effect and it it is, set diff to the time left until the
+ * timeout elapses or zero if it has already elapsed.  If false is returned,
+ * diff is not modified, otherwise it is set to a non-negative value.
+ */
+static bool timeout_left(struct timeval *diff)
+{
+    struct timeval now;
+
+    if (global_timeout.tv_sec == 0)
+        return false;
+    gettimeofday( &now, NULL);
+    diff->tv_usec = global_timeout.tv_usec - now.tv_usec;
+    if (diff->tv_usec < 0) {
+	/* Carry */
+	now.tv_sec++;
+	diff->tv_usec += 1000000;
+    }
+    diff->tv_sec = global_timeout.tv_sec - now.tv_sec;
+    if (diff->tv_sec < 0) {
+        diff->tv_sec = diff->tv_usec = 0;
+    }
+    return true;
+}
+
+/*
+ * Time left until input timeout.  Return the number of milliseconds left
+ * until the input timeout elapses, zero if it has already elapsed, -1 if
+ * no timeout is in effect.
  */
 static int timeout_to_ms()
 {
-    struct timeval now, diff;
-
-    if (global_timeout.tv_sec == 0) return -1;
-    gettimeofday( &now, NULL);
-    diff.tv_usec = global_timeout.tv_usec - now.tv_usec;
-    if (diff.tv_usec < 0) {
-	/* Carry */
-	now.tv_sec++;
-	diff.tv_usec += 1000000;
-    }
-    diff.tv_sec = global_timeout.tv_sec - now.tv_sec;
-    if (diff.tv_sec < 0) return 0;
+    struct timeval diff;
+    if (!timeout_left(&diff))
+        return -1;
     if (diff.tv_sec >= INT_MAX / 1000 - 1) /* Paranoia... */
-	return INT_MAX - 1000;
+        return INT_MAX - 1000;
     return diff.tv_sec * 1000 + diff.tv_usec / 1000;
 }
 

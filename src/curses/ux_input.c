@@ -144,8 +144,6 @@ static int unix_read_char(int extkeys)
 	/* On many terminals the backspace key returns DEL. */
 	if (c == erasechar()) return ZC_BACKSPACE;;
 
-	if (c == killchar()) return ZC_ESCAPE;
-
 	switch(c) {
 	/* Normally ERR means timeout.  I suppose we might also get
 	   ERR if a signal hits getch. */
@@ -239,17 +237,19 @@ static int unix_read_char(int extkeys)
 	case MOD_META | 'f': return ZC_WORD_RIGHT;
 	case MOD_META | 'b': return ZC_WORD_LEFT;
 
-	/* these are the emacs-editing characters */
+	/* these are the UNIX line-editing characters */
 	case MOD_CTRL ^ 'B': return ZC_ARROW_LEFT;
 	/* use ^C to clear line anywhere it doesn't send SIGINT */
 	case MOD_CTRL ^ 'C': return ZC_ESCAPE;
 	case MOD_CTRL ^ 'F': return ZC_ARROW_RIGHT;
 	case MOD_CTRL ^ 'P': return ZC_ARROW_UP;
 	case MOD_CTRL ^ 'N': return ZC_ARROW_DOWN;
+
 	case MOD_CTRL ^ 'A': c = KEY_HOME; break;
 	case MOD_CTRL ^ 'E': c = KEY_END; break;
 	case MOD_CTRL ^ 'D': c = KEY_DC; break;
 	case MOD_CTRL ^ 'K': c = KEY_EOL; break;
+	case MOD_CTRL ^ 'U': c = ZC_DEL_TO_BOL; break;
 	case MOD_CTRL ^ 'W': c = ZC_DEL_WORD; break;
 
 	default: break; /* Who knows? */
@@ -484,6 +484,18 @@ zchar os_read_line (int max, zchar *buf, int timeout, int width, int continued)
 			for (i = len; i <= oldlen ; i++) {
 				mvaddch(y, x + i, ' ');
 			}
+		}
+		break;
+	case ZC_DEL_TO_BOL:
+		if (scrpos != 0) {
+			searchpos = -1;
+			len -= scrpos;
+			scrnmove(x, x + scrpos, len);
+			memmove(buf, buf + scrpos, len);
+			for (int i = len; i <= len + scrpos; i++) {
+				mvaddch(y, x + i, ' ');
+			}
+			scrpos = 0;
 		}
 		break;
 	case CHR_DEL:

@@ -321,6 +321,7 @@ typedef struct {
 #define ZC_DEL_WORD 0x1c
 #define ZC_WORD_RIGHT 0x1d
 #define ZC_WORD_LEFT 0x1e
+#define ZC_DEL_TO_BOL 0x1f
 #define ZC_ASCII_MIN 0x20
 #define ZC_ASCII_MAX 0x7e
 #define ZC_BAD 0x7f

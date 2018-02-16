@@ -241,6 +241,8 @@ static int unix_read_char(int extkeys)
 
 	/* these are the emacs-editing characters */
 	case MOD_CTRL ^ 'B': return ZC_ARROW_LEFT;
+	/* use ^C to clear line anywhere it doesn't send SIGINT */
+	case MOD_CTRL ^ 'C': return ZC_ESCAPE;
 	case MOD_CTRL ^ 'F': return ZC_ARROW_RIGHT;
 	case MOD_CTRL ^ 'P': return ZC_ARROW_UP;
 	case MOD_CTRL ^ 'N': return ZC_ARROW_DOWN;

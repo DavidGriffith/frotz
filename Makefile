@@ -64,7 +64,8 @@ BUFFSIZE ?= 4096
 DEFAULT_CONVERTER ?= SRC_SINC_MEDIUM_QUALITY
 
 ifeq ($(SOUND), ao)
-	CFLAGS += -lao -ldl -lpthread -lm -lsndfile -lvorbisfile -lmodplug -lsamplerate
+#	CFLAGS += -lao -ldl -lpthread -lm -lsndfile -lvorbisfile -lmodplug -lsamplerate
+  LDFLAGS += -lao -ldl -lpthread -lm -lsndfile -lvorbisfile -lmodplug -lsamplerate
 else ifeq ($(SOUND), none)
 	CFLAGS += -DNO_SOUND
 else ifndef SOUND
@@ -153,10 +154,10 @@ BLORB_OBJECT =  $(BLORB_DIR)/blorblib.o
 # Main programs
 
 frotz: $(SRCDIR)/frotz_common.a $(SRCDIR)/frotz_curses.a $(SRCDIR)/blorblib.a
-	$(CC) $(CFLAGS) $(CURSES) $(LDFLAGS) $^ -o $@$(EXTENSION)
+	$(CC) $(CFLAGS) $^ -o $@$(EXTENSION) $(CURSES) $(LDFLAGS)
 
 dfrotz:  $(SRCDIR)/frotz_common.a $(SRCDIR)/frotz_dumb.a $(SRCDIR)/blorblib.a
-	$(CC) $(CFLAGS) $(LDFLAGS) $^ -o $@$(EXTENSION)
+	$(CC) $(CFLAGS) $^ -o $@$(EXTENSION)  $(LDFLAGS)
 
 all: frotz dfrotz
 

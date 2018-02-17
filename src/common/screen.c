@@ -682,8 +682,13 @@ static void erase_screen (zword win)
  */
 void resize_screen (void)
 {
+    /* V6 games are asked to redraw.  Other versions have no means for that
+       so we do what we can. */
+    if (h_version == V6)
+        h_flags |= REFRESH_FLAG;
+    else {
+        int scroll;
 
-    if (h_version != V6) {
 	wp[0].x_size = h_screen_width;
 	if (wp[0].x_cursor > h_screen_width)
 	    wp[0].x_cursor = h_screen_width;
@@ -694,10 +699,14 @@ void resize_screen (void)
         if (wp[7].x_cursor > h_screen_width)
             wp[7].x_cursor = h_screen_width;
 
-        /*XXX This needs to be in sync with unix_resize_display. */
+        /*TODO What if this becomes negative? */
 	wp[0].y_size = h_screen_height - wp[1].y_size - wp[7].y_size;
-        if (wp[0].y_cursor > wp[0].y_size)
+	scroll = wp[0].y_cursor - wp[0].y_size;
+        if (scroll > 0) {
             wp[0].y_cursor = wp[0].y_size;
+            os_repaint_window(0, wp[0].y_pos + scroll, wp[0].y_pos,
+                              wp[0].x_pos, wp[0].y_size, wp[0].x_size);
+        }
     }
 
 }/* resize_screen */

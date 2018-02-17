@@ -788,3 +788,7 @@ void 	os_stop_sample ();
 int  	os_string_width (const zchar *);
 void	os_init_setup (void);
 void 	os_warn (const char *, ...);
+
+/* This is callable only from resize_screen. */
+bool    os_repaint_window (int win, int ypos_old, int ypos_new, int xpos,
+                           int ysize, int xsize);

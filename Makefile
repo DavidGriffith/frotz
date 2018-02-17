@@ -156,7 +156,7 @@ frotz: $(SRCDIR)/frotz_common.a $(SRCDIR)/frotz_curses.a $(SRCDIR)/blorblib.a
 	$(CC) $(CFLAGS) $^ -o $@$(EXTENSION) $(CURSES) $(LDFLAGS)
 
 dfrotz:  $(SRCDIR)/frotz_common.a $(SRCDIR)/frotz_dumb.a $(SRCDIR)/blorblib.a
-	$(CC) $(CFLAGS) $^ -o $@$(EXTENSION)  $(LDFLAGS)
+	$(CC) $(CFLAGS) $^ -o $@$(EXTENSION) $(LDFLAGS)
 
 all: frotz dfrotz
 

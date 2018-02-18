@@ -116,9 +116,11 @@ void os_set_cursor(int row, int col)
 	cursor_row = h_screen_rows - 1;
 }
 
-void os_repaint_window(int win, int ypos_old, int ypos_new, int xpos,
+bool os_repaint_window(int win, int ypos_old, int ypos_new, int xpos,
                        int ysize, int xsize)
-{}
+{
+    return FALSE;
+}
 
 /* Set a cell and update screen_changes.  */
 static void dumb_set_cell(int row, int col, cell c)

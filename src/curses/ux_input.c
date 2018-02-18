@@ -446,7 +446,9 @@ static void scrnset(int start, int c, int n)
  * after timeout/10 seconds (and the return value is ZC_TIME_OUT).
  *
  * The complete input line including the cursor must fit in "width"
- * screen units.
+ * screen units.  If the screen width changes during input, width
+ * is adjusted by the same amount.  bufmax is not adjusted: buf must
+ * contain space for at least bufmax + 1 characters (including final NUL).
  *
  * The function may be called once again to continue after timeouts,
  * misplaced mouse clicks or hot keys. In this case the "continued"
@@ -493,13 +495,16 @@ zchar os_read_line (int bufmax, zchar *buf, int timeout, int width,
 	ch = unix_read_char(1);
 	getyx(stdscr, y, x2);
         max = MIN(h_screen_width - margin, bufmax);
-	if (len >= max) {
-	    /* The terminal has become too narrow for the current input. */
-	    buf[len] = '\0';
-	    return ZC_BAD;
+        /* The screen has shrunk and input no longer fits.  Chop. */
+	if (len > max) {
+	    len = max;
+	    if (scrpos > len)
+	        scrpos = len;
+	    if (searchpos > len)
+	        searchpos = len;
 	}
         switch (ch) {
-	case ZC_BACKSPACE:	/* Delete preceeding character */
+	case ZC_BACKSPACE:	/* Delete preceding character */
 	    if (scrpos != 0) {
 		len--; scrpos--; searchpos = -1;
 		scrnmove(x + scrpos, x + scrpos + 1, len - scrpos);

@@ -33,9 +33,7 @@
 
 #include "ux_frotz.h"
 
-extern void resize_screen(void);
 extern void restart_header(void);
-extern void restart_screen(void);
 
 static WINDOW *saved_screen = NULL;
 
@@ -188,7 +186,7 @@ bool os_repaint_window(int win, int ypos_old, int ypos_new, int xpos,
 {
     int lines, cols;
     if (!saved_screen)
-        return false;
+        return FALSE;
     getmaxyx(saved_screen, lines, cols);
     ypos_old--, ypos_new--, xpos--;
     if (xpos + xsize > cols)
@@ -207,7 +205,7 @@ bool os_repaint_window(int win, int ypos_old, int ypos_new, int xpos,
             move(y, x);
     }
     if (xsize <= 0 || ysize <= 0)
-        return false;
+        return FALSE;
     return copywin(saved_screen, stdscr, ypos_old, xpos, ypos_new, xpos,
                    ypos_new + ysize - 1, xpos + xsize - 1, FALSE) != ERR;
 }

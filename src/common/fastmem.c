@@ -51,7 +51,6 @@
 
 extern void seed_random (int);
 extern void restart_screen (void);
-extern void resize_screen (void);
 extern void refresh_text_style (void);
 extern void call (zword, int, zword *, int);
 extern void split_window (zword);

@@ -687,7 +687,7 @@ void resize_screen (void)
     if (h_version == V6)
         h_flags |= REFRESH_FLAG;
     else {
-        int scroll;
+        int scroll, h;
 
 	wp[0].x_size = h_screen_width;
 	if (wp[0].x_cursor > h_screen_width)
@@ -699,9 +699,17 @@ void resize_screen (void)
         if (wp[7].x_cursor > h_screen_width)
             wp[7].x_cursor = h_screen_width;
 
-        /*TODO What if this becomes negative? */
-	wp[0].y_size = h_screen_height - wp[1].y_size - wp[7].y_size;
-	scroll = wp[0].y_cursor - wp[0].y_size;
+        h = h_screen_height - wp[1].y_size - wp[7].y_size;
+        if (h > 0) {
+            wp[0].y_size = h;
+            scroll = wp[0].y_cursor - wp[0].y_size;
+        } else {
+            /* Just make a one line window at the bottom of the screen. */
+            /*XXX We should probably adjust the other windows.  But how? */
+            wp[0].y_size = 1;
+            scroll = wp[0].y_pos + wp[0].y_cursor - h_screen_height - 1;
+            wp[0].y_pos = h_screen_height;
+        }
         if (scroll > 0) {
             wp[0].y_cursor = wp[0].y_size;
             os_repaint_window(0, wp[0].y_pos + scroll, wp[0].y_pos,

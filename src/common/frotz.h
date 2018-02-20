@@ -789,3 +789,4 @@ void 	os_stop_sample ();
 int  	os_string_width (const zchar *);
 void	os_init_setup (void);
 void 	os_warn (const char *, ...);
+void	os_quit (void);

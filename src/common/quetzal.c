@@ -377,7 +377,7 @@ zword restore_quetzal (FILE *svf, FILE *stf)
 		    break;
 	    }
 		/* Fall right thru (to default) if already GOT_MEMORY */
-		__attribute__((fallthrough));
+		FALLTHROUGH;
 	    /* `UMem' uncompressed memory chunk; load it. */
 	    case ID_UMem:
 		if (!(progress & GOT_MEMORY))	/* Don't complain if two. */
@@ -396,7 +396,7 @@ zword restore_quetzal (FILE *svf, FILE *stf)
 		    /* Fall into default action (skip chunk) on errors. */
 		}
 		/* Fall thru (to default) if already GOT_MEMORY */
-		__attribute__((fallthrough));
+		FALLTHROUGH;
 	    /* Unrecognised chunk type; skip it. */
 	    default:
 		(void) fseek (svf, currlen, SEEK_CUR);	/* Skip chunk. */

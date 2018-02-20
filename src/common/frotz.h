@@ -46,6 +46,20 @@ typedef int bool;
 #define PATH_SEPARATOR '/'
 #endif
 
+
+#ifndef __has_c_attribute	/* Optional */
+#define __has_c_attribute(x) 0	/* Compat with non-clang compilers */
+#endif
+
+#if __has_c_attribute(fallthrough)
+#define FALLTHROUGH [[fallthrough]]
+#elif  __GNUC__ >= 7
+#define FALLTHROUGH   __attribute__((fallthrough))
+#else
+#define FALLTHROUGH
+#endif
+
+
 /* typedef unsigned short zbyte; */
 typedef unsigned char zbyte;
 typedef unsigned short zword;

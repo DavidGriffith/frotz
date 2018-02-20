@@ -25,6 +25,8 @@
 #include <stdlib.h>
 #include <string.h>
 
+#include <signal.h>
+
 #ifdef USE_NCURSES_H
 #include <ncurses.h>
 #else
@@ -136,11 +138,7 @@ void os_scroll_area (int top, int left, int bottom, int right, int units)
 }/* os_scroll_area */
 
 
-/**
- * Resize the display and redraw.  Retain the old screen starting from the
- * top left.  Call resize_screen, which may repaint more accurately.
- */
-void unix_resize_display(void)
+static void save_screen(void)
 {
     if ((saved_screen = newpad(h_screen_rows, h_screen_cols))
         && overwrite(stdscr, saved_screen) == ERR) {
@@ -152,21 +150,46 @@ void unix_resize_display(void)
         getyx(stdscr, y, x);
         wmove(saved_screen, y, x);
     }
+}
 
-    endwin();
-    refresh();
+
+static void resize_restore_screen(void)
+{
     unix_get_terminal_size();
-
     resize_screen();
-    if (zmp != NULL) {
-	restart_header();
-    }
+    if (zmp != NULL)
+        restart_header();
     if (saved_screen) {
         delwin(saved_screen);
         saved_screen = NULL;
     }
+}
+
+
+
+/**
+ * Resize the display and redraw.  Retain the old screen starting from the
+ * top left.  Call resize_screen, which may repaint more accurately.
+ */
+void unix_resize_display(void)
+{
+    save_screen();
+    endwin();
+    refresh();
+    resize_restore_screen();
 }/* unix_redraw_display */
 
+/**
+ * Suspend ourselves.  Save the screen and raise SIGTSTP.
+ * Upon continuing restore the screen as in unix_resize_display; the terminal
+ * size may have changed while we were stopped.
+ */
+void unix_suspend_program(void)
+{
+    save_screen();
+    raise(SIGTSTP);
+    resize_restore_screen();
+}
 
 /**
  * Repaint a window.

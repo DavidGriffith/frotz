@@ -281,6 +281,11 @@ static int unix_read_char(int extkeys)
 	case MOD_CTRL ^ 'U': c = ZC_DEL_TO_BOL; break;
 	case MOD_CTRL ^ 'W': c = ZC_DEL_WORD; break;
 
+	/* In raw mode we need to take care of this as well. */
+	case MOD_CTRL ^ 'Z':
+	    unix_suspend_program();
+	    continue;
+
 	/* use ^Q to immediately exit. */
 	case MOD_CTRL ^ 'Q': os_quit();
 

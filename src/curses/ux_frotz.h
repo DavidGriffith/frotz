@@ -92,6 +92,7 @@ bool unix_init_pictures(void);		/* ux_pic.c */
 // void unix_save_screen(int);		/* ux_screen.c */
 // void unix_do_scrollback(void);		/* ux_screen.c */
 void unix_resize_display(void);		/* ux_screen.c */
+void unix_suspend_program(void);        /* ux_screen.c */
 void unix_get_terminal_size(void);      /* ux_init.c */
 
 

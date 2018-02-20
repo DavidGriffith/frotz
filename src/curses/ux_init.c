@@ -409,7 +409,7 @@ void os_init_screen (void)
 	exit(1);
     }
     u_setup.curses_active = 1;	/* Let os_fatal know curses is running */
-    cbreak();			/* Raw input mode, no line processing */
+    raw();			/* Raw input mode, no line processing */
     noecho();			/* No input echo */
     nonl();			/* No newline translation */
     intrflush(stdscr, TRUE);	/* Flush output on interrupt */
@@ -538,9 +538,28 @@ void os_reset_screen (void)
     os_set_text_style(0);
     os_display_string((zchar *)"[Hit any key to exit.]\n");
     os_read_key(0, FALSE);
-    scrollok(stdscr, TRUE); scroll(stdscr);
-    refresh(); endwin();
+    os_quit();
 }/* os_reset_screen */
+
+
+/*
+ * os_quit
+ *
+ * Immediately and cleanly exit.
+ *
+ */
+void os_quit(void)
+{
+    os_stop_sample(0);
+    ux_blorb_stop();
+    if (u_setup.curses_active) {
+        scrollok(stdscr, TRUE);
+        scroll(stdscr);
+        refresh();
+        endwin();
+    }
+    exit(1);
+}/* os_quit */
 
 
 /*

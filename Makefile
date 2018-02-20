@@ -153,10 +153,10 @@ BLORB_OBJECT =  $(BLORB_DIR)/blorblib.o
 # Main programs
 
 frotz: $(SRCDIR)/frotz_common.a $(SRCDIR)/frotz_curses.a $(SRCDIR)/blorblib.a
-	$(CC) $(CFLAGS) $(CURSES) $(LDFLAGS) $^ -o $@$(EXTENSION)
+	$(CC) $(CFLAGS) $^ -o $@$(EXTENSION) $(CURSES) $(LDFLAGS)
 
 dfrotz:  $(SRCDIR)/frotz_common.a $(SRCDIR)/frotz_dumb.a $(SRCDIR)/blorblib.a
-	$(CC) $(CFLAGS) $(LDFLAGS) $^ -o $@$(EXTENSION)
+	$(CC) $(CFLAGS) $^ -o $@$(EXTENSION) $(LDFLAGS)
 
 all: frotz dfrotz
 

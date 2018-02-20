@@ -187,6 +187,8 @@ bool os_repaint_window(int win, int ypos_old, int ypos_new, int xpos,
     int lines, cols;
     if (!saved_screen)
         return FALSE;
+    if (xsize == 0 || ysize == 0)
+        return TRUE;
     getmaxyx(saved_screen, lines, cols);
     ypos_old--, ypos_new--, xpos--;
     if (xpos + xsize > cols)

@@ -409,7 +409,7 @@ void os_init_screen (void)
 	exit(1);
     }
     u_setup.curses_active = 1;	/* Let os_fatal know curses is running */
-    cbreak();			/* Raw input mode, no line processing */
+    raw();			/* Raw input mode, no line processing */
     noecho();			/* No input echo */
     nonl();			/* No newline translation */
     intrflush(stdscr, TRUE);	/* Flush output on interrupt */

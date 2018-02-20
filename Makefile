@@ -64,7 +64,7 @@ BUFFSIZE ?= 4096
 DEFAULT_CONVERTER ?= SRC_SINC_MEDIUM_QUALITY
 
 ifeq ($(SOUND), ao)
-	CFLAGS += -lao -ldl -lpthread -lm -lsndfile -lvorbisfile -lmodplug -lsamplerate
+	LDFLAGS += -lao -ldl -lpthread -lm -lsndfile -lvorbisfile -lmodplug -lsamplerate
 else ifeq ($(SOUND), none)
 	CFLAGS += -DNO_SOUND
 else ifndef SOUND

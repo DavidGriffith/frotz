@@ -115,6 +115,7 @@ static bool timeout_left(struct timeval *diff)
 }
 
 
+#if 0
 /*
  * Time left until input timeout.  Return the number of milliseconds left
  * until the input timeout elapses, zero if it has already elapsed, -1 if
@@ -129,6 +130,7 @@ static int timeout_to_ms()
         return INT_MAX - 1000;
     return diff.tv_sec * 1000 + diff.tv_usec / 1000;
 }
+#endif
 
 
 /*
@@ -506,6 +508,7 @@ zchar os_read_line (int bufmax, zchar *buf, int timeout, int width,
 	refresh();
 	ch = unix_read_char(1);
 	getyx(stdscr, y, x2);
+	x2++;   /*XXX Eliminate compiler warning. */
 	width = h_screen_width - margin;
         max = MIN(width, bufmax);
         /* The screen has shrunk and input no longer fits.  Chop. */

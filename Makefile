@@ -12,7 +12,6 @@ ifneq ($(and $(wildcard $(GIT_DIR)),$(shell which git)),)
 	GIT_HASH = $(shell git rev-parse HEAD)
 	GIT_HASH_SHORT = $(shell git rev-parse --short HEAD)
 	GIT_TAG = $(shell git describe --abbrev=0 --tags)
-	
 else
 	GIT_BRANCH = none
 	GIT_HASH = none
@@ -150,6 +149,10 @@ DUMB_OBJECT = $(DUMB_DIR)/dumb_init.o \
 BLORB_DIR = $(SRCDIR)/blorb
 BLORB_OBJECT =  $(BLORB_DIR)/blorblib.o
 
+OBJECTS = $(COMMON_OBJECT) $(CURSES_OBJECT) $(DUMB_OBJECT) $(BLORB_OBJECT)
+
+all: frotz dfrotz
+
 # Main programs
 
 frotz: $(SRCDIR)/frotz_common.a $(SRCDIR)/frotz_curses.a $(SRCDIR)/blorblib.a
@@ -157,8 +160,6 @@ frotz: $(SRCDIR)/frotz_common.a $(SRCDIR)/frotz_curses.a $(SRCDIR)/blorblib.a
 
 dfrotz:  $(SRCDIR)/frotz_common.a $(SRCDIR)/frotz_dumb.a $(SRCDIR)/blorblib.a
 	$(CC) $(CFLAGS) $^ -o $@$(EXTENSION) $(LDFLAGS)
-
-all: frotz dfrotz
 
 # Libs
 
@@ -171,7 +172,7 @@ all: frotz dfrotz
 
 common_lib: $(SRCDIR)/frotz_common.a
 $(SRCDIR)/frotz_common.a: $(COMMON_DIR)/git_hash.h $(COMMON_DIR)/defines.h $(COMMON_OBJECT)
- 
+
 curses_lib: $(SRCDIR)/frotz_curses.a
 $(SRCDIR)/frotz_curses.a: $(CURSES_DIR)/defines.h $(CURSES_OBJECT)
 
@@ -242,12 +243,11 @@ uninstall_dfrotz uninstall_dumb:
 dist: frotz-$(GIT_TAG).tar.gz
 frotz-$(GIT_TAG).tar.gz:
 	git archive --format=tar.gz -o "frotz-$(GIT_TAG).tar.gz" "$(GIT_TAG)"
-	
+
 clean:
 	rm -f $(SRCDIR)/*.h $(SRCDIR)/*.a $(COMMON_DIR)/defines.h \
 		$(COMMON_DIR)/git_hash.h $(CURSES_DIR)/defines.h \
-		frotz*.tar.gz
-	find . -iname *.o -delete
+		$(OBJECTS) frotz*.tar.gz
 
 help:
 	@echo "Targets:"

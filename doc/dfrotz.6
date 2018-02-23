@@ -56,6 +56,10 @@ intended to get around such bugs, but be warned that Strange Things may
 happen if fatal errors are not caught.
 
 .TP
+.B \-L <filename>
+When the game starts, load this saved game file.
+
+.TP
 .B \-m
 Turn off MORE prompts.  This can be desirable when using a printing 
 terminal.
@@ -88,8 +92,20 @@ Z-code.
 Set runtime options.  This option may be used repeatedly.
 
 .TP
-.B \-R <filename>
-When the game starts, load this saved game file.
+.B \-R <path>
+Restricted read/write.  Reading and writing files will be restricted
+only to the provided path. Ordinarily Frotz will write or read its
+saves, transcripts, and move recordings in whatever path or directory
+the user provides when the
+.B SAVE,
+.B SCRIPT,
+or
+.B RECORDING
+commands are given.  This can be undesirable if Frotz is run in a
+restricted environment, by a front end, or by a chatbot.  This option will
+cause Frotz to write or read only to the provided path and nowhere else.
+Then the controlling process can then watch that directory for changes
+and need not worry about someone scribbling or snooping who-knows-where.
 
 .TP
 .B \-s N

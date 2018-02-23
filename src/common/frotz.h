@@ -27,6 +27,25 @@ typedef int bool;
 #define FALSE 0
 #endif
 
+#ifndef PATH_MAX
+#  ifdef MAXPATHLEN                /* defined in <sys/param.h> some systems */
+#    define PATH_MAX      MAXPATHLEN
+#  else
+#    if FILENAME_MAX > 255         /* used like PATH_MAX on some systems */
+#      define PATH_MAX    FILENAME_MAX
+#    else
+#      define PATH_MAX    (FILNAMSIZ - 1)
+#    endif
+#  endif /* ?MAXPATHLEN */
+#endif /* !PATH_MAX */
+
+
+#if defined(WIN32) || defined(_WIN32) || defined(WIN64) || defined(_WIN64) || defined (__CYGWIN__)
+#define PATH_SEPARATOR '\\'
+#else
+#define PATH_SEPARATOR '/'
+#endif
+
 /* typedef unsigned short zbyte; */
 typedef unsigned char zbyte;
 typedef unsigned short zword;
@@ -302,6 +321,7 @@ typedef struct {
 #define ZC_DEL_WORD 0x1c
 #define ZC_WORD_RIGHT 0x1d
 #define ZC_WORD_LEFT 0x1e
+#define ZC_DEL_TO_BOL 0x1f
 #define ZC_ASCII_MIN 0x20
 #define ZC_ASCII_MAX 0x7e
 #define ZC_BAD 0x7f
@@ -769,3 +789,11 @@ void 	os_stop_sample ();
 int  	os_string_width (const zchar *);
 void	os_init_setup (void);
 void 	os_warn (const char *, ...);
+void	os_quit (void);
+
+/* Front ends call this if the terminal size changes. */
+void    resize_screen(void);
+
+/* This is callable only from resize_screen. */
+bool    os_repaint_window (int win, int ypos_old, int ypos_new, int xpos,
+                           int ysize, int xsize);

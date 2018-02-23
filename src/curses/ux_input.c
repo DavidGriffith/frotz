@@ -27,7 +27,9 @@
 #include <string.h>
 #include <limits.h>
 
+#include <errno.h>
 #include <sys/time.h>
+#include <sys/select.h>
 
 #ifdef USE_NCURSES_H
 #include <ncurses.h>
@@ -87,30 +89,48 @@ static void unix_set_global_timeout(int timeout)
 
 
 /*
- * timeout_to_ms
- *
- * This returns the number of milliseconds until the input timeout
- * elapses or zero if it has already elapsed.  -1 is returned if no
- * timeout is in effect, otherwise the return value is non-negative.
+ * Time left until input timeout.  Return whether an input timeout
+ * is in effect and it it is, set diff to the time left until the
+ * timeout elapses or zero if it has already elapsed.  If false is returned,
+ * diff is not modified, otherwise it is set to a non-negative value.
+ */
+static bool timeout_left(struct timeval *diff)
+{
+    struct timeval now;
+
+    if (global_timeout.tv_sec == 0)
+        return false;
+    gettimeofday( &now, NULL);
+    diff->tv_usec = global_timeout.tv_usec - now.tv_usec;
+    if (diff->tv_usec < 0) {
+	/* Carry */
+	now.tv_sec++;
+	diff->tv_usec += 1000000;
+    }
+    diff->tv_sec = global_timeout.tv_sec - now.tv_sec;
+    if (diff->tv_sec < 0) {
+        diff->tv_sec = diff->tv_usec = 0;
+    }
+    return true;
+}
+
+
+#if 0
+/*
+ * Time left until input timeout.  Return the number of milliseconds left
+ * until the input timeout elapses, zero if it has already elapsed, -1 if
+ * no timeout is in effect.
  */
 static int timeout_to_ms()
 {
-    struct timeval now, diff;
-
-    if (global_timeout.tv_sec == 0) return -1;
-    gettimeofday( &now, NULL);
-    diff.tv_usec = global_timeout.tv_usec - now.tv_usec;
-    if (diff.tv_usec < 0) {
-	/* Carry */
-	now.tv_sec++;
-	diff.tv_usec += 1000000;
-    }
-    diff.tv_sec = global_timeout.tv_sec - now.tv_sec;
-    if (diff.tv_sec < 0) return 0;
+    struct timeval diff;
+    if (!timeout_left(&diff))
+        return -1;
     if (diff.tv_sec >= INT_MAX / 1000 - 1) /* Paranoia... */
-	return INT_MAX - 1000;
+        return INT_MAX - 1000;
     return diff.tv_sec * 1000 + diff.tv_usec / 1000;
 }
+#endif
 
 
 /*
@@ -127,10 +147,33 @@ static int timeout_to_ms()
  */
 static int unix_read_char(int extkeys)
 {
-    int c;
+    int c, sel, fd = fileno(stdin);
+    fd_set rsel;
+    struct timeval tval, *t_left;
 
     while(1) {
-	timeout( timeout_to_ms());
+        /* Wait with select so that we get interrupted on SIGWINCH. */
+        FD_ZERO(&rsel);
+        FD_SET(fd, &rsel);
+        while (terminal_resized) {
+            terminal_resized = 0;
+            unix_resize_display();
+        }
+        refresh();
+        t_left = timeout_left(&tval) ? &tval : NULL;
+        sel = select(fd + 1, &rsel, NULL, NULL, t_left);
+        if (terminal_resized)
+            continue;
+        switch (sel) {
+        case -1:
+            if (errno != EINTR)
+                os_fatal(strerror(errno));
+            continue;
+        case 0:
+            return ZC_TIME_OUT;
+        }
+
+        timeout(0);
 	c = getch();
 
 	/* Catch 98% of all input right here... */
@@ -144,32 +187,18 @@ static int unix_read_char(int extkeys)
 	/* On many terminals the backspace key returns DEL. */
 	if (c == erasechar()) return ZC_BACKSPACE;;
 
-	if (c == killchar()) return ZC_ESCAPE;
-
 	switch(c) {
-	/* Normally ERR means timeout.  I suppose we might also get
-	   ERR if a signal hits getch. */
+	/* This should not happen because select said we have input. */
 	case ERR:
-	    if (timeout_to_ms() == 0)
-		return ZC_TIME_OUT;
-	    else
-		continue;
-
-/*
- * Under ncurses, getch() will return OK (defined to 0) when Ctrl-@ or
- * Ctrl-Space is pressed.  0 is also the ZSCII character code for
- * ZC_TIME_OUT.  This causes a fatal error "Call to non-routine", after
- * which Frotz aborts.  This doesn't happen with all games nor is the
- * crashing consistent.  Sometimes repeated tests on a single game will
- * yield some crashes and some non-crashes.  When linked with ncurses,
- * we must make sure that unix_read_char() does not return a bogus
- * ZC_TIME_OUT.
- *
- */
-#ifdef USE_NCURSES_H
+	/* Ignore NUL (ctrl+space or ctrl+@ on many terminals) because it
+	   would be misinterpreted as timeout (ZC_TIME_OUT == 0). */
 	case 0:
-		continue;
-#endif /* USE_NCURSES_H */
+	/* Ncurses appears to produce KEY_RESIZE even if we handle SIGWINCH
+	   ourselves. */
+#ifdef KEY_RESIZE
+	case KEY_RESIZE:
+#endif
+	    continue;
 
 	/* Screen decluttering. */
 	case MOD_CTRL ^ 'L': case MOD_CTRL ^ 'R':
@@ -239,16 +268,28 @@ static int unix_read_char(int extkeys)
 	case MOD_META | 'f': return ZC_WORD_RIGHT;
 	case MOD_META | 'b': return ZC_WORD_LEFT;
 
-	/* these are the emacs-editing characters */
+	/* these are the UNIX line-editing characters */
 	case MOD_CTRL ^ 'B': return ZC_ARROW_LEFT;
+	/* use ^C to clear line anywhere it doesn't send SIGINT */
+	case MOD_CTRL ^ 'C': return ZC_ESCAPE;
 	case MOD_CTRL ^ 'F': return ZC_ARROW_RIGHT;
 	case MOD_CTRL ^ 'P': return ZC_ARROW_UP;
 	case MOD_CTRL ^ 'N': return ZC_ARROW_DOWN;
+
 	case MOD_CTRL ^ 'A': c = KEY_HOME; break;
 	case MOD_CTRL ^ 'E': c = KEY_END; break;
 	case MOD_CTRL ^ 'D': c = KEY_DC; break;
 	case MOD_CTRL ^ 'K': c = KEY_EOL; break;
+	case MOD_CTRL ^ 'U': c = ZC_DEL_TO_BOL; break;
 	case MOD_CTRL ^ 'W': c = ZC_DEL_WORD; break;
+
+	/* In raw mode we need to take care of this as well. */
+	case MOD_CTRL ^ 'Z':
+	    unix_suspend_program();
+	    continue;
+
+	/* use ^Q to immediately exit. */
+	case MOD_CTRL ^ 'Q': os_quit();
 
 	default: break; /* Who knows? */
 	}
@@ -259,8 +300,7 @@ static int unix_read_char(int extkeys)
 	 * to use one of the emacs keys that isn't implemented and he
 	 * gets a random hot key function.  It's less jarring to catch
 	 * them and do nothing.  [APP] */
-      if ((c >= ZC_HKEY_MIN) && (c <= ZC_HKEY_MAX))
-	continue;
+        if ((c >= ZC_HKEY_MIN) && (c <= ZC_HKEY_MAX)) continue;
 
 	/* Finally, if we're in full line mode (os_read_line), we
 	   might return codes which aren't legal Z-machine keys but
@@ -418,7 +458,9 @@ static void scrnset(int start, int c, int n)
  * after timeout/10 seconds (and the return value is ZC_TIME_OUT).
  *
  * The complete input line including the cursor must fit in "width"
- * screen units.
+ * screen units.  If the screen width changes during input, width
+ * is adjusted by the same amount.  bufmax is not adjusted: buf must
+ * contain space for at least bufmax + 1 characters (including final NUL).
  *
  * The function may be called once again to continue after timeouts,
  * misplaced mouse clicks or hot keys. In this case the "continued"
@@ -432,9 +474,12 @@ static void scrnset(int start, int c, int n)
  * to implement word completion (similar to tcsh under Unix).
  *
  */
-zchar os_read_line (int max, zchar *buf, int timeout, int width, int continued)
+zchar os_read_line (int bufmax, zchar *buf, int timeout, int width,
+                    int continued)
 {
     int ch, y, x, len = strlen( (char *)buf);
+    const int margin = MAX(h_screen_width - width, 0);
+
     /* These are static to allow input continuation to work smoothly. */
     static int scrpos = 0, searchpos = -1, insert_flag = 1;
 
@@ -442,11 +487,10 @@ zchar os_read_line (int max, zchar *buf, int timeout, int width, int continued)
     getyx(stdscr, y, x);
     x -= len;
 
-    if (width < max) max = width;
     /* Better be careful here or it might segv.  I wonder if we should just
        ignore 'continued' and check for len > 0 instead?  Might work better
        with Beyond Zork. */
-    if (!(continued && scrpos <= len && searchpos <= len)) {
+    if (!continued || scrpos > len || searchpos > len) {
 	scrpos = len;
 	history_view = history_next; /* Reset user's history view. */
 	searchpos = -1;		/* -1 means initialize from len. */
@@ -455,12 +499,28 @@ zchar os_read_line (int max, zchar *buf, int timeout, int width, int continued)
 
     unix_set_global_timeout(timeout);
     for (;;) {
+        int x2, max;
+        if (scrpos >= width)
+            scrpos = width - 1;
 	move(y, x + scrpos);
 	/* Maybe there's a cleaner way to do this, but refresh() is */
 	/* still needed here to print spaces.  --DG */
 	refresh();
-        switch (ch = unix_read_char(1)) {
-	case ZC_BACKSPACE:	/* Delete preceeding character */
+	ch = unix_read_char(1);
+	getyx(stdscr, y, x2);
+	x2++;   /*XXX Eliminate compiler warning. */
+	width = h_screen_width - margin;
+        max = MIN(width, bufmax);
+        /* The screen has shrunk and input no longer fits.  Chop. */
+	if (len > max) {
+	    len = max;
+	    if (scrpos > len)
+	        scrpos = len;
+	    if (searchpos > len)
+	        searchpos = len;
+	}
+        switch (ch) {
+	case ZC_BACKSPACE:	/* Delete preceding character */
 	    if (scrpos != 0) {
 		len--; scrpos--; searchpos = -1;
 		scrnmove(x + scrpos, x + scrpos + 1, len - scrpos);
@@ -483,6 +543,18 @@ zchar os_read_line (int max, zchar *buf, int timeout, int width, int continued)
 			for (i = len; i <= oldlen ; i++) {
 				mvaddch(y, x + i, ' ');
 			}
+		}
+		break;
+	case ZC_DEL_TO_BOL:
+		if (scrpos != 0) {
+			searchpos = -1;
+			len -= scrpos;
+			scrnmove(x, x + scrpos, len);
+			memmove(buf, buf + scrpos, len);
+			for (int i = len; i <= len + scrpos; i++) {
+				mvaddch(y, x + i, ' ');
+			}
+			scrpos = 0;
 		}
 		break;
 	case CHR_DEL:
@@ -652,6 +724,8 @@ int os_read_file_name (char *file_name, const char *default_name, int UNUSED(fla
 {
     int saved_replay = istream_replay;
     int saved_record = ostream_record;
+    int i;
+    char *tempname;
 
     /* Turn off playback and recording temporarily */
 
@@ -674,6 +748,23 @@ int os_read_file_name (char *file_name, const char *default_name, int UNUSED(fla
 
     if (file_name[0] == 0)
         strcpy (file_name, default_name);
+
+    /* Check if we're restricted to one directory. */
+
+    if (f_setup.restricted_path != NULL) {
+	for (i = strlen(file_name); i > 0; i--) {
+	    if (file_name[i] == PATH_SEPARATOR) {
+		i++;
+		break;
+	    }
+	}
+	tempname = strdup(file_name + i);
+	strcpy(file_name, f_setup.restricted_path);
+	if (file_name[strlen(file_name)-1] != PATH_SEPARATOR) {
+	    strcat(file_name, "/");
+	}
+	strcat(file_name, tempname);
+    }
 
     /* Restore state of playback and recording */
 

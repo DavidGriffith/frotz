@@ -123,6 +123,23 @@ static void interrupt end_of_dma (void)
 
 }/* end_of_dma */
 
+
+/*
+ * os_init_sound
+ *
+ * Dummy function to satisfy the core code.  DOS Frotz does its sound
+ * initialization in bcinit.c in os_init_screen().
+ *
+ * FIXME: Move the sound initlization from os_init_screen() to here and
+ *        somehow work around the ifs.
+ *
+ */
+void os_init_sound(void)
+{
+	/* do nothing */
+}
+
+
 /*
  * dos_init_sound
  *
@@ -331,6 +348,8 @@ void os_prepare_sample (int number)
 void os_start_sample (int number, int volume, int repeats, zword eos)
 {
 #ifdef SOUND_SUPPORT
+
+    eos=eos;	/* not used in DOS Frotz */
 
     os_stop_sample ();
 

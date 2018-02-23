@@ -301,3 +301,9 @@ void os_scroll_area (int top, int left, int bottom, int right, int units)
 		    clear_line (y, left, right);
 
 }/* os_scroll_area */
+
+bool os_repaint_window(int win, int ypos_old, int ypos_new, int xpos,
+                       int ysize, int xsize)
+{
+    return FALSE;
+}

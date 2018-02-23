@@ -45,39 +45,38 @@
 #include "ux_frotz.h"
 #include "ux_blorb.h"
 
-f_setup_t f_setup;
-u_setup_t u_setup;
-
-static int getconfig(char *);
-static int geterrmode(char *);
-static int getcolor(char *);
-static int getbool(char *);
+volatile sig_atomic_t terminal_resized = 0;
 
 static void sigwinch_handler(int);
-static void sigint_handler(int);
-
 #define INFORMATION "\
 An interpreter for all Infocom and other Z-Machine games.\n\
 \n\
 Syntax: frotz [options] story-file\n\
-  -a   watch attribute setting    \t -p   plain ASCII output only\n\
-  -A   watch attribute testing    \t -P   alter piracy opcode\n\
-  -b <colorname> background color \t -q   quiet (disable sound effects)\n\
-  -c # context lines              \t -r # right margin\n\
-  -d   disable color              \t -R <filename> load this save file\n\
-  -e   enable sound               \t -s # random number seed value\n\
-  -f <colorname> foreground color \t -S # transcript width\n\
-  -F   Force color mode           \t -t   set Tandy bit\n\
-  -h # screen height              \t -u # slots for multiple undo\n\
-  -i   ignore fatal errors        \t -v   show version information\n\
-  -l # left margin                \t -w # screen width\n\
-  -o   watch object movement	  \t -x   expand abbreviations g/x/z\n\
-  -O   watch object locating\n"
+  -a   watch attribute setting    \t -O   watch object locating\n\
+  -A   watch attribute testing    \t -p   plain ASCII output only\n\
+  -b <colorname> background color \t -P   alter piracy opcode\n\
+  -c # context lines              \t -q   quiet (disable sound effects)\n\
+  -d   disable color              \t -r # right margin\n\
+  -e   enable sound               \t -R <path> restricted read/write\n\
+  -f <colorname> foreground color \t -s # random number seed value\n\
+  -F   Force color mode           \t -S # transcript width\n\
+  -h # screen height              \t -t   set Tandy bit\n\
+  -i   ignore fatal errors        \t -u # slots for multiple undo\n\
+  -l # left margin                \t -v   show version information\n\
+  -L <file> load this save file   \t -w # screen width\n\
+  -o   watch object movement      \t -x   expand abbreviations g/x/z\n"
 
 /*
 char stripped_story_name[FILENAME_MAX+1];
 char semi_stripped_story_name[FILENAME_MAX+1];
 */
+
+f_setup_t f_setup;
+u_setup_t u_setup;
+
+/* static void sigwinch_handler(int); */
+static void sigint_handler(int);
+/* static void redraw(void); */
 
 static int zgetopt (int, char **, const char *);
 static int zoptind = 1;
@@ -242,7 +241,7 @@ void os_process_arguments (int argc, char *argv[])
 
     /* Parse the options */
     do {
-	c = zgetopt(argc, argv, "-aAb:c:def:Fh:il:oOpPqrR:s:S:tu:vw:xZ:");
+	c = zgetopt(argc, argv, "-aAb:c:def:Fh:il:oOpPqrR:s:S:tu:vw:W:xZ:");
 	switch(c) {
 	  case 'a': f_setup.attribute_assignment = 1; break;
 	  case 'A': f_setup.attribute_testing = 1; break;
@@ -269,16 +268,17 @@ void os_process_arguments (int argc, char *argv[])
           case 'h': u_setup.screen_height = atoi(zoptarg); break;
 	  case 'i': f_setup.ignore_errors = 1; break;
 	  case 'l': f_setup.left_margin = atoi(zoptarg); break;
+	  case 'L': f_setup.restore_mode = 1;
+		    f_setup.tmp_save_name = malloc(FILENAME_MAX * sizeof(char) + 1);
+		    strncpy(f_setup.tmp_save_name, zoptarg, FILENAME_MAX);
+		    break;
 	  case 'o': f_setup.object_movement = 1; break;
 	  case 'O': f_setup.object_locating = 1; break;
 	  case 'p': u_setup.plain_ascii = 1; break;
 	  case 'P': f_setup.piracy = 1; break;
 	  case 'q': f_setup.sound = 0; break;
 	  case 'r': f_setup.right_margin = atoi(zoptarg); break;
-	  case 'R': f_setup.restore_mode = 1;
-		    f_setup.tmp_save_name = malloc(FILENAME_MAX * sizeof(char) + 1);
-		    strncpy(f_setup.tmp_save_name, zoptarg, FILENAME_MAX);
-		    break;
+	  case 'R': f_setup.restricted_path = strndup(zoptarg, PATH_MAX); break;
 	  case 's': u_setup.random_seed = atoi(zoptarg); break;
 	  case 'S': f_setup.script_cols = atoi(zoptarg); break;
 	  case 't': u_setup.tandy_bit = 1; break;
@@ -373,6 +373,36 @@ void os_process_arguments (int argc, char *argv[])
 }/* os_process_arguments */
 
 
+void unix_get_terminal_size()
+{
+    int y, x;
+    getmaxyx(stdscr, y, x);
+
+    if (u_setup.screen_height != -1)
+        h_screen_rows = u_setup.screen_height;
+    else
+        /* 255 disables paging entirely. */
+        h_screen_rows = MIN(254, y);
+
+    if (u_setup.screen_width != -1)
+        h_screen_cols = u_setup.screen_width;
+    else
+        h_screen_cols = MIN(255, x);
+
+    if (h_screen_cols < 1) {
+        endwin();
+        u_setup.curses_active = FALSE;
+        os_fatal("Invalid screen width. Must be between 1 and 255.");
+    }
+
+    h_font_width = 1;
+    h_font_height = 1;
+
+    h_screen_width = h_screen_cols;
+    h_screen_height = h_screen_rows;
+}
+
+
 /*
  * os_init_screen
  *
@@ -410,7 +440,7 @@ void os_init_screen (void)
 	exit(1);
     }
     u_setup.curses_active = 1;	/* Let os_fatal know curses is running */
-    cbreak();			/* Raw input mode, no line processing */
+    raw();			/* Raw input mode, no line processing */
     noecho();			/* No input echo */
     nonl();			/* No newline translation */
     intrflush(stdscr, TRUE);	/* Flush output on interrupt */
@@ -450,21 +480,7 @@ void os_init_screen (void)
         if (f_setup.undo_slots == 0)
             h_flags &= ~UNDO_FLAG;
 
-    getmaxyx(stdscr, h_screen_rows, h_screen_cols);
-
-    if (u_setup.screen_height != -1)
-	h_screen_rows = u_setup.screen_height;
-    if (u_setup.screen_width != -1)
-	h_screen_cols = u_setup.screen_width;
-
-    h_screen_width = h_screen_cols;
-    h_screen_height = h_screen_rows;
-
-    if (h_screen_width > 255 || h_screen_width < 1)
-	os_fatal("Invalid screen width. Must be between 1 and 255.");
-
-    h_font_width = 1;
-    h_font_height = 1;
+    unix_get_terminal_size();
 
     /* Must be after screen dimensions are computed.  */
     if (h_version == V6) {
@@ -532,9 +548,28 @@ void os_reset_screen (void)
     os_set_text_style(0);
     os_display_string((zchar *)"[Hit any key to exit.]\n");
     os_read_key(0, FALSE);
-    scrollok(stdscr, TRUE); scroll(stdscr);
-    refresh(); endwin();
+    os_quit();
 }/* os_reset_screen */
+
+
+/*
+ * os_quit
+ *
+ * Immediately and cleanly exit.
+ *
+ */
+void os_quit(void)
+{
+    os_stop_sample(0);
+    ux_blorb_stop();
+    if (u_setup.curses_active) {
+        scrollok(stdscr, TRUE);
+        scroll(stdscr);
+        refresh();
+        endwin();
+    }
+    exit(1);
+}/* os_quit */
 
 
 /*
@@ -915,6 +950,8 @@ static int getcolor(char *value)
 		return CYAN_COLOUR;
 	if (strcmp(value, "white") == 0)
 		return WHITE_COLOUR;
+	if (strcmp(value, "yellow") == 0)
+		return YELLOW_COLOUR;
 
 	if (strcmp(value, "purple") == 0)
 		return MAGENTA_COLOUR;
@@ -964,14 +1001,14 @@ static int geterrmode(char *value)
  * sigwinch_handler
  *
  * Called whenever Frotz recieves a SIGWINCH signal to make curses
- * cleanly resize the window.
+ * cleanly resize the window.  To be safe, just set a flag here.
+ * It is checked and cleared in unix_read_char.
  *
  */
 static void sigwinch_handler(int UNUSED(sig))
 {
-  signal(SIGWINCH, SIG_IGN);
-  unix_resize_display();
-  signal(SIGWINCH, sigwinch_handler);
+    terminal_resized = 1;
+    signal(SIGWINCH, sigwinch_handler);
 }
 
 
@@ -981,10 +1018,9 @@ static void sigwinch_handler(int UNUSED(sig))
  * is not done.
  *
  */
-static void sigint_handler(int dummy)
+static void sigint_handler(int UNUSED(dummy))
 {
     signal(SIGINT, sigint_handler);
-    dummy = dummy;
 
     os_stop_sample(0);
     scrollok(stdscr, TRUE); scroll(stdscr);

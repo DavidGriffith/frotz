@@ -97,6 +97,10 @@ happen if fatal errors are not caught.
 Sets the left margin, for those who might have specific formatting needs.
 
 .TP
+.B \-L <filename>
+When the game starts, load this saved game file.
+
+.TP
 .B \-o
 Watch object movement.  This option enables debugging messages from the
 interpreter which describe the moving of objects in the object tree.
@@ -130,8 +134,20 @@ noises.
 Sets the right margin.
 
 .TP
-.B \-R <filename>
-When the game starts, load this saved game file.
+.B \-R <path>
+Restricted read/write.  Reading and writing files will be restricted
+only to the provided path. Ordinarily Frotz will write or read its
+saves, transcripts, and move recordings in whatever path or directory
+the user provides when the
+.B SAVE,
+.B SCRIPT,
+or
+.B RECORDING
+commands are given.  This can be undesirable if Frotz is run in a
+restricted environment, by a front end, or by a chatbot.  This option will
+cause Frotz to write or read only to the provided path and nowhere else.
+Then the controlling process can then watch that directory for changes
+and need not worry about someone scribbling or snooping who-knows-where.
 
 .TP
 .B \-s N

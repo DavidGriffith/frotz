@@ -25,6 +25,8 @@
 #include <stdlib.h>
 #include <string.h>
 
+#include <signal.h>
+
 #ifdef USE_NCURSES_H
 #include <ncurses.h>
 #else
@@ -33,9 +35,9 @@
 
 #include "ux_frotz.h"
 
-extern void resize_screen(void);
 extern void restart_header(void);
-extern void restart_screen(void);
+
+static WINDOW *saved_screen = NULL;
 
 /*
  * os_erase_area
@@ -136,40 +138,99 @@ void os_scroll_area (int top, int left, int bottom, int right, int units)
 }/* os_scroll_area */
 
 
-/*
- * unix_resize_display
- *
- * Resize the display and redraw.
- *
+static void save_screen(void)
+{
+    if ((saved_screen = newpad(h_screen_rows, h_screen_cols))
+        && overwrite(stdscr, saved_screen) == ERR) {
+        delwin(saved_screen);
+        saved_screen = NULL;
+    }
+    if (saved_screen) {
+        int y, x;
+        getyx(stdscr, y, x);
+        wmove(saved_screen, y, x);
+    }
+}
+
+
+static void resize_restore_screen(void)
+{
+    unix_get_terminal_size();
+    resize_screen();
+    if (zmp != NULL)
+        restart_header();
+    if (saved_screen) {
+        delwin(saved_screen);
+        saved_screen = NULL;
+    }
+}
+
+
+
+/**
+ * Resize the display and redraw.  Retain the old screen starting from the
+ * top left.  Call resize_screen, which may repaint more accurately.
  */
 void unix_resize_display(void)
 {
-    int x, y;
-
-    /* Notify the game that the display needs refreshing */
-    if (h_version == V6)
-	h_flags |= REFRESH_FLAG;
-
-    /* Get new terminal dimensions */
-//    getmaxyx(stdscr, y, x);
-
-    /* Update the game's header */
-    h_screen_width  = (zword) COLS;
-    h_screen_height = (zword) LINES;
-    h_screen_cols   = (zbyte) (h_screen_width / h_font_width);
-    h_screen_rows   = (zbyte)(h_screen_height / h_font_height);
-
-    if (zmp != NULL) {
-	resize_screen();
-	restart_header();
-    }
-
+    save_screen();
     endwin();
     refresh();
-
-//    clearok(stdscr, 1);
-//    redrawwin(stdscr);
-//    refresh();
-//    clearok(stdscr, 0);
-
+    resize_restore_screen();
 }/* unix_redraw_display */
+
+/**
+ * Suspend ourselves.  Save the screen and raise SIGTSTP.
+ * Upon continuing restore the screen as in unix_resize_display; the terminal
+ * size may have changed while we were stopped.
+ */
+void unix_suspend_program(void)
+{
+    save_screen();
+    raise(SIGTSTP);
+    resize_restore_screen();
+}
+
+/**
+ * Repaint a window.
+ *
+ * This can only be called from resize_screen.  It copies part of the screen
+ * as it was before the resize onto the current screen.  The source and
+ * destination rectangles may start at different rows but the columns
+ * are the same.  Positions are 1-based.  win should be the index
+ * of the window that is being repainted.  If it equals the current window,
+ * the saved cursor position adjusted by ypos_new - ypos_old is also restored.
+ *
+ * The copied rectangle is clipped to the saved window size.  Returns true
+ * on success, false if anything went wrong.
+ */
+bool os_repaint_window(int win, int ypos_old, int ypos_new, int xpos,
+                       int ysize, int xsize)
+{
+    int lines, cols;
+    if (!saved_screen)
+        return FALSE;
+    if (xsize == 0 || ysize == 0)
+        return TRUE;
+    getmaxyx(saved_screen, lines, cols);
+    ypos_old--, ypos_new--, xpos--;
+    if (xpos + xsize > cols)
+        xsize = cols - xpos;
+    if (ypos_old + ysize > lines)
+        ysize = lines - ypos_old;
+    /* Most of the time we are in os_read_line, where the cursor position
+       is different from that in the window properties.  So use the real cursor
+       position. */
+    if (win == cwin) {
+        int y, x;
+        getyx(saved_screen, y, x);
+        y += ypos_new - ypos_old;
+        if (y >= ypos_new && y< ypos_new + ysize
+            && x >= xpos && x < xpos + xsize)
+            move(y, x);
+    }
+    if (xsize <= 0 || ysize <= 0)
+        return FALSE;
+    return copywin(saved_screen, stdscr, ypos_old, xpos, ypos_new, xpos,
+                   ypos_new + ysize - 1, xpos + xsize - 1, FALSE) != ERR;
+}

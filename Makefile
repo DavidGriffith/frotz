@@ -149,9 +149,25 @@ DUMB_OBJECT = $(DUMB_DIR)/dumb_init.o \
 BLORB_DIR = $(SRCDIR)/blorb
 BLORB_OBJECT =  $(BLORB_DIR)/blorblib.o
 
+SDL_DIR = $(SRCDIR)/sdl
+SDL_LIB = $(SDL_DIR)/frotz_sdl.a
+export SDL_PKGS = libpng libjpeg sdl SDL_mixer freetype2 zlib
+SDL_LDFLAGS = `pkg-config $(SDL_PKGS) --libs` -lz
+
 OBJECTS = $(COMMON_OBJECT) $(CURSES_OBJECT) $(DUMB_OBJECT) $(BLORB_OBJECT)
 
-all: frotz dfrotz
+SUBDIRS = $(SDL_DIR)
+SUB_CLEAN = $(SUBDIRS:%=%-clean)
+
+all: frotz dfrotz sfrotz
+
+$(SDL_LIB): | $(SDL_DIR)
+
+$(SUBDIRS):
+	$(MAKE) -C $@
+
+$(SUB_CLEAN):
+	$(MAKE) -C $(@:%-clean=%) clean
 
 # Main programs
 
@@ -160,6 +176,9 @@ frotz: $(SRCDIR)/frotz_common.a $(SRCDIR)/frotz_curses.a $(SRCDIR)/blorblib.a
 
 dfrotz:  $(SRCDIR)/frotz_common.a $(SRCDIR)/frotz_dumb.a $(SRCDIR)/blorblib.a
 	$(CC) $(CFLAGS) $^ -o $@$(EXTENSION) $(LDFLAGS)
+
+sfrotz: $(SRCDIR)/frotz_common.a $(SDL_LIB) $(SRCDIR)/blorblib.a
+	$(CC) $(CFLAGS) $^ -o $@$(EXTENSION) $(LDFLAGS) $(SDL_LDFLAGS)
 
 # Libs
 
@@ -244,7 +263,7 @@ dist: frotz-$(GIT_TAG).tar.gz
 frotz-$(GIT_TAG).tar.gz:
 	git archive --format=tar.gz -o "frotz-$(GIT_TAG).tar.gz" "$(GIT_TAG)"
 
-clean:
+clean: $(SUB_CLEAN)
 	rm -f $(SRCDIR)/*.h $(SRCDIR)/*.a $(COMMON_DIR)/defines.h \
 		$(COMMON_DIR)/git_hash.h $(CURSES_DIR)/defines.h \
 		$(OBJECTS) frotz*.tar.gz
@@ -266,4 +285,4 @@ help:
 .PHONY: all clean dist dumb hash help \
 	blorb_lib common_lib curses_lib dumb_lib \
 	install install_dfrotz install_dumb \
-	uninstall uninstall_dfrotz uninstall_dumb
+	uninstall uninstall_dfrotz uninstall_dumb $(SUBDIRS) $(SUB_CLEAN)

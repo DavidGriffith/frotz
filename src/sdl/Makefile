@@ -1,9 +1,9 @@
 # For GNU Make.
 
-PKGS = sdl SDL_mixer freetype2
+SDL_PKGS ?= libpng libjpeg libsdl SDL_mixer freetype2 zlib
 
 CC = gcc
-CFLAGS += `pkg-config $(PKGS) --cflags`
+CFLAGS += `pkg-config $(SDL_PKGS) --cflags`
 ARFLAGS = rvU
 
 SOURCES = sf_aiffwav.c sf_fonts.c sf_msg_en.c sf_resource.c sf_util.c \

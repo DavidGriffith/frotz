@@ -11,6 +11,7 @@
 
 #include "sf_frotz.h"
 
+f_setup_t f_setup;
 
 typedef void (*CLEANFUNC)();
 

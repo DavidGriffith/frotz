@@ -124,7 +124,6 @@ static char *infos[] = {
 	"-p   alter piracy opcode",
 	"-q   quiet (disable sound)",
 	"-r # right margin",
-	"-R   save/restore in old Frotz format",
 	"-s # random number seed value",
 	"-S # transcript width",
 	"-t   set Tandy bit",
@@ -257,8 +256,6 @@ static void parse_options (int argc, char **argv)
 	    f_setup.piracy = 1;
 	if (c == 'r')
 	    f_setup.right_margin = num;
-	if (c == 'R')
-	    f_setup.save_quetzal = 0;
 	if (c == 's')
 	    m_random_seed = num;
 	if (c == 'S')
@@ -310,8 +307,8 @@ static void parse_options (int argc, char **argv)
  */
 
 void os_process_arguments (int argc, char *argv[])
-  {
-  const char *p;
+{
+  char *p;
   int i;
 
 	// install signal handlers
@@ -330,39 +327,65 @@ void os_process_arguments (int argc, char *argv[])
 
     /* Set the story file name */
 
-  story_name = argv[optind];
+  f_setup.story_file = strdup(argv[optind]);
 
 	// load resources
 	// it's useless to test the retval, as in case of error it does not return
-  sf_load_resources( story_name);
+  sf_load_resources( f_setup.story_file);
 
     /* Strip path and extension off the story file name */
 
-  p = story_name;
+  f_setup.story_name = strdup(basename(argv[optind]));
 
-  for (i = 0; story_name[i] != 0; i++)
-	if (story_name[i] == '\\' || story_name[i] == '/'
-	    || story_name[i] == ':')
-	    p = story_name + i + 1;
+  /* Now strip off the extension. */
+  p = strrchr(f_setup.story_name, '.');
+  if ((p != NULL) &&
+      ((strcmp(p,EXT_BLORB2) == 0) ||
+       (strcmp(p,EXT_BLORB3) == 0) ||
+       (strcmp(p,EXT_BLORB4) == 0) ) ) {
+    //        blorb_ext = strdup(p);
+  }
+  else
+    //	blorb_ext = strdup(EXT_BLORB);
 
-    for (i = 0; p[i] != 0 && p[i] != '.'; i++)
-	stripped_story_name[i] = p[i];
 
-    stripped_story_name[i] = 0;
+    /* Get rid of extensions with 1 to 6 character extensions. */
+    /* This will take care of an extension like ".zblorb". */
+    /* More than that, there might be something weird going on */
+    /* which is not our concern. */
+    if (p != NULL) {
+      if (strlen(p) >= 2 && strlen(p) <= 7) {
+        *p = '\0';      /* extension removed */
+      }
+    }
 
-    /* Create nice default file names */
+  f_setup.story_path = strdup(dirname(argv[optind]));
 
-  strcpy (script_name, stripped_story_name);
-  strcpy (command_name, stripped_story_name);
-  strcpy (save_name, stripped_story_name);
-  strcpy (auxilary_name, stripped_story_name);
+  /* Create nice default file names */
 
-  strcat (script_name, ".scr");
-  strcat (command_name, ".rec");
-  strcat (save_name, ".sav");
-  strcat (auxilary_name, ".aux");
+  f_setup.script_name = malloc((strlen(f_setup.story_name) + strlen(EXT_SCRIPT)) * sizeof(char) + 1);
+  strncpy(f_setup.script_name, f_setup.story_name, strlen(f_setup.story_name) + 1);
+  strncat(f_setup.script_name, EXT_SCRIPT, strlen(EXT_SCRIPT));
 
-    /* Save the executable file name */
+  f_setup.command_name = malloc((strlen(f_setup.story_name) + strlen(EXT_COMMAND)) * sizeof(char) + 1);
+  strncpy(f_setup.command_name, f_setup.story_name, strlen(f_setup.story_name) + 1);
+  strncat(f_setup.command_name, EXT_COMMAND, strlen(EXT_COMMAND));
+
+  if (!f_setup.restore_mode) {
+    f_setup.save_name = malloc(strlen(f_setup.story_name) * sizeof(char) + 5);
+    strncpy(f_setup.save_name, f_setup.story_name, strlen(f_setup.story_name));
+    strncat(f_setup.save_name, EXT_SAVE, strlen(EXT_SAVE));
+  } else {  /*Set our auto load save as the name_save*/
+    f_setup.save_name = malloc(strlen(f_setup.tmp_save_name) * sizeof(char) + 5);
+    strncpy(f_setup.save_name, f_setup.tmp_save_name, strlen(f_setup.tmp_save_name));
+    free(f_setup.tmp_save_name);
+  }
+
+  f_setup.aux_name = malloc((strlen(f_setup.story_name) + strlen(EXT_AUX)) * sizeof(char) + 1);
+  strncpy(f_setup.aux_name, f_setup.story_name, strlen(f_setup.story_name) + 1);
+  strncat(f_setup.aux_name, EXT_AUX, strlen(EXT_AUX));
+
+  /* Save the executable file name */
 
   progname = argv[0];
 
@@ -379,7 +402,7 @@ void os_process_arguments (int argc, char *argv[])
 
   sf_initfonts();
 
-  }/* os_process_arguments */
+}/* os_process_arguments */
 
 #ifdef WIN32
 #include <windows.h>

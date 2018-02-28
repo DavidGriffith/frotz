@@ -1030,7 +1030,6 @@ void os_init_setup(void)
 	f_setup.undo_slots = MAX_UNDO_SLOTS;
 	f_setup.expand_abbreviations = 0;
 	f_setup.script_cols = 80;
-	f_setup.save_quetzal = 1;
 	f_setup.sound = 1;
 	f_setup.err_report_mode = ERR_DEFAULT_REPORT_MODE;
 	f_setup.restore_mode = 0;

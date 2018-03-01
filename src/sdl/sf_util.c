@@ -3,6 +3,8 @@
 #include <string.h>
 #include <time.h>
 
+#include <libgen.h>
+
 #include <zlib.h>
 
 #ifdef __WIN32__
@@ -307,6 +309,28 @@ static void parse_options (int argc, char **argv)
  *
  */
 
+/**
+ * Like dirname except well defined.
+ * Does not modify path.  Always returns a new string (caller must free).
+ */
+static char *new_dirname(const char *path)
+{
+    char *p = strdup(path), *p2 = strdup(dirname(p));
+    free(p);
+    return p2;
+}
+
+/**
+ * Like basename except well defined.
+ * Does not modify path.  Always returns a new string (caller must free).
+ */
+static char *new_basename(const char *path)
+{
+    char *p = strdup(path), *p2 = strdup(basename(p));
+    free(p);
+    return p2;
+}
+
 void os_process_arguments (int argc, char *argv[])
 {
   char *p;
@@ -336,7 +360,7 @@ void os_process_arguments (int argc, char *argv[])
 
     /* Strip path and extension off the story file name */
 
-  f_setup.story_name = strdup(basename(argv[optind]));
+  f_setup.story_name = new_basename(argv[optind]);
 
   /* Now strip off the extension. */
   p = strrchr(f_setup.story_name, '.');
@@ -359,8 +383,7 @@ void os_process_arguments (int argc, char *argv[])
         *p = '\0';      /* extension removed */
       }
     }
-
-  f_setup.story_path = strdup(dirname(argv[optind]));
+  f_setup.story_path = new_dirname(argv[optind]);
 
   /* Create nice default file names */
 

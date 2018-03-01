@@ -19,6 +19,8 @@ else
 	GIT_TAG = $(VERSION)
 endif
 
+export CFLAGS
+
 # Enable compiler warnings. This is an absolute minimum.
 CFLAGS += -Wall -Wextra -std=gnu99
 

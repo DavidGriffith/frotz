@@ -375,6 +375,14 @@ void os_scroll_area(int top, int left, int bottom, int right, int units)
 //		theWnd->FlushDisplay();
   }
 
+bool os_repaint_window(int win, int ypos_old, int ypos_new, int xpos,
+                       int ysize, int xsize)
+{
+    //TODO
+    return FALSE;
+}
+
+
 int SFdticks = 200;
 volatile bool SFticked = 0;
 static SDL_TimerID timerid = 0;

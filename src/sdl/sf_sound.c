@@ -67,6 +67,13 @@ static void finishaudio()
 static void music_finished(void);
 static void channel_finished(int channel);
 
+/*
+ * This interface is broken.  The function gets called regardless of
+ * whether sound is desired and has no means for indicating whether sound is
+ * available.  See sf_initsound for the real init.
+ */
+void os_init_sound() {}
+
 int sf_initsound()
   {
   if (SFaudiorunning) return 1;

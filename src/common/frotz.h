@@ -750,6 +750,15 @@ void 	branch (bool);
 void	storeb (zword, zbyte);
 void	storew (zword, zword);
 
+void end_of_sound (zword routine);
+
+int completion (const zchar *buffer, zchar *result);
+
+bool is_terminator (zchar);
+void read_string (int max, zchar *buffer);
+bool read_yes_or_no (const char *);
+
+void screen_new_line (void);
 
 	/*** returns the current window ***/
 Zwindow * curwinrec( void);

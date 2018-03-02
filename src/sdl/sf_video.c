@@ -850,7 +850,7 @@ zchar os_read_line(int max, zchar *buf, int timeout, int width, int continued)
 			{
 			if (pos == (int)mywcslen(buf))
 				{
-				zword extension[10], *s;
+				zchar extension[10], *s;
 				completion(buf,extension);
 
 					// Add the completion to the input stream

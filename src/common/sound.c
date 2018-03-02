@@ -31,8 +31,6 @@
 
 extern int direct_call (zword);
 
-static zword routine = 0;
-
 static int next_sample = 0;
 static int next_volume = 0;
 
@@ -76,7 +74,6 @@ static void start_sample (int number, int volume, int repeats, zword eos)
 
     os_start_sample (number, volume, repeats, eos);
 
-    routine = eos;
     playing = TRUE;
 
 }/* start_sample */
@@ -109,7 +106,7 @@ static void start_next_sample (void)
  * interrupt (which requires extremely careful programming).
  *
  */
-void end_of_sound (void)
+void end_of_sound (zword routine)
 {
 #if defined(DJGPP) && defined(SOUND_SUPPORT)
     end_of_sound_flag = 0;

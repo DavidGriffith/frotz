@@ -21,6 +21,8 @@
 
 #include "dumb_frotz.h"
 
+#include <string.h>
+
 f_setup_t f_setup;
 
 static char runtime_usage[] =

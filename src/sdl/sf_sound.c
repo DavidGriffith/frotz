@@ -3,6 +3,7 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
+#include <errno.h>
 
 #include "sf_frotz.h"
 #include "../blorb/blorblow.h"
@@ -190,23 +191,15 @@ static void startmodule()
 static EFFECT *getaiff( FILE *f, size_t pos, int len, int num)
   {
   EFFECT *res;
-  void * data; int size;
 
   res = new_effect(SFX_TYPE,num);
-  if (!res) return res;
-
-  if (sf_aiffwav(f,pos,&data,&size)==0)
-	{
-	res->sam = Mix_LoadWAV_RW(SDL_RWFromMem( data, size),0);
-  	if (data) free(data);
-	}
-
-  if (!res->sam)
-	{
-//printf("Sample_LoadGeneric failure: %s\n",MikMod_strerror(MikMod_errno));
-	res->destroy(res);
-	return NULL;
-	}
+  if (!res) return NULL;
+  if (fseek(f, pos, SEEK_SET)
+      || !(res->sam = Mix_LoadWAV_RW(SDL_RWFromFP(f, false), 1))) {
+      os_warn("Read error on audio data: %s", strerror(errno));
+      res->destroy(res);
+      return NULL;
+  }
 //printf("AIFF loaded\n");
   return res;
   }

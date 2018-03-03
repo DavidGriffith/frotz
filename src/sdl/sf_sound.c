@@ -231,9 +231,7 @@ static EFFECT *getmodule( FILE *f, size_t pos, int len, int num)
 	}
   else
 	{
-	FILE *f2 = fdopen(dup(fileno(f)),"rb");
-	fseek(f2,pos,SEEK_SET);
-	res->mod = Mix_LoadMUS_RW(SDL_RWFromFP(f2,1));
+	res->mod = Mix_LoadMUS_RW(SDL_RWFromFP(f, false));
 	}
   if (!res->mod)
 	{

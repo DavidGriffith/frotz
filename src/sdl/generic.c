@@ -13,6 +13,7 @@
 
 #include "../blorb/blorb.h"
 #include "../common/frotz.h"
+#include "generic.h"
 
 FILE *blorb_fp;
 bb_result_t blorb_res;
@@ -252,4 +253,90 @@ void os_warn (const char *s, ...)
     if (len > sizeof(buf))
         os_display_string((zchar *)"(truncated)\n");
     new_line();
-}/* os_warn */
+}
+
+/* These are useful for circular buffers.
+ */
+#define RING_DEC( ptr, beg, end) (ptr > (beg) ? --ptr : (ptr = (end)))
+#define RING_INC( ptr, beg, end) (ptr < (end) ? ++ptr : (ptr = (beg)))
+
+#define MAX_HISTORY 256
+static char *history_buffer[MAX_HISTORY];
+static char **history_next = history_buffer; /* Next available slot. */
+static char **history_view = history_buffer; /* What the user is looking at. */
+#define history_end (history_buffer + MAX_HISTORY - 1)
+
+
+/**
+ * Add the given string to the next available history buffer slot.
+ */
+void gen_add_to_history(zchar *str)
+{
+
+    if (*history_next != NULL)
+        free( *history_next);
+    *history_next = (char *)malloc(strlen((char *)str) + 1);
+    strcpy( *history_next, (char *)str);
+    RING_INC( history_next, history_buffer, history_end);
+    history_view = history_next; /* Reset user frame after each line */
+
+    return;
+}
+
+
+/**
+ * Reset the view to the end of history.
+ */
+void gen_history_reset()
+{
+    history_view = history_next;
+}
+
+
+/**
+ * Copy last available string to str, if possible.  Return 1 if successful.
+ * Only lines of at most maxlen characters will be considered.  In addition
+ * the first searchlen characters of the history entry must match those of str.
+ */
+int gen_history_back(zchar *str, int searchlen, int maxlen)
+{
+    char **prev = history_view;
+
+    do {
+        RING_DEC(history_view, history_buffer, history_end);
+        if ((history_view == history_next)
+            || (*history_view == NULL)) {
+            os_beep(BEEP_HIGH);
+            history_view = prev;
+            return 0;
+        }
+    } while (strlen(*history_view) > (size_t)maxlen
+             || (searchlen != 0
+                 && strncmp((char *)str, *history_view, searchlen)));
+    strcpy((char *)str + searchlen, *history_view + searchlen);
+    return 1;
+}
+
+
+/**
+ * Opposite of gen_history_back, and works in the same way.
+ */
+int gen_history_forward(zchar *str, int searchlen, int maxlen)
+{
+    char **prev = history_view;
+
+    do {
+        RING_INC(history_view, history_buffer, history_end);
+        if ((history_view == history_next)
+            || (*history_view == NULL)) {
+
+            os_beep(BEEP_HIGH);
+            history_view = prev;
+            return 0;
+        }
+    } while (strlen(*history_view) > (size_t) maxlen
+             || (searchlen != 0
+                 && strncmp((char *)str, *history_view, searchlen)));
+    strcpy((char *)str + searchlen, *history_view + searchlen);
+    return 1;
+}

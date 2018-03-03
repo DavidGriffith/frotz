@@ -5,6 +5,9 @@
  *
  */
 
+#ifndef FROTZ_H_
+#define FROTZ_H_
+
 /* Unfortunately, frotz's bool definition conflicts with that of curses.
    But since no os_* function uses it, it's safe to let the frotz core see
    this definition, but have the unix port see the curses version. */
@@ -812,3 +815,5 @@ void    resize_screen(void);
 /* This is callable only from resize_screen. */
 bool    os_repaint_window (int win, int ypos_old, int ypos_new, int xpos,
                            int ysize, int xsize);
+
+#endif

@@ -163,7 +163,7 @@ SUB_CLEAN = $(SUBDIRS:%=%-clean)
 
 all: frotz dfrotz sfrotz
 
-$(SDL_LIB): | $(SDL_DIR)
+$(SDL_LIB): $(SDL_DIR);
 
 $(SUBDIRS):
 	$(MAKE) -C $@

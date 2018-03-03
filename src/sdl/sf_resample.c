@@ -8,6 +8,8 @@
 
 #include "samplerate.h"
 
+//XXX Dead code, whole file.
+
 static int myconv( CONV *conv, FILE *f, void *dest, int nin, int eod)
   {
   int nbrd, i, j, v=0;

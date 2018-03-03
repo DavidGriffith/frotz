@@ -133,6 +133,15 @@ static int timeout_to_ms()
 #endif
 
 
+void os_tick()
+{
+    while (terminal_resized) {
+        terminal_resized = 0;
+        unix_resize_display();
+    }
+}
+
+
 /*
  * unix_read_char
  *
@@ -155,10 +164,7 @@ static int unix_read_char(int extkeys)
         /* Wait with select so that we get interrupted on SIGWINCH. */
         FD_ZERO(&rsel);
         FD_SET(fd, &rsel);
-        while (terminal_resized) {
-            terminal_resized = 0;
-            unix_resize_display();
-        }
+        os_tick();
         refresh();
         t_left = timeout_left(&tval) ? &tval : NULL;
         sel = select(fd + 1, &rsel, NULL, NULL, t_left);

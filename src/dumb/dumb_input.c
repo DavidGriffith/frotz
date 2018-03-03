@@ -19,9 +19,9 @@
  * Or visit http://www.fsf.org/
  */
 
-#include "dumb_frotz.h"
-
 #include <string.h>
+
+#include "dumb_frotz.h"
 
 f_setup_t f_setup;
 
@@ -476,3 +476,6 @@ zword os_read_mouse(void)
 	/* NOT IMPLEMENTED */
     return 0;
 }
+
+void os_tick()
+{}

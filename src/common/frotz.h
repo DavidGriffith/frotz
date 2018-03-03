@@ -750,7 +750,7 @@ void 	branch (bool);
 void	storeb (zword, zbyte);
 void	storew (zword, zword);
 
-void end_of_sound (zword routine);
+void end_of_sound (void);
 
 int completion (const zchar *buffer, zchar *result);
 
@@ -799,6 +799,12 @@ int  	os_string_width (const zchar *);
 void	os_init_setup (void);
 void 	os_warn (const char *, ...);
 void	os_quit (void);
+
+/**
+ * Called regularly by the interpreter, at least every few instructions
+ * (only when interpreting: e.g., not when waiting for input).
+ */
+void    os_tick (void);
 
 /* Front ends call this if the terminal size changes. */
 void    resize_screen(void);

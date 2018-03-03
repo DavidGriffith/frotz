@@ -335,8 +335,10 @@ void os_start_sample(int number, int volume, int repeats, zword eos)
 	// NOTE: geteffect may return an already loaded effect
   e = geteffect(number);
   if (!e) return;
-  if (e->type == SFX_TYPE) stopsample();
-  else stopmodule();
+  if (e->type == SFX_TYPE)
+      stopsample();
+  else
+      stopmodule();
   if (repeats < 1) repeats = 1;
   if (repeats == 255) repeats = -1;
   if (volume < 0) volume = 0;
@@ -389,7 +391,7 @@ void sf_checksound()
 	if (e_sfx->eos)
 		{
 		end_of_sound_flag = 1;
-		end_of_sound(e_sfx->eos);
+		end_of_sound();
 		}
 	}
   if ((e_mod) && (e_mod->ended))
@@ -398,7 +400,7 @@ void sf_checksound()
 	if (e_mod->eos)
 		{
 		end_of_sound_flag = 1;
-		end_of_sound(e_mod->eos);
+		end_of_sound();
 		}
 	}
   }

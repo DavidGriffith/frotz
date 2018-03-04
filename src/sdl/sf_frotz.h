@@ -249,6 +249,8 @@ void sf_FinishProfile(void);
 // virtual keys
 #define VK_TAB	0x16
 #define VK_INS	0x17
+#define VK_PAGE_UP 0x18
+#define VK_PAGE_DOWN 0x19
 
 // for AIFF resampling
 

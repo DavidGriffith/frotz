@@ -640,6 +640,8 @@ static zword goodzkey( SDL_Event *e, int allowed)
 	case SDLK_LEFT:		return ZC_ARROW_LEFT;
 	case SDLK_RIGHT:	return ZC_ARROW_RIGHT;
 	case SDLK_TAB:		return (allowed ? VK_TAB : 0);
+	case SDLK_PAGEUP:       return (allowed ? VK_PAGE_UP : 0);
+	case SDLK_PAGEDOWN:     return (allowed ? VK_PAGE_DOWN : 0);
 	case SDLK_KP0:		return ZC_NUMPAD_MIN+0;
 	case SDLK_KP1:		return ZC_NUMPAD_MIN+1;
 	case SDLK_KP2:		return ZC_NUMPAD_MIN+2;
@@ -815,7 +817,14 @@ zchar os_read_line(int max, zchar *buf, int timeout, int width, int continued)
                         pos--;
                         sf_DrawInput(buf,pos,ptx,pty,width,true);
                     }
-                    break;
+                    continue;
+                case ZC_ESCAPE:         /* Delete whole line */
+                    pos = 0;
+                    buf[0] = '\0';
+                    searchpos = -1;
+                    gen_history_reset();
+                    sf_DrawInput(buf,pos,ptx,pty,width,true);
+                    continue;
                 case VK_TAB:
                     if (pos == (int)mywcslen(buf)) {
                         zchar extension[10], *s;
@@ -828,19 +837,19 @@ zchar os_read_line(int max, zchar *buf, int timeout, int width, int continued)
                         buf[pos] = 0;
                         sf_DrawInput(buf,pos,ptx,pty,width,true);
                     }
-                    break;
+                    continue;
                 case ZC_ARROW_LEFT:
                     // Move the cursor left
                     if (pos > 0)
                         pos--;
                     sf_DrawInput(buf,pos,ptx,pty,width,true);
-                    break;
+                    continue;
                 case ZC_ARROW_RIGHT:
                     // Move the cursor right
                     if (pos < (int)mywcslen(buf))
                         pos++;
                     sf_DrawInput(buf,pos,ptx,pty,width,true);
-                    break;
+                    continue;
                 case ZC_ARROW_UP:
                 case ZC_ARROW_DOWN:
                     if (searchpos < 0)
@@ -851,21 +860,12 @@ zchar os_read_line(int max, zchar *buf, int timeout, int width, int continued)
                         pos = mywcslen(buf);
                         sf_DrawInput(buf,pos,ptx,pty,width,true);
                     }
-                    break;
+                    continue;
+                /* Pass through as up/down arrows for Beyond Zork. */
+                case VK_PAGE_UP: c = ZC_ARROW_UP; break;
+                case VK_PAGE_DOWN: c = ZC_ARROW_DOWN; break;
                 default:
-                    if (is_terminator(c)) {
-                        // Terminate the current input
-                        m_exitPause = false;
-                        sf_DrawInput(buf,pos,ptx,pty,width,false);
-
-                        if ((c == ZC_SINGLE_CLICK) || (c == ZC_DOUBLE_CLICK)) {
-                            /*	mouse_x = input.mousex+1;
-				mouse_y = input.mousey+1;*/
-                        } else if (c == ZC_RETURN)
-                            gen_add_to_history(buf);
-                        //			theWnd->SetLastInput(buf);
-                        return c;
-                    } else if (sf_IsValidChar(c) && mywcslen(buf) < max) {
+                    if (sf_IsValidChar(c) && mywcslen(buf) < max) {
                         // Add a valid character to the input line
                         // Get the width of the new input line
                         int len = os_string_width(buf);
@@ -880,7 +880,21 @@ zchar os_read_line(int max, zchar *buf, int timeout, int width, int continued)
                             pos++;
                             sf_DrawInput(buf,pos,ptx,pty,width,true);
                         }
+                        continue;
                     }
+                }
+                if (is_terminator(c)) {
+                    // Terminate the current input
+                    m_exitPause = false;
+                    sf_DrawInput(buf,pos,ptx,pty,width,false);
+
+                    if ((c == ZC_SINGLE_CLICK) || (c == ZC_DOUBLE_CLICK)) {
+                        /*  mouse_x = input.mousex+1;
+                                                mouse_y = input.mousey+1;*/
+                    } else if (c == ZC_RETURN)
+                        gen_add_to_history(buf);
+                    //                      theWnd->SetLastInput(buf);
+                    return c;
                 }
             }
         }

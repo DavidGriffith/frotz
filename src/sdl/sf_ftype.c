@@ -278,10 +278,8 @@ SFONT * sf_loadftype( char *fspec, int *err)
 
 //////////////////////////////////////////
 
-static void initloader() __attribute__((constructor));
-static void initloader()
-  {
+void sf_initloader()
+{
   ttfontloader = sf_loadftype;
   ttfontsdone = libfinish;
-  }
-
+}

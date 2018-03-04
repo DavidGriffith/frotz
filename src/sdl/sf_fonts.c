@@ -572,12 +572,12 @@ int os_string_width(const zchar *s)
 	{
 	if (c == ZC_NEW_STYLE)
 		{
-		wacc = width+oh; width = 0;
+		wacc += oh;
 		os_set_text_style(*s++);
 		}
 	else if (c == ZC_NEW_FONT)
 		{
-		wacc = width+oh; width = 0;
+		wacc += oh;
 		os_set_font(*s++);
 		}
 	else

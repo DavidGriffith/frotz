@@ -248,9 +248,11 @@ void os_warn (const char *s, ...)
     os_set_text_style(BOLDFACE_STYLE);
     os_display_string((zchar *)"Warning: ");
     os_set_text_style(0);
-    os_display_string((zchar *)buf);
+    os_display_string((zchar *)(len < 0 ? s : buf));
     os_display_string((zchar *)"\n");
-    if (len > sizeof(buf))
+    if (len < 0)
+        os_display_string((zchar *)"(formatting error)\n");
+    else if (len >= sizeof(buf))
         os_display_string((zchar *)"(truncated)\n");
     new_line();
 }
@@ -275,8 +277,7 @@ void gen_add_to_history(zchar *str)
 
     if (*history_next != NULL)
         free( *history_next);
-    *history_next = (char *)malloc(strlen((char *)str) + 1);
-    strcpy( *history_next, (char *)str);
+    *history_next = strdup((char *)str);
     RING_INC( history_next, history_buffer, history_end);
     history_view = history_next; /* Reset user frame after each line */
 

@@ -181,6 +181,9 @@ int sf_initsound(void);
 
 void sf_initfonts(void);
 
+void sf_setdialog(void);
+void sf_initloader(void);
+
 void sf_cleanup_all(void);
 void sf_regcleanfunc( void *f, const char *nam);
 #define CLEANREG( f) sf_regcleanfunc( (void *)f, #f)

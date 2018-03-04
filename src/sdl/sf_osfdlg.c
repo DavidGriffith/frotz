@@ -390,11 +390,10 @@ STATIC int myosdialog( bool existing, const char *def, const char *filt, const c
   return SF_NOTIMP;
   }
 
-static void setdialog(void) __attribute__((constructor));
-static void setdialog(void)
-  {
+void sf_setdialog(void)
+{
   sf_osdialog = myosdialog;
-  }
+}
 
 ///////////////////////////////////
 

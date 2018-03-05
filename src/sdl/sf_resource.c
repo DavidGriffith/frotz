@@ -383,8 +383,8 @@ void os_scrollback_erase (int erase)
  */
 void os_restart_game(int stage)
   {
-	// Show Beyond Zork's title screen
-  if ((stage == RESTART_BEGIN) && (story_id == BEYOND_ZORK))
+    // Show Beyond Zork's title screen
+    if ((stage == RESTART_END) && (story_id == BEYOND_ZORK))
 	{
 	int w,h;
 	if (os_picture_data(1,&h,&w))

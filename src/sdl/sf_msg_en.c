@@ -56,7 +56,7 @@ const char * sf_msgstring( int id)
 	p = "*|Any file";
 	break;
     case IDS_SAVE_FILTER:
-	p = "*.sav|Saved games";
+	p = "*" EXT_SAVE "|Saved games";
 	break;
     case IDS_RECORD_TITLE:
 	p = "Record input to a file";
@@ -65,13 +65,13 @@ const char * sf_msgstring( int id)
 	p = "Play back recorded input";
 	break;
     case IDS_RECORD_FILTER:
-	p = "*.rec|Record Files";
+	p = "*" EXT_COMMAND "|Record Files";
 	break;
     case IDS_SCRIPT_TITLE:
 	p = "Write out a script";
 	break;
     case IDS_SCRIPT_FILTER:
-	p = "*.log|Transcript Log Files";
+	p = "*" EXT_SCRIPT "|Transcript Log Files";
 	break;
     default:
 	break;

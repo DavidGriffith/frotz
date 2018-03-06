@@ -104,7 +104,7 @@ static struct {
   byte w, h;
   char xof, yof;
   byte bitmap[16];
-  } myglyph = {8,8,8,0,0};
+  } myglyph = {8,8,8,0,-2};
 
 static void nodestroy(SFONT *s){}
 static int myheight(SFONT *s){ return 8;}
@@ -144,8 +144,8 @@ static SFONT myfont3 = {
 SFONT * SF_font3 = &myfont3;
 
 static int myheight2(SFONT *s){ return 16;}
-static int myascent2(SFONT *s){ return 12;}
-static int mydescent2(SFONT *s){ return 4;}
+static int myascent2(SFONT *s){ return 14;}
+static int mydescent2(SFONT *s){ return 2;}
 static SF_glyph * mygetglyph2(SFONT *s, word c, int allowdef)
   {
   byte *src, *dst; int i;

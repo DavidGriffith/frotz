@@ -27,7 +27,7 @@ typedef struct {
   int glyphs[0];        // offsets to glyphs from start of rec
   } SF_bdffont;
 
-char * m_fontfiles[8];
+char * m_fontfiles[9];
 
 static char s[1026];
 
@@ -710,10 +710,10 @@ static void destroySFonly( SFONT *f)
 
 extern SFONT *SF_font3, *SF_font3double;
 
-SFONT * (*ttfontloader)( char *fspec, int *err) = NULL;
+SFONT * (*ttfontloader)( char *fspec, SFONT *like, int *err) = NULL;
 void (*ttfontsdone)() = NULL;
 
-static SFONT *tryloadfont( char *fspec)
+static SFONT *tryloadfont( char *fspec, SFONT *like)
   {
   int err,size;
   char *p;
@@ -722,7 +722,7 @@ static SFONT *tryloadfont( char *fspec)
     p = strchr(fspec,'|');
     if (p) *p = 0;
     if (ttfontloader)
-	b = ttfontloader(fspec,&err);
+	b = ttfontloader(fspec, like, &err);
     if (!b)
 	b = loadfont(fspec,&err,&size);
     if (b) break;
@@ -824,10 +824,11 @@ void sf_initfonts()
 
   if (!m_vga_fonts)
     {
-    for (i=0;i<8;i++)
+    for (i = 0; i <= 8; i++)
       if (m_fontfiles[i])
 	{
-	SFONT *b = tryloadfont(m_fontfiles[i]);
+	SFONT *b = tryloadfont(m_fontfiles[i],
+	                       i == 8 ? myfonts[FIXED_WIDTH_FONT] : NULL);
 	if (!b) fprintf(stderr,"WARNING: could not load font%d [%s]\n",i,m_fontfiles[i]);
 	else
 		{
@@ -839,10 +840,11 @@ void sf_initfonts()
 
   if (ttfontsdone) ttfontsdone();
 	// now set the graphics font
-  if (myfonts[4]->height(myfonts[4]) < 16)
-	myfonts[8] = SF_font3;
-  else
-	myfonts[8] = SF_font3double;
+  if (!myfonts[8])
+      if (myfonts[4]->height(myfonts[4]) < 16)
+          myfonts[8] = SF_font3;
+      else
+          myfonts[8] = SF_font3double;
 
 //for (i=0;i<8;i++){ SFONT *s = myfonts[i]; printf("%d %p %d %d %d %d %d\n",
 //i,s,s->minchar(s),s->maxchar(s),s->ascent(s),s->descent(s),s->height(s));}

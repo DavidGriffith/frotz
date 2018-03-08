@@ -202,7 +202,7 @@ static void setglyph( MYFONT *f, FT_Face face, int ch)
   f->glyphs[ch] = res;
   }
 
-static SFONT * loadftype( char *fname, int size, int *err)
+static SFONT * loadftype( char *fname, int size, SFONT *like, int *err)
   {
   MYFONT *res;
   FT_Face face;
@@ -219,7 +219,11 @@ static SFONT * loadftype( char *fname, int size, int *err)
   *err = FT_New_Face( library, fname, 0, &face ); /* create face object */
   if (*err){ res->sfont.destroy(&res->sfont); return NULL; }
 
-  *err = FT_Set_Pixel_Sizes( face, size, size);
+  if (like) {
+      SF_glyph *zero = like->getglyph(like, '0', TRUE);
+      *err = FT_Set_Pixel_Sizes( face, zero->dx, like->height(like));
+  } else
+      *err = FT_Set_Pixel_Sizes( face, size, size);
   if (*err){ res->sfont.destroy(&res->sfont); return NULL; }
 
   res->ascent = face->size->metrics.ascender/64;
@@ -247,7 +251,7 @@ static SFONT * loadftype( char *fname, int size, int *err)
 #define SYSFONTS "/usr/share/fonts/freetype"
 #endif
 
-SFONT * sf_loadftype( char *fspec, int *err)
+SFONT * sf_loadftype( char *fspec, SFONT *like, int *err)
   {
   char buf[FILENAME_MAX], *fn, *at, *fenv;
   int size = DEFSIZE, fnlen=-1;
@@ -273,7 +277,7 @@ SFONT * sf_loadftype( char *fspec, int *err)
 
   if (!fn) return NULL;
 
-  return loadftype(fn,size,err);
+  return loadftype(fn, size, like, err);
   }
 
 //////////////////////////////////////////

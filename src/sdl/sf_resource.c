@@ -442,6 +442,7 @@ void sf_readsettings(void)
   m_fontfiles[5] = sf_GetProfileString("Fonts","fixedbold",NULL);
   m_fontfiles[6] = sf_GetProfileString("Fonts","fixeditalic",NULL);
   m_fontfiles[7] = sf_GetProfileString("Fonts","fixedbolditalic",NULL);
+  m_fontfiles[8] = sf_GetProfileString("Fonts","graphics",NULL);
 
   ResDir = sf_GetProfileString("Resources","Dir",ResDir);
   ResPict = sf_GetProfileString("Resources","Pict",ResPict);

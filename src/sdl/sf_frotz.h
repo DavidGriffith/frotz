@@ -86,7 +86,7 @@ extern int	AcHeight;
 extern int	m_random_seed;
 extern int	m_fullscreen;
 extern int	m_reqW, m_reqH;
-extern char *	m_fontfiles[8];
+extern char *	m_fontfiles[9];
 extern bool	m_localfiles;
 extern int	m_no_sound;
 extern int 	m_vga_fonts;
@@ -131,7 +131,7 @@ typedef struct {
 
 typedef struct sfontstruct SFONT;
 
-extern SFONT * (*ttfontloader)( char *fspec, int *err);
+extern SFONT * (*ttfontloader)( char *fspec, SFONT *like, int *err);
 extern void    (*ttfontsdone)();
 
 struct sfontstruct {

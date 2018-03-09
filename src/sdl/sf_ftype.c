@@ -197,7 +197,7 @@ static void setglyph( MYFONT *f, FT_Face face, int ch)
   res->h = bitmap->rows;
   res->dx = slot->advance.x/64;
   res->xof = slot->bitmap_left;
-  res->yof = slot->bitmap_top - bitmap->rows;
+  res->yof = slot->bitmap_top - bitmap->rows + 1;
 
   f->glyphs[ch] = res;
   }
@@ -228,7 +228,7 @@ static SFONT * loadftype( char *fname, int size, SFONT *like, int *err)
 
   res->ascent = face->size->metrics.ascender/64;
   res->descent = -face->size->metrics.descender/64;
-  res->height = res->ascent+res->descent; //face->size->metrics.height/64;
+  res->height = face->size->metrics.height/64;
 
   res->sfont.antialiased = m_aafonts;
   res->minchar = 32;

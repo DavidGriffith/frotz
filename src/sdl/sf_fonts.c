@@ -498,27 +498,29 @@ static void setstyle( int style){
  * the given font is unavailable then these values must _not_
  * be changed.
  *
+ * Font can also be 0 to query the size of the current font in the current
+ * style.  Not all front end support this.  Those that do return true.
  */
-int os_font_data( int font, int *height, int *width)
-  {
-  switch (font)
-	{
-	case TEXT_FONT:
-	case FIXED_WIDTH_FONT:
-	case GRAPHICS_FONT:
-		{
-		sf_pushtextsettings();
-		setfont(font);
-		setstyle(0);
-		*height = current.font->height(current.font);
-		*width = os_char_width((zword)('0'));
-		sf_poptextsettings();
-		return 1;
-		}
-	default: break;
-	}
-  return 0;
-  }
+int os_font_data( int font, int *height, int *width) {
+    switch (font) {
+    case TEXT_FONT:
+    case FIXED_WIDTH_FONT:
+    case GRAPHICS_FONT:
+        sf_pushtextsettings();
+        setfont(font);
+        setstyle(0);
+        *height = current.font->height(current.font);
+        *width = os_char_width((zword)('0'));
+        sf_poptextsettings();
+        return 1;
+    case 0:
+        *height = current.font->height(current.font);
+        *width = os_char_width((zword)('0'));
+        return 1;
+    default:
+        return 0;
+    }
+}
 
 /*
  * os_set_font

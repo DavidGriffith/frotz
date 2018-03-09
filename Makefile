@@ -22,7 +22,10 @@ endif
 export CFLAGS
 
 # Enable compiler warnings. This is an absolute minimum.
-CFLAGS += -Wall -Wextra -std=gnu99
+CFLAGS += -Wall -std=c99 #-Wextra 
+
+# strdup, strndup
+CFLAGS += -D_POSIX_C_SOURCE=200809L
 
 # Define your optimization flags.
 #
@@ -66,6 +69,7 @@ DEFAULT_CONVERTER ?= SRC_SINC_MEDIUM_QUALITY
 
 ifeq ($(SOUND), ao)
 	LDFLAGS += -lao -ldl -lpthread -lm -lsndfile -lvorbisfile -lmodplug -lsamplerate
+	CFLAGS += -pthread
 else ifeq ($(SOUND), none)
 	CFLAGS += -DNO_SOUND
 else ifndef SOUND

@@ -177,11 +177,6 @@ static void usage()
 
 static const char *progname = NULL;
 
-extern char script_name[];
-extern char command_name[];
-extern char save_name[];
-extern char auxilary_name[];
-
 char stripped_story_name[100];
 
 extern char *optarg;
@@ -334,14 +329,8 @@ static char *new_basename(const char *path)
 void os_process_arguments (int argc, char *argv[])
 {
   char *p;
-  int i;
-
-	// install signal handlers
 
   sf_installhandlers();
-
-    /* Parse command line options */
-
   parse_options(argc, argv);
 
   if (optind != argc - 1) 
@@ -349,13 +338,9 @@ void os_process_arguments (int argc, char *argv[])
 	usage();
 	exit (EXIT_FAILURE);
 	}
-
-    /* Set the story file name */
-
   f_setup.story_file = strdup(argv[optind]);
 
-	// load resources
-	// it's useless to test the retval, as in case of error it does not return
+  // it's useless to test the retval, as in case of error it does not return
   sf_load_resources( f_setup.story_file);
 
     /* Strip path and extension off the story file name */
@@ -553,7 +538,6 @@ int os_read_file_name (char *file_name, const char *default_name, int flag)
   {
   int st;
   const char *initname = default_name;
-  char *ext = ".aux";
 
   if (newfile(flag))
     {
@@ -790,12 +774,13 @@ static char * findsect( const char *sect)
     if (strncmp(r,sect,ns)) continue;
     return (r+ns);
     }
+  return NULL;
   }
 
 static char * findid( const char *sect, const char *id)
   {
   int nid = strlen(id);
-  char *p, *r, *sav, *rq, *fnd = NULL;
+  char *r, *sav, *rq, *fnd = NULL;
   r = findsect(sect);
 //printf("findsect(%s) %p\n",sect,r);
   if (!r) return NULL;
@@ -924,7 +909,7 @@ static int myunzip( int csize, byte *cdata, byte *udata)
 
 int sf_pkread( FILE *f, int foffs,  void ** out, int *size)
   {
-  byte hd[30], *dest;
+  byte hd[30];
   byte *data, *cdata;
   int csize, usize, cmet, skip, st;
 

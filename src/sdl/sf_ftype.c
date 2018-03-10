@@ -96,7 +96,7 @@ static SF_glyph *getglyph( SFONT *s, word c, int allowdef)
   {
   if (s)
     {
-    int i; MYFONT *f = (MYFONT *)s;
+    MYFONT *f = (MYFONT *)s;
     if (c < f->minchar || c > f->maxchar)
 	{
 	if (allowdef) c = 0;
@@ -164,8 +164,7 @@ static void setglyph( MYFONT *f, FT_Face face, int ch)
   int mode = FT_RENDER_MODE_MONO;
   SF_glyph *res;
   FT_GlyphSlot slot = face->glyph;
-  int i,j, nbypr, pitch;
-  unsigned char *s;
+  int i,j, nbypr;
   FT_Bitmap *bitmap;
 
   if (m_aafonts) mode = FT_RENDER_MODE_NORMAL;

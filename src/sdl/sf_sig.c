@@ -76,7 +76,6 @@ static void bt_sighandler(int sig, siginfo_t *info,
                                    void *secret) {
 
   void *trace[16];
-  char **messages = (char **)NULL;
   char *nam;
   int i, trace_size = 0;
   ucontext_t *uc = (ucontext_t *)secret;
@@ -88,7 +87,7 @@ static void bt_sighandler(int sig, siginfo_t *info,
 
   printf("\nInterpreter bug!\nSignal %d ", sig);
   if ((nam = getsigname(sig))) printf("[%s] ",nam);
-  printf("from %p", uc->uc_mcontext.gregs[_PROG_COUNTER]);
+  printf("from %p", (void *)uc->uc_mcontext.gregs[_PROG_COUNTER]);
 
   if (sig == SIGSEGV)
         printf(" [faulty address is %p]",info->si_addr);

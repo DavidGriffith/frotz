@@ -653,7 +653,7 @@ static unsigned char docbmp[] = {
 
 STATIC void drawit( int x, int y, ENTRY *e, int w, int issub)
   {
-  int i,j,n,sw,dy,color;
+  int i, j, n, color;
   unsigned char *bmp;
   char *s = e->value;
   bmp = (issub ? folderbmp : docbmp);
@@ -841,7 +841,7 @@ STATIC zword yesnoover( int xc, int yc)
 // (lib does not guarantee correct behaviour in that case)
 static void mystrcpy( char *d, const char *s)
   {
-  while (*d++ = *s++);
+  while ((*d++ = *s++));
   }
 
 STATIC zword Zentry( int x, int y)

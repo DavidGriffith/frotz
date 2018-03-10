@@ -113,7 +113,9 @@ static int mydescent(SFONT *s){ return 2;}
 static int myminchar(SFONT *s){ return 32;}
 static int mymaxchar(SFONT *s){ return 126;}
 static int myhasglyph(SFONT *s, word c, int allowdef)
-  { if (c >= 32 && c <= 126) return 1; if (allowdef) return 1;}
+{
+    return (c >= 32 && c <= 126) || allowdef;
+}
 static SF_glyph * mygetglyph(SFONT *s, word c, int allowdef)
   {
   byte *src;

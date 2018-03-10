@@ -158,7 +158,7 @@ BLORB_OBJECT =  $(BLORB_DIR)/blorblib.o
 SDL_DIR = $(SRCDIR)/sdl
 SDL_LIB = $(SDL_DIR)/frotz_sdl.a
 export SDL_PKGS = libpng libjpeg sdl SDL_mixer freetype2 zlib
-SDL_LDFLAGS = `pkg-config $(SDL_PKGS) --libs` -lz
+SDL_LDFLAGS = `pkg-config $(SDL_PKGS) --libs`
 
 OBJECTS = $(COMMON_OBJECT) $(CURSES_OBJECT) $(DUMB_OBJECT) $(BLORB_OBJECT)
 

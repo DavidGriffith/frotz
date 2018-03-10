@@ -46,7 +46,7 @@ static int audio_rate, audio_channels;
 		// the higher it is, the more FPS shown and CPU needed
 static int audio_buffers=512;
 static Uint16 audio_format;
-static int volume = SDL_MIX_MAXVOLUME;
+//static int volume = SDL_MIX_MAXVOLUME;
 static int bits;
 
 static void finishaudio()
@@ -243,7 +243,7 @@ static EFFECT *getmodule( FILE *f, size_t pos, int len, int num)
   return res;
   }
 
-static EFFECT *geteffect( num)
+static EFFECT *geteffect(int num)
   {
   myresource res;
   EFFECT *result = NULL;

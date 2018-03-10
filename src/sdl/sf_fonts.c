@@ -740,9 +740,8 @@ SFONT *sf_VGA_SFONT;
 void sf_initfonts()
   {
   int i, j, size=0;
-  int w,h,nby,m,nocc;
   byte *cfont, *bmp; SF_glyph *g;
-  SF_bdffont *b, *norm, *emph, *bold, *bemp;
+  SF_bdffont *norm, *emph, *bold, *bemp;
   SFONT *Norm, *Emph=NULL, *Bold=NULL, *Bemp=NULL;
 
   norm = SF_defaultfont;
@@ -763,13 +762,11 @@ void sf_initfonts()
 	// emphasize (underline)...
   cfont = (byte *)emph;
   for (i = norm->minchar;i <= norm->maxchar;i++){
-	m = norm->glyphs[i-norm->minchar];
+	int m = norm->glyphs[i-norm->minchar];
 	if (!m) continue;
 	g = (SF_glyph *)(cfont + m);
-	w = g->dx;
-	h = g->h; nby = (g->w+7)/8;
 	bmp = (byte *)(&(g->bitmap[0]));
-	bmp[h-2] = 0xff;
+	bmp[g->h - 2] = 0xff;
 	}
 	// make a copy for bold
   bold = malloc(size);
@@ -780,15 +777,13 @@ void sf_initfonts()
 	// boldify...
   cfont = (byte *)bold;
   for (i = norm->minchar;i <= norm->maxchar;i++){
-	int c;
-	m = norm->glyphs[i-norm->minchar];
+	int h, m = norm->glyphs[i-norm->minchar];
 	if (!m) continue;
 	g = (SF_glyph *)(cfont + m);
-	w = g->dx;
-	h = g->h; nby = (g->w+7)/8;
+	h = g->h;
 	bmp = (byte *)(&(g->bitmap[0]));
 	for (j=0;j<h;j++){
-	  c = bmp[j];
+	  int c = bmp[j];
 	  bmp[j] = (c) | (c >> 1);
 	  }
 	}
@@ -801,13 +796,11 @@ void sf_initfonts()
 	// emphasize (underline)...
   cfont = (byte *)bemp;
   for (i = norm->minchar;i <= norm->maxchar;i++){
-	m = norm->glyphs[i-norm->minchar];
+	int m = norm->glyphs[i-norm->minchar];
 	if (!m) continue;
 	g = (SF_glyph *)(cfont + m);
-	w = g->dx;
-	h = g->h; nby = (g->w+7)/8;
 	bmp = (byte *)(&(g->bitmap[0]));
-	bmp[h-2] = 0xff;
+	bmp[g->h - 2] = 0xff;
 	}
 
   myfonts[0] = myfonts[4] = Norm;
@@ -842,11 +835,12 @@ void sf_initfonts()
 
   if (ttfontsdone) ttfontsdone();
 	// now set the graphics font
-  if (!myfonts[8])
+  if (!myfonts[8]) {
       if (myfonts[4]->height(myfonts[4]) < 16)
           myfonts[8] = SF_font3;
       else
           myfonts[8] = SF_font3double;
+  }
 
 //for (i=0;i<8;i++){ SFONT *s = myfonts[i]; printf("%d %p %d %d %d %d %d\n",
 //i,s,s->minchar(s),s->maxchar(s),s->ascent(s),s->descent(s),s->height(s));}

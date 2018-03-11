@@ -218,7 +218,7 @@ $(COMMON_DIR)/defines.h:
 
 $(CURSES_DIR)/defines.h:
 	@echo "Generating $@"
-	@echo "#define CONFIG_DIR \"$(SYSCONFDIR)\"" >> $@
+	@echo "#define CONFIG_DIR \"$(SYSCONFDIR)\"" > $@
 	@echo "#define SOUND \"$(SOUND)\"" >> $@
 	@echo "#define SAMPLERATE $(SAMPLERATE)" >> $@
 	@echo "#define BUFFSIZE $(BUFFSIZE)" >> $@

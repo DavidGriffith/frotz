@@ -4,6 +4,8 @@
 // as libmikmod only reads WAV samples
 //
 
+//XXX Dead code, whole file.
+
 #include <stdlib.h>
 #include <stdio.h>
 #include <string.h>

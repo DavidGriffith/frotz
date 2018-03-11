@@ -3,6 +3,8 @@
 #include <string.h>
 #include <time.h>
 
+#include <libgen.h>
+
 #include <zlib.h>
 
 #ifdef __WIN32__
@@ -11,6 +13,7 @@
 
 #include "sf_frotz.h"
 
+f_setup_t f_setup;
 
 typedef void (*CLEANFUNC)();
 
@@ -124,7 +127,6 @@ static char *infos[] = {
 	"-p   alter piracy opcode",
 	"-q   quiet (disable sound)",
 	"-r # right margin",
-	"-R   save/restore in old Frotz format",
 	"-s # random number seed value",
 	"-S # transcript width",
 	"-t   set Tandy bit",
@@ -174,11 +176,6 @@ static void usage()
  */
 
 static const char *progname = NULL;
-
-extern char script_name[];
-extern char command_name[];
-extern char save_name[];
-extern char auxilary_name[];
 
 char stripped_story_name[100];
 
@@ -257,8 +254,6 @@ static void parse_options (int argc, char **argv)
 	    f_setup.piracy = 1;
 	if (c == 'r')
 	    f_setup.right_margin = num;
-	if (c == 'R')
-	    f_setup.save_quetzal = 0;
 	if (c == 's')
 	    m_random_seed = num;
 	if (c == 'S')
@@ -309,17 +304,33 @@ static void parse_options (int argc, char **argv)
  *
  */
 
-void os_process_arguments (int argc, char *argv[])
-  {
-  const char *p;
-  int i;
+/**
+ * Like dirname except well defined.
+ * Does not modify path.  Always returns a new string (caller must free).
+ */
+static char *new_dirname(const char *path)
+{
+    char *p = strdup(path), *p2 = strdup(dirname(p));
+    free(p);
+    return p2;
+}
 
-	// install signal handlers
+/**
+ * Like basename except well defined.
+ * Does not modify path.  Always returns a new string (caller must free).
+ */
+static char *new_basename(const char *path)
+{
+    char *p = strdup(path), *p2 = strdup(basename(p));
+    free(p);
+    return p2;
+}
+
+void os_process_arguments (int argc, char *argv[])
+{
+  char *p;
 
   sf_installhandlers();
-
-    /* Parse command line options */
-
   parse_options(argc, argv);
 
   if (optind != argc - 1) 
@@ -327,42 +338,63 @@ void os_process_arguments (int argc, char *argv[])
 	usage();
 	exit (EXIT_FAILURE);
 	}
+  f_setup.story_file = strdup(argv[optind]);
 
-    /* Set the story file name */
-
-  story_name = argv[optind];
-
-	// load resources
-	// it's useless to test the retval, as in case of error it does not return
-  sf_load_resources( story_name);
+  // it's useless to test the retval, as in case of error it does not return
+  sf_load_resources( f_setup.story_file);
 
     /* Strip path and extension off the story file name */
 
-  p = story_name;
+  f_setup.story_name = new_basename(argv[optind]);
 
-  for (i = 0; story_name[i] != 0; i++)
-	if (story_name[i] == '\\' || story_name[i] == '/'
-	    || story_name[i] == ':')
-	    p = story_name + i + 1;
+  /* Now strip off the extension. */
+  p = strrchr(f_setup.story_name, '.');
+  if ((p != NULL) &&
+      ((strcmp(p,EXT_BLORB2) == 0) ||
+       (strcmp(p,EXT_BLORB3) == 0) ||
+       (strcmp(p,EXT_BLORB4) == 0) ) ) {
+    //        blorb_ext = strdup(p);
+  }
+  else
+    //	blorb_ext = strdup(EXT_BLORB);
 
-    for (i = 0; p[i] != 0 && p[i] != '.'; i++)
-	stripped_story_name[i] = p[i];
 
-    stripped_story_name[i] = 0;
+    /* Get rid of extensions with 1 to 6 character extensions. */
+    /* This will take care of an extension like ".zblorb". */
+    /* More than that, there might be something weird going on */
+    /* which is not our concern. */
+    if (p != NULL) {
+      if (strlen(p) >= 2 && strlen(p) <= 7) {
+        *p = '\0';      /* extension removed */
+      }
+    }
+  f_setup.story_path = new_dirname(argv[optind]);
 
-    /* Create nice default file names */
+  /* Create nice default file names */
 
-  strcpy (script_name, stripped_story_name);
-  strcpy (command_name, stripped_story_name);
-  strcpy (save_name, stripped_story_name);
-  strcpy (auxilary_name, stripped_story_name);
+  f_setup.script_name = malloc((strlen(f_setup.story_name) + strlen(EXT_SCRIPT)) * sizeof(char) + 1);
+  strncpy(f_setup.script_name, f_setup.story_name, strlen(f_setup.story_name) + 1);
+  strncat(f_setup.script_name, EXT_SCRIPT, strlen(EXT_SCRIPT));
 
-  strcat (script_name, ".scr");
-  strcat (command_name, ".rec");
-  strcat (save_name, ".sav");
-  strcat (auxilary_name, ".aux");
+  f_setup.command_name = malloc((strlen(f_setup.story_name) + strlen(EXT_COMMAND)) * sizeof(char) + 1);
+  strncpy(f_setup.command_name, f_setup.story_name, strlen(f_setup.story_name) + 1);
+  strncat(f_setup.command_name, EXT_COMMAND, strlen(EXT_COMMAND));
 
-    /* Save the executable file name */
+  if (!f_setup.restore_mode) {
+    f_setup.save_name = malloc(strlen(f_setup.story_name) * sizeof(char) + 5);
+    strncpy(f_setup.save_name, f_setup.story_name, strlen(f_setup.story_name));
+    strncat(f_setup.save_name, EXT_SAVE, strlen(EXT_SAVE));
+  } else {  /*Set our auto load save as the name_save*/
+    f_setup.save_name = malloc(strlen(f_setup.tmp_save_name) * sizeof(char) + 5);
+    strncpy(f_setup.save_name, f_setup.tmp_save_name, strlen(f_setup.tmp_save_name));
+    free(f_setup.tmp_save_name);
+  }
+
+  f_setup.aux_name = malloc((strlen(f_setup.story_name) + strlen(EXT_AUX)) * sizeof(char) + 1);
+  strncpy(f_setup.aux_name, f_setup.story_name, strlen(f_setup.story_name) + 1);
+  strncat(f_setup.aux_name, EXT_AUX, strlen(EXT_AUX));
+
+  /* Save the executable file name */
 
   progname = argv[0];
 
@@ -379,7 +411,7 @@ void os_process_arguments (int argc, char *argv[])
 
   sf_initfonts();
 
-  }/* os_process_arguments */
+}/* os_process_arguments */
 
 #ifdef WIN32
 #include <windows.h>
@@ -506,7 +538,6 @@ int os_read_file_name (char *file_name, const char *default_name, int flag)
   {
   int st;
   const char *initname = default_name;
-  char *ext = ".aux";
 
   if (newfile(flag))
     {
@@ -743,12 +774,13 @@ static char * findsect( const char *sect)
     if (strncmp(r,sect,ns)) continue;
     return (r+ns);
     }
+  return NULL;
   }
 
 static char * findid( const char *sect, const char *id)
   {
   int nid = strlen(id);
-  char *p, *r, *sav, *rq, *fnd = NULL;
+  char *r, *sav, *rq, *fnd = NULL;
   r = findsect(sect);
 //printf("findsect(%s) %p\n",sect,r);
   if (!r) return NULL;
@@ -877,7 +909,7 @@ static int myunzip( int csize, byte *cdata, byte *udata)
 
 int sf_pkread( FILE *f, int foffs,  void ** out, int *size)
   {
-  byte hd[30], *dest;
+  byte hd[30];
   byte *data, *cdata;
   int csize, usize, cmet, skip, st;
 

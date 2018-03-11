@@ -27,7 +27,7 @@ typedef struct {
   int glyphs[0];        // offsets to glyphs from start of rec
   } SF_bdffont;
 
-char * m_fontfiles[8];
+char * m_fontfiles[9];
 
 static char s[1026];
 
@@ -498,27 +498,29 @@ static void setstyle( int style){
  * the given font is unavailable then these values must _not_
  * be changed.
  *
+ * Font can also be 0 to query the size of the current font in the current
+ * style.  Not all front end support this.  Those that do return true.
  */
-int os_font_data( int font, int *height, int *width)
-  {
-  switch (font)
-	{
-	case TEXT_FONT:
-	case FIXED_WIDTH_FONT:
-	case GRAPHICS_FONT:
-		{
-		sf_pushtextsettings();
-		setfont(font);
-		setstyle(0);
-		*height = current.font->height(current.font);
-		*width = os_char_width((zword)('0'));
-		sf_poptextsettings();
-		return 1;
-		}
-	default: break;
-	}
-  return 0;
-  }
+int os_font_data( int font, int *height, int *width) {
+    switch (font) {
+    case TEXT_FONT:
+    case FIXED_WIDTH_FONT:
+    case GRAPHICS_FONT:
+        sf_pushtextsettings();
+        setfont(font);
+        setstyle(0);
+        *height = current.font->height(current.font);
+        *width = os_char_width((zword)('0'));
+        sf_poptextsettings();
+        return 1;
+    case 0:
+        *height = current.font->height(current.font);
+        *width = os_char_width((zword)('0'));
+        return 1;
+    default:
+        return 0;
+    }
+}
 
 /*
  * os_set_font
@@ -572,12 +574,12 @@ int os_string_width(const zchar *s)
 	{
 	if (c == ZC_NEW_STYLE)
 		{
-		wacc = width+oh; width = 0;
+		wacc += oh;
 		os_set_text_style(*s++);
 		}
 	else if (c == ZC_NEW_FONT)
 		{
-		wacc = width+oh; width = 0;
+		wacc += oh;
 		os_set_font(*s++);
 		}
 	else
@@ -710,10 +712,10 @@ static void destroySFonly( SFONT *f)
 
 extern SFONT *SF_font3, *SF_font3double;
 
-SFONT * (*ttfontloader)( char *fspec, int *err) = NULL;
+SFONT * (*ttfontloader)( char *fspec, SFONT *like, int *err) = NULL;
 void (*ttfontsdone)() = NULL;
 
-static SFONT *tryloadfont( char *fspec)
+static SFONT *tryloadfont( char *fspec, SFONT *like)
   {
   int err,size;
   char *p;
@@ -722,7 +724,7 @@ static SFONT *tryloadfont( char *fspec)
     p = strchr(fspec,'|');
     if (p) *p = 0;
     if (ttfontloader)
-	b = ttfontloader(fspec,&err);
+	b = ttfontloader(fspec, like, &err);
     if (!b)
 	b = loadfont(fspec,&err,&size);
     if (b) break;
@@ -738,9 +740,8 @@ SFONT *sf_VGA_SFONT;
 void sf_initfonts()
   {
   int i, j, size=0;
-  int w,h,nby,m,nocc;
   byte *cfont, *bmp; SF_glyph *g;
-  SF_bdffont *b, *norm, *emph, *bold, *bemp;
+  SF_bdffont *norm, *emph, *bold, *bemp;
   SFONT *Norm, *Emph=NULL, *Bold=NULL, *Bemp=NULL;
 
   norm = SF_defaultfont;
@@ -761,13 +762,11 @@ void sf_initfonts()
 	// emphasize (underline)...
   cfont = (byte *)emph;
   for (i = norm->minchar;i <= norm->maxchar;i++){
-	m = norm->glyphs[i-norm->minchar];
+	int m = norm->glyphs[i-norm->minchar];
 	if (!m) continue;
 	g = (SF_glyph *)(cfont + m);
-	w = g->dx;
-	h = g->h; nby = (g->w+7)/8;
 	bmp = (byte *)(&(g->bitmap[0]));
-	bmp[h-2] = 0xff;
+	bmp[g->h - 2] = 0xff;
 	}
 	// make a copy for bold
   bold = malloc(size);
@@ -778,15 +777,13 @@ void sf_initfonts()
 	// boldify...
   cfont = (byte *)bold;
   for (i = norm->minchar;i <= norm->maxchar;i++){
-	int c;
-	m = norm->glyphs[i-norm->minchar];
+	int h, m = norm->glyphs[i-norm->minchar];
 	if (!m) continue;
 	g = (SF_glyph *)(cfont + m);
-	w = g->dx;
-	h = g->h; nby = (g->w+7)/8;
+	h = g->h;
 	bmp = (byte *)(&(g->bitmap[0]));
 	for (j=0;j<h;j++){
-	  c = bmp[j];
+	  int c = bmp[j];
 	  bmp[j] = (c) | (c >> 1);
 	  }
 	}
@@ -799,13 +796,11 @@ void sf_initfonts()
 	// emphasize (underline)...
   cfont = (byte *)bemp;
   for (i = norm->minchar;i <= norm->maxchar;i++){
-	m = norm->glyphs[i-norm->minchar];
+	int m = norm->glyphs[i-norm->minchar];
 	if (!m) continue;
 	g = (SF_glyph *)(cfont + m);
-	w = g->dx;
-	h = g->h; nby = (g->w+7)/8;
 	bmp = (byte *)(&(g->bitmap[0]));
-	bmp[h-2] = 0xff;
+	bmp[g->h - 2] = 0xff;
 	}
 
   myfonts[0] = myfonts[4] = Norm;
@@ -824,10 +819,11 @@ void sf_initfonts()
 
   if (!m_vga_fonts)
     {
-    for (i=0;i<8;i++)
+    for (i = 0; i <= 8; i++)
       if (m_fontfiles[i])
 	{
-	SFONT *b = tryloadfont(m_fontfiles[i]);
+	SFONT *b = tryloadfont(m_fontfiles[i],
+	                       i == 8 ? myfonts[FIXED_WIDTH_FONT] : NULL);
 	if (!b) fprintf(stderr,"WARNING: could not load font%d [%s]\n",i,m_fontfiles[i]);
 	else
 		{
@@ -839,10 +835,12 @@ void sf_initfonts()
 
   if (ttfontsdone) ttfontsdone();
 	// now set the graphics font
-  if (myfonts[4]->height(myfonts[4]) < 16)
-	myfonts[8] = SF_font3;
-  else
-	myfonts[8] = SF_font3double;
+  if (!myfonts[8]) {
+      if (myfonts[4]->height(myfonts[4]) < 16)
+          myfonts[8] = SF_font3;
+      else
+          myfonts[8] = SF_font3double;
+  }
 
 //for (i=0;i<8;i++){ SFONT *s = myfonts[i]; printf("%d %p %d %d %d %d %d\n",
 //i,s,s->minchar(s),s->maxchar(s),s->ascent(s),s->descent(s),s->height(s));}

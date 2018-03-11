@@ -126,6 +126,7 @@ void os_init_sound(void)
     int err;
     static pthread_attr_t attr;
 
+    ao_initialize();
     pthread_mutex_init(&mutex, NULL);
     audiobuffer_init(&music_buffer);
     audiobuffer_init(&bleep_buffer);
@@ -135,7 +136,7 @@ void os_init_sound(void)
     pthread_attr_init(&attr);
     pthread_attr_setdetachstate(&attr, PTHREAD_CREATE_DETACHED);
 
-    err = pthread_create(&(mixer_id), &attr, (void *) &mixer, NULL);
+    err = pthread_create(&(mixer_id), &attr, &mixer, NULL);
     if (err != 0) {
 	printf("Can't create mixer thread :[%s]", strerror(err));
 	exit(1);
@@ -322,7 +323,6 @@ static void *mixer(void * UNUSED(arg))
     ao_sample_format format;
     int samplecount;
 
-    ao_initialize();
     default_driver = ao_default_driver_id();
 
     shortbuffer = malloc(BUFFSIZE * sizeof(short) * 2);

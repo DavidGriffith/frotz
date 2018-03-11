@@ -7,6 +7,8 @@
 
 #include <SDL.h>
 
+#include "generic.h"
+
 #include "sf_frotz.h"
 
 static SDL_Rect blitrect = {0,0,0,0};
@@ -375,6 +377,14 @@ void os_scroll_area(int top, int left, int bottom, int right, int units)
 //		theWnd->FlushDisplay();
   }
 
+bool os_repaint_window(int win, int ypos_old, int ypos_new, int xpos,
+                       int ysize, int xsize)
+{
+    //TODO
+    return FALSE;
+}
+
+
 int SFdticks = 200;
 volatile bool SFticked = 0;
 static SDL_TimerID timerid = 0;
@@ -630,6 +640,8 @@ static zword goodzkey( SDL_Event *e, int allowed)
 	case SDLK_LEFT:		return ZC_ARROW_LEFT;
 	case SDLK_RIGHT:	return ZC_ARROW_RIGHT;
 	case SDLK_TAB:		return (allowed ? VK_TAB : 0);
+	case SDLK_PAGEUP:       return (allowed ? VK_PAGE_UP : 0);
+	case SDLK_PAGEDOWN:     return (allowed ? VK_PAGE_DOWN : 0);
 	case SDLK_KP0:		return ZC_NUMPAD_MIN+0;
 	case SDLK_KP1:		return ZC_NUMPAD_MIN+1;
 	case SDLK_KP2:		return ZC_NUMPAD_MIN+2;
@@ -712,27 +724,6 @@ zchar os_read_key(int timeout, int cursor)
   return sf_read_key(timeout,cursor,0);
   }
 
-#define MAXHISTORY 8192
-static zword History[MAXHISTORY] = {0};
-static int histptr = 0;
-static void addtoHistory( zchar *buf)
-  {
-  int n = mywcslen(buf)+2;
-  int avail = MAXHISTORY - histptr;
-  if (n <= 2) return;
-  while (avail < n)
-    {
-    int k;
-    if (histptr == 0) return;
-    k = History[histptr-1]+2;
-    histptr -= k;
-    }
-  if (histptr) memmove(History+n,History,histptr*sizeof(zword));
-  histptr += n;
-  n -= 2;
-  History[0] = History[n+1] = n;
-  memcpy(History+1,buf,n*sizeof(zword));
-  }
 
 /*
  * os_read_line
@@ -780,182 +771,142 @@ static void addtoHistory( zchar *buf)
  *
  */
 zchar os_read_line(int max, zchar *buf, int timeout, int width, int continued)
-  {
-  static int prev_pos = 0;
-  static int prev_history = -1;
-  int pos = 0;
-  int history = -1;
-  int ptx,pty;
-  SF_textsetting * ts = sf_curtextsetting();
-  SDL_Event event;
+{
+    static int pos = 0, searchpos = -1;
+    int ptx,pty;
+    int len = mywcslen(buf);
+    SF_textsetting * ts = sf_curtextsetting();
+    SDL_Event event;
 
-//printf("os_read_line mx%d buf[0]%d tm%d w%d c%d\n",max,buf[0],timeout,width,continued);
-//	LineInput line;
-  sf_flushtext();
-//	theWnd->ResetOverhang();
-//	theWnd->UpdateMenus();
-//	theWnd->RecaseInput(buf);
+    //printf("os_read_line mx%d buf[0]%d tm%d w%d c%d\n",max,buf[0],timeout,width,continued);
+    //	LineInput line;
+    sf_flushtext();
+    //	theWnd->ResetOverhang();
+    //	theWnd->UpdateMenus();
+    //	theWnd->RecaseInput(buf);
 
-	// Find the editing position
-  if (continued)
-	{
-	if (prev_pos <= (int)mywcslen(buf))
-		pos = prev_pos;
-	}
-  else
-	pos = mywcslen(buf);
-
-//printf("pos %d\n",pos);
-	// Find the input history position
-  if (continued)
-	history = prev_history;
-
-	// Draw the input line
-  ptx = ts->cx;
-  pty = ts->cy;
-//	CPoint point = theWnd->GetTextPoint();
-  ptx -= os_string_width(buf);	//theWnd->GetTextWidth(buf,mywcslen(buf));
-  sf_DrawInput(buf,pos,ptx,pty,width,true);
-
-  if (timeout) mytimeout = sf_ticks() + m_timerinterval*timeout;
-//	InputTimer timer(timeout);
-  while (true)
-    {
-		// Get the next input
-    while (SDL_PollEvent(&event)) 
-	{
-	zword c;
-	if ((c = goodzkey(&event,1))) 
-		{
-//printf("goodzk %4x\n",c);
-		if (c == ZC_BACKSPACE)
-			{
-				// Delete the character to the left of the cursor
-			if (pos > 0)
-				{
-				memmove(buf+pos-1,buf+pos,sizeof(zword)*(mywcslen(buf)-pos+1));
-				pos--;
-				sf_DrawInput(buf,pos,ptx,pty,width,true);
-				}
-			}
-		else if (c == VK_TAB)
-			{
-			if (pos == (int)mywcslen(buf))
-				{
-				zword extension[10], *s;
-				completion(buf,extension);
-
-					// Add the completion to the input stream
-				for (s = extension; *s != 0; s++)
-				  if (sf_IsValidChar(*s))
-					buf[pos++] = (*s);
-				buf[pos] = 0;
-				sf_DrawInput(buf,pos,ptx,pty,width,true);
-				}
-			}
-		else if ((c == ZC_ARROW_LEFT))
-			{
-				// Move the cursor left
-			if (pos > 0)
-				pos--;
-			sf_DrawInput(buf,pos,ptx,pty,width,true);
-			}
-		else if ((c == ZC_ARROW_RIGHT))
-			{
-				// Move the cursor right
-			if (pos < (int)mywcslen(buf))
-				pos++;
-			sf_DrawInput(buf,pos,ptx,pty,width,true);
-			}
-		else if ((c == ZC_ARROW_UP))
-			{
-			int n; zword *p;
-			// Move up through the command history
-			if (history >= 0)
-				{
-				n = History[history];
-				if (n) history += (n+2);
-				}
-			else
-				history = 0;
-			n = History[history];
-			p = History + history + 1;
-			pos = 0;
-			while (n) { buf[pos++] = *p++; n--;}
-			buf[pos] = 0;
-			sf_DrawInput(buf,pos,ptx,pty,width,true);
-			}
-		else if ((c == ZC_ARROW_DOWN))
-			{
-				// Move down through the command history
-			pos = 0;
-			if (history > 0)
-				{
-				int n; zword *p;
-				n = History[history-1];
-				history -= (n+2);
-				p = History + history + 1;
-				while (n) { buf[pos++] = *p++; n--; }
-				}
-			else
-				history = -1;
-			buf[pos] = 0;
-			sf_DrawInput(buf,pos,ptx,pty,width,true);
-			}
-		else if (is_terminator(c))
-			{
-				// Terminate the current input
-			m_exitPause = false;
-			sf_DrawInput(buf,pos,ptx,pty,width,false);
-
-			if ((c == ZC_SINGLE_CLICK) || (c == ZC_DOUBLE_CLICK))
-				{
-/*				mouse_x = input.mousex+1;
-				mouse_y = input.mousey+1;*/
-				}
-			else if (c == ZC_RETURN)
-				addtoHistory(buf);	//theWnd->AddToInputHistory(buf);
-
-//			theWnd->SetLastInput(buf);
-			prev_pos = pos;
-			prev_history = history;
-			return c;
-			}
-		else if (sf_IsValidChar(c))
-			{
-				// Add a valid character to the input line
-			if ((int)mywcslen(buf) < max)
-				{
-					// Get the width of the new input line
-				int len = os_string_width(buf);
-				len += os_char_width(c);
-				len += os_char_width('0');
-
-//printf("l%d w%d p%d\n",len,width,pos);
-					// Only allow if the width limit is not exceeded
-				if (len <= width)
-					{
-					memmove(buf+pos+1,buf+pos,sizeof(zword)*(mywcslen(buf)-pos+1));
-					*(buf+pos) = c;
-					pos++;
-					sf_DrawInput(buf,pos,ptx,pty,width,true);
-					}
-				}
-			}
-		}
-	}
-    if ((timeout) && (sf_ticks() >= mytimeout))
-	{
-	prev_pos = pos;
-	prev_history = history;
-	return ZC_TIME_OUT;
-	}
-    sf_checksound();
-    sf_sleep(10);
+    /* Better be careful here or it might segv.  I wonder if we should just
+       ignore 'continued' and check for len > 0 instead?  Might work better
+       with Beyond Zork. */
+    if (!continued || pos > len || searchpos > len) {
+        pos = len;
+        gen_history_reset();    /* Reset user's history view. */
+        searchpos = -1;         /* -1 means initialize from len. */
     }
 
-  return 0;
-  }
+    // Draw the input line
+    ptx = ts->cx;
+    pty = ts->cy;
+    //	CPoint point = theWnd->GetTextPoint();
+    ptx -= os_string_width(buf);	//theWnd->GetTextWidth(buf,mywcslen(buf));
+    sf_DrawInput(buf,pos,ptx,pty,width,true);
+
+    if (timeout) mytimeout = sf_ticks() + m_timerinterval*timeout;
+    //	InputTimer timer(timeout);
+    while (true) {
+        // Get the next input
+        while (SDL_PollEvent(&event)) {
+            zword c;
+            if ((c = goodzkey(&event,1))) {
+                //printf("goodzk %4x\n",c);
+                switch (c) {
+                case ZC_BACKSPACE:
+                    // Delete the character to the left of the cursor
+                    if (pos > 0) {
+                        memmove(buf+pos-1,buf+pos,sizeof(zword)*(mywcslen(buf)-pos+1));
+                        pos--;
+                        sf_DrawInput(buf,pos,ptx,pty,width,true);
+                    }
+                    continue;
+                case ZC_ESCAPE:         /* Delete whole line */
+                    pos = 0;
+                    buf[0] = '\0';
+                    searchpos = -1;
+                    gen_history_reset();
+                    sf_DrawInput(buf,pos,ptx,pty,width,true);
+                    continue;
+                case VK_TAB:
+                    if (pos == (int)mywcslen(buf)) {
+                        zchar extension[10], *s;
+                        completion(buf,extension);
+
+                        // Add the completion to the input stream
+                        for (s = extension; *s != 0; s++)
+                            if (sf_IsValidChar(*s))
+                                buf[pos++] = (*s);
+                        buf[pos] = 0;
+                        sf_DrawInput(buf,pos,ptx,pty,width,true);
+                    }
+                    continue;
+                case ZC_ARROW_LEFT:
+                    // Move the cursor left
+                    if (pos > 0)
+                        pos--;
+                    sf_DrawInput(buf,pos,ptx,pty,width,true);
+                    continue;
+                case ZC_ARROW_RIGHT:
+                    // Move the cursor right
+                    if (pos < (int)mywcslen(buf))
+                        pos++;
+                    sf_DrawInput(buf,pos,ptx,pty,width,true);
+                    continue;
+                case ZC_ARROW_UP:
+                case ZC_ARROW_DOWN:
+                    if (searchpos < 0)
+                        searchpos = mywcslen(buf);
+                    if ((c == ZC_ARROW_UP
+                         ? gen_history_back : gen_history_forward)(
+                                 buf, searchpos, max)) {
+                        pos = mywcslen(buf);
+                        sf_DrawInput(buf,pos,ptx,pty,width,true);
+                    }
+                    continue;
+                /* Pass through as up/down arrows for Beyond Zork. */
+                case VK_PAGE_UP: c = ZC_ARROW_UP; break;
+                case VK_PAGE_DOWN: c = ZC_ARROW_DOWN; break;
+                default:
+                    if (sf_IsValidChar(c) && mywcslen(buf) < max) {
+                        // Add a valid character to the input line
+                        // Get the width of the new input line
+                        int len = os_string_width(buf);
+                        len += os_char_width(c);
+                        len += os_char_width('0');
+
+                        //printf("l%d w%d p%d\n",len,width,pos);
+                        // Only allow if the width limit is not exceeded
+                        if (len <= width) {
+                            memmove(buf+pos+1,buf+pos,sizeof(zword)*(mywcslen(buf)-pos+1));
+                            *(buf+pos) = c;
+                            pos++;
+                            sf_DrawInput(buf,pos,ptx,pty,width,true);
+                        }
+                        continue;
+                    }
+                }
+                if (is_terminator(c)) {
+                    // Terminate the current input
+                    m_exitPause = false;
+                    sf_DrawInput(buf,pos,ptx,pty,width,false);
+
+                    if ((c == ZC_SINGLE_CLICK) || (c == ZC_DOUBLE_CLICK)) {
+                        /*  mouse_x = input.mousex+1;
+                                                mouse_y = input.mousey+1;*/
+                    } else if (c == ZC_RETURN)
+                        gen_add_to_history(buf);
+                    //                      theWnd->SetLastInput(buf);
+                    return c;
+                }
+            }
+        }
+        if ((timeout) && (sf_ticks() >= mytimeout)) {
+            return ZC_TIME_OUT;
+        }
+        sf_checksound();
+        sf_sleep(10);
+    }
+
+    return 0;
+}
 
 // Draw the current input line
 void sf_DrawInput(zchar * buffer, int pos, int ptx, int pty, int width, bool cursor)

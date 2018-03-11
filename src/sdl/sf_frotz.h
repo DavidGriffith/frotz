@@ -86,7 +86,7 @@ extern int	AcHeight;
 extern int	m_random_seed;
 extern int	m_fullscreen;
 extern int	m_reqW, m_reqH;
-extern char *	m_fontfiles[8];
+extern char *	m_fontfiles[9];
 extern bool	m_localfiles;
 extern int	m_no_sound;
 extern int 	m_vga_fonts;
@@ -131,7 +131,7 @@ typedef struct {
 
 typedef struct sfontstruct SFONT;
 
-extern SFONT * (*ttfontloader)( char *fspec, int *err);
+extern SFONT * (*ttfontloader)( char *fspec, SFONT *like, int *err);
 extern void    (*ttfontsdone)();
 
 struct sfontstruct {
@@ -158,7 +158,7 @@ typedef struct {
   bool foreDefault, backDefault, backTransparent;
   } SF_textsetting;
 
-SF_textsetting * sf_curtextsetting();
+SF_textsetting * sf_curtextsetting(void);
 
 void sf_writeglyph( SF_glyph *g);
 
@@ -177,9 +177,14 @@ int sf_GetColourIndex( ulong colour);
 
 void sf_initvideo( int w, int h, int full);
 
-int sf_initsound();
+int sf_initsound(void);
 
-void sf_cleanup_all();
+void sf_initfonts(void);
+
+void sf_setdialog(void);
+void sf_initloader(void);
+
+void sf_cleanup_all(void);
 void sf_regcleanfunc( void *f, const char *nam);
 #define CLEANREG( f) sf_regcleanfunc( (void *)f, #f)
 
@@ -193,7 +198,7 @@ enum { IDS_BLORB_GLULX, IDS_BLORB_NOEXEC, IDS_MORE, IDS_HIT_KEY_EXIT, IDS_TITLE,
  IDS_RECORD_FILTER, IDS_RECORD_TITLE, IDS_PLAYBACK_TITLE,
  IDS_AUX_FILTER, IDS_SAVE_AUX_TITLE, IDS_LOAD_AUX_TITLE };
 
-bool sf_IsInfocomV6();
+bool sf_IsInfocomV6(void);
 
 ulong sf_blend( int a, ulong s, ulong d);
 
@@ -217,6 +222,24 @@ int sf_user_fdialog( bool exist, const char *def, const char *filt, const char *
 extern int (*sf_osdialog)( bool ex, const char *def, const char *filt, const char *tit, char **res,
 	ulong *sbuf, int sbp, int ew, int eh, int isfull);
 
+void sf_checksound(void);
+
+void sf_installhandlers(void);
+
+void sf_pushtextsettings(void);
+void sf_poptextsettings(void);
+
+void sf_chline( int x, int y, ulong c, int n);
+void sf_cvline( int x, int y, ulong c, int n);
+void sf_flushdisplay(void);
+void sf_getclip( int *x, int *y, int *w, int *h);
+void sf_rect( unsigned long color, int x, int y, int w, int h);
+void sf_setclip( int x, int y, int w, int h);
+void sf_wpixel( int x, int y, ulong c);
+
+void sf_InitProfile( const char *fn);
+void sf_FinishProfile(void);
+
 #ifdef WIN32
 #define OS_PATHSEP ';'
 #else
@@ -226,6 +249,8 @@ extern int (*sf_osdialog)( bool ex, const char *def, const char *filt, const cha
 // virtual keys
 #define VK_TAB	0x16
 #define VK_INS	0x17
+#define VK_PAGE_UP 0x18
+#define VK_PAGE_DOWN 0x19
 
 // for AIFF resampling
 

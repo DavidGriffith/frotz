@@ -39,6 +39,7 @@ static struct {
     {   UNKNOWN,  0,   0,   0 }
 };
 
+/* These are usually out of date.  Always update before using. */
 static int font_height = 1;
 static int font_width = 1;
 
@@ -225,6 +226,7 @@ void screen_new_line (void)
 
     cwp->x_cursor = cwp->left + 1;
 
+    os_font_data(0, &font_height, &font_width);
     if (cwp->y_cursor + 2 * font_height - 1 > cwp->y_size)
 
 	if (enable_scrolling) {
@@ -402,6 +404,7 @@ void screen_erase_input (const zchar *buf)
 	y = cwp->y_pos + cwp->y_cursor - 1;
 	x = cwp->x_pos + cwp->x_cursor - 1;
 
+	os_font_data(0, &font_height, &font_width);
 	os_erase_area (y, x, y + font_height - 1, x + width - 1, -1);
 	os_set_cursor (y, x);
 
@@ -995,6 +998,7 @@ void z_erase_line (void)
     y = cwp->y_pos + cwp->y_cursor - 1;
     x = cwp->x_pos + cwp->x_cursor - 1;
 
+    os_font_data(0, &font_height, &font_width);
     os_erase_area (y, x, y + font_height - 1, x + pixels - 1, -1);
 
 }/* z_erase_line */
@@ -1223,7 +1227,7 @@ void z_print_table (void)
 	if (i != 0) {
 
 	    flush_buffer ();
-
+	    os_font_data(0, &font_height, &font_width);
 	    cwp->y_cursor += font_height;
 	    cwp->x_cursor = x;
 

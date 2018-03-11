@@ -81,37 +81,37 @@ bb_err_t ux_blorb_init(char *filename)
      */
     if (isblorb(fp)) {			/* Now we know to look */
 	f_setup.exec_in_blorb = 1;	/* for zcode in the blorb */
-        blorb_fp = fopen(filename, "rb");
+        blorb_fp = fp;
     } else {
+        fclose(fp);
 	len1 = strlen(filename) + strlen(EXT_BLORB);
 	len2 = strlen(filename) + strlen(EXT_BLORB3);
 
 	mystring = malloc(len2 * sizeof(char) + 1);
         strncpy(mystring, filename, len1 * sizeof(char));
-	p = rindex(mystring, '.');
+	p = strrchr(mystring, '.');
 	if (p != NULL)
 	    *p = '\0';
 
         strncat(mystring, EXT_BLORB, len1 * sizeof(char));
 
-	/* Done monkeying with the initial file. */
-	fclose(fp);
-	fp = NULL;
-
 	/* Check if foo.blb is there. */
-        if ((blorb_fp = fopen(mystring, "rb")) == NULL) {
-	    p = rindex(mystring, '.');
+        if ((fp = fopen(mystring, "rb")) == NULL) {
+	    p = strrchr(mystring, '.');
 	    if (p != NULL)
 		*p = '\0';
             strncat(mystring, EXT_BLORB3, len2 * sizeof(char));
-	    blorb_fp = fopen(mystring, "rb");
+	    if (!(fp = fopen(mystring, "rb")))
+	        return bb_err_NoBlorb;
 	}
-
-	if (blorb_fp == NULL || !isblorb(fp))	/* No matching blorbs found. */
+	if (!isblorb(fp)) {
+	    fclose(fp);
 	    return bb_err_NoBlorb;
+	}
 
 	/* At this point we know that we're using a naked zcode file */
 	/* with resources in a seperate Blorb file. */
+	blorb_fp = fp;
 	f_setup.use_blorb = 1;
     }
 
@@ -119,7 +119,7 @@ bb_err_t ux_blorb_init(char *filename)
      * This will fail if the file is not a valid Blorb file.
      * From this map, we can now pick out any resource we need.
      */
-    blorb_err = bb_create_map(fp, &blorb_map);
+    blorb_err = bb_create_map(blorb_fp, &blorb_map);
     if (blorb_err != bb_err_None)
 	return bb_err_Format;
 
@@ -132,7 +132,6 @@ bb_err_t ux_blorb_init(char *filename)
 	f_setup.exec_in_blorb = 1;
     }
 
-    fclose(fp);
     return blorb_err;
 }
 

@@ -96,7 +96,7 @@ static SF_glyph *getglyph( SFONT *s, word c, int allowdef)
   {
   if (s)
     {
-    int i; MYFONT *f = (MYFONT *)s;
+    MYFONT *f = (MYFONT *)s;
     if (c < f->minchar || c > f->maxchar)
 	{
 	if (allowdef) c = 0;
@@ -164,8 +164,7 @@ static void setglyph( MYFONT *f, FT_Face face, int ch)
   int mode = FT_RENDER_MODE_MONO;
   SF_glyph *res;
   FT_GlyphSlot slot = face->glyph;
-  int i,j, nbypr, pitch;
-  unsigned char *s;
+  int i,j, nbypr;
   FT_Bitmap *bitmap;
 
   if (m_aafonts) mode = FT_RENDER_MODE_NORMAL;
@@ -197,12 +196,12 @@ static void setglyph( MYFONT *f, FT_Face face, int ch)
   res->h = bitmap->rows;
   res->dx = slot->advance.x/64;
   res->xof = slot->bitmap_left;
-  res->yof = slot->bitmap_top - bitmap->rows;
+  res->yof = slot->bitmap_top - bitmap->rows + 1;
 
   f->glyphs[ch] = res;
   }
 
-static SFONT * loadftype( char *fname, int size, int *err)
+static SFONT * loadftype( char *fname, int size, SFONT *like, int *err)
   {
   MYFONT *res;
   FT_Face face;
@@ -219,12 +218,16 @@ static SFONT * loadftype( char *fname, int size, int *err)
   *err = FT_New_Face( library, fname, 0, &face ); /* create face object */
   if (*err){ res->sfont.destroy(&res->sfont); return NULL; }
 
-  *err = FT_Set_Pixel_Sizes( face, size, size);
+  if (like) {
+      SF_glyph *zero = like->getglyph(like, '0', TRUE);
+      *err = FT_Set_Pixel_Sizes( face, zero->dx, like->height(like));
+  } else
+      *err = FT_Set_Pixel_Sizes( face, size, size);
   if (*err){ res->sfont.destroy(&res->sfont); return NULL; }
 
   res->ascent = face->size->metrics.ascender/64;
   res->descent = -face->size->metrics.descender/64;
-  res->height = res->ascent+res->descent; //face->size->metrics.height/64;
+  res->height = face->size->metrics.height/64;
 
   res->sfont.antialiased = m_aafonts;
   res->minchar = 32;
@@ -247,7 +250,7 @@ static SFONT * loadftype( char *fname, int size, int *err)
 #define SYSFONTS "/usr/share/fonts/freetype"
 #endif
 
-SFONT * sf_loadftype( char *fspec, int *err)
+SFONT * sf_loadftype( char *fspec, SFONT *like, int *err)
   {
   char buf[FILENAME_MAX], *fn, *at, *fenv;
   int size = DEFSIZE, fnlen=-1;
@@ -273,15 +276,13 @@ SFONT * sf_loadftype( char *fspec, int *err)
 
   if (!fn) return NULL;
 
-  return loadftype(fn,size,err);
+  return loadftype(fn, size, like, err);
   }
 
 //////////////////////////////////////////
 
-static void initloader() __attribute__((constructor));
-static void initloader()
-  {
+void sf_initloader()
+{
   ttfontloader = sf_loadftype;
   ttfontsdone = libfinish;
-  }
-
+}

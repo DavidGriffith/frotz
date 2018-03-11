@@ -3,6 +3,7 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
+#include <errno.h>
 
 #include "sf_frotz.h"
 #include "../blorb/blorblow.h"
@@ -45,7 +46,7 @@ static int audio_rate, audio_channels;
 		// the higher it is, the more FPS shown and CPU needed
 static int audio_buffers=512;
 static Uint16 audio_format;
-static int volume = SDL_MIX_MAXVOLUME;
+//static int volume = SDL_MIX_MAXVOLUME;
 static int bits;
 
 static void finishaudio()
@@ -66,6 +67,13 @@ static void finishaudio()
 
 static void music_finished(void);
 static void channel_finished(int channel);
+
+/*
+ * This interface is broken.  The function gets called regardless of
+ * whether sound is desired and has no means for indicating whether sound is
+ * available.  See sf_initsound for the real init.
+ */
+void os_init_sound() {}
 
 int sf_initsound()
   {
@@ -183,23 +191,15 @@ static void startmodule()
 static EFFECT *getaiff( FILE *f, size_t pos, int len, int num)
   {
   EFFECT *res;
-  void * data; int size;
 
   res = new_effect(SFX_TYPE,num);
-  if (!res) return res;
-
-  if (sf_aiffwav(f,pos,&data,&size)==0)
-	{
-	res->sam = Mix_LoadWAV_RW(SDL_RWFromMem( data, size),0);
-  	if (data) free(data);
-	}
-
-  if (!res->sam)
-	{
-//printf("Sample_LoadGeneric failure: %s\n",MikMod_strerror(MikMod_errno));
-	res->destroy(res);
-	return NULL;
-	}
+  if (!res) return NULL;
+  if (fseek(f, pos, SEEK_SET)
+      || !(res->sam = Mix_LoadWAV_RW(SDL_RWFromFP(f, false), 1))) {
+      os_warn("Read error on audio data: %s", strerror(errno));
+      res->destroy(res);
+      return NULL;
+  }
 //printf("AIFF loaded\n");
   return res;
   }
@@ -231,9 +231,7 @@ static EFFECT *getmodule( FILE *f, size_t pos, int len, int num)
 	}
   else
 	{
-	FILE *f2 = fdopen(dup(fileno(f)),"rb");
-	fseek(f2,pos,SEEK_SET);
-	res->mod = Mix_LoadMUS_RW(SDL_RWFromFP(f2,1));
+	res->mod = Mix_LoadMUS_RW(SDL_RWFromFP(f, false));
 	}
   if (!res->mod)
 	{
@@ -245,7 +243,7 @@ static EFFECT *getmodule( FILE *f, size_t pos, int len, int num)
   return res;
   }
 
-static EFFECT *geteffect( num)
+static EFFECT *geteffect(int num)
   {
   myresource res;
   EFFECT *result = NULL;
@@ -337,8 +335,10 @@ void os_start_sample(int number, int volume, int repeats, zword eos)
 	// NOTE: geteffect may return an already loaded effect
   e = geteffect(number);
   if (!e) return;
-  if (e->type == SFX_TYPE) stopsample();
-  else stopmodule();
+  if (e->type == SFX_TYPE)
+      stopsample();
+  else
+      stopmodule();
   if (repeats < 1) repeats = 1;
   if (repeats == 255) repeats = -1;
   if (volume < 0) volume = 0;
@@ -391,7 +391,7 @@ void sf_checksound()
 	if (e_sfx->eos)
 		{
 		end_of_sound_flag = 1;
-		end_of_sound(e_sfx->eos);
+		end_of_sound();
 		}
 	}
   if ((e_mod) && (e_mod->ended))
@@ -400,7 +400,7 @@ void sf_checksound()
 	if (e_mod->eos)
 		{
 		end_of_sound_flag = 1;
-		end_of_sound(e_mod->eos);
+		end_of_sound();
 		}
 	}
   }

@@ -5,6 +5,9 @@
  *
  */
 
+#ifndef FROTZ_H_
+#define FROTZ_H_
+
 /* Unfortunately, frotz's bool definition conflicts with that of curses.
    But since no os_* function uses it, it's safe to let the frotz core see
    this definition, but have the unix port see the curses version. */
@@ -750,6 +753,15 @@ void 	branch (bool);
 void	storeb (zword, zbyte);
 void	storew (zword, zword);
 
+void end_of_sound (void);
+
+int completion (const zchar *buffer, zchar *result);
+
+bool is_terminator (zchar);
+void read_string (int max, zchar *buffer);
+bool read_yes_or_no (const char *);
+
+void screen_new_line (void);
 
 	/*** returns the current window ***/
 Zwindow * curwinrec( void);
@@ -791,9 +803,17 @@ void	os_init_setup (void);
 void 	os_warn (const char *, ...);
 void	os_quit (void);
 
+/**
+ * Called regularly by the interpreter, at least every few instructions
+ * (only when interpreting: e.g., not when waiting for input).
+ */
+void    os_tick (void);
+
 /* Front ends call this if the terminal size changes. */
 void    resize_screen(void);
 
 /* This is callable only from resize_screen. */
 bool    os_repaint_window (int win, int ypos_old, int ypos_new, int xpos,
                            int ysize, int xsize);
+
+#endif

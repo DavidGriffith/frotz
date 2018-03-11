@@ -383,8 +383,8 @@ void os_scrollback_erase (int erase)
  */
 void os_restart_game(int stage)
   {
-	// Show Beyond Zork's title screen
-  if ((stage == RESTART_BEGIN) && (story_id == BEYOND_ZORK))
+    // Show Beyond Zork's title screen
+    if ((stage == RESTART_END) && (story_id == BEYOND_ZORK))
 	{
 	int w,h;
 	if (os_picture_data(1,&h,&w))
@@ -442,6 +442,7 @@ void sf_readsettings(void)
   m_fontfiles[5] = sf_GetProfileString("Fonts","fixedbold",NULL);
   m_fontfiles[6] = sf_GetProfileString("Fonts","fixeditalic",NULL);
   m_fontfiles[7] = sf_GetProfileString("Fonts","fixedbolditalic",NULL);
+  m_fontfiles[8] = sf_GetProfileString("Fonts","graphics",NULL);
 
   ResDir = sf_GetProfileString("Resources","Dir",ResDir);
   ResPict = sf_GetProfileString("Resources","Pict",ResPict);
@@ -904,6 +905,7 @@ int sf_getresource( int num, int ispic, int method, myresource * res)
 
   if (ispic) usage = bb_ID_Pict;
   else usage = bb_ID_Snd;
+  //XXX Should use bb_load_resource_{pict,snd} with auxdata?
   st = bb_load_resource(bmap,method,(bb_result_t *)res,usage,num);
   if (st == bb_err_None)
 	{
@@ -1018,21 +1020,22 @@ static FILE * findfromlist( int ispic, int num, int *size)
 
 void os_init_setup(void)
 {
-	f_setup.attribute_assignment = 0;
-	f_setup.attribute_testing = 0;
-	f_setup.context_lines = 0;
-	f_setup.object_locating = 0;
-	f_setup.object_movement = 0;
-	f_setup.left_margin = 0;
-	f_setup.right_margin = 0;
-	f_setup.ignore_errors = 0;
-	f_setup.piracy = 0;             /* enable the piracy opcode */
-	f_setup.undo_slots = MAX_UNDO_SLOTS;
-	f_setup.expand_abbreviations = 0;
-	f_setup.script_cols = 80;
-	f_setup.save_quetzal = 1;
-	f_setup.sound = 1;
-	f_setup.err_report_mode = ERR_DEFAULT_REPORT_MODE;
-	f_setup.restore_mode = 0;
+    sf_setdialog();
+    sf_initloader();
 
+    f_setup.attribute_assignment = 0;
+    f_setup.attribute_testing = 0;
+    f_setup.context_lines = 0;
+    f_setup.object_locating = 0;
+    f_setup.object_movement = 0;
+    f_setup.left_margin = 0;
+    f_setup.right_margin = 0;
+    f_setup.ignore_errors = 0;
+    f_setup.piracy = 0;             /* enable the piracy opcode */
+    f_setup.undo_slots = MAX_UNDO_SLOTS;
+    f_setup.expand_abbreviations = 0;
+    f_setup.script_cols = 80;
+    f_setup.sound = 1;
+    f_setup.err_report_mode = ERR_DEFAULT_REPORT_MODE;
+    f_setup.restore_mode = 0;
 }

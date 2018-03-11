@@ -1,5 +1,7 @@
 frotz
 dfrotz
+sfrotz
+*.d
 *.o
 *.O
 *.OBJ

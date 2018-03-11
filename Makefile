@@ -8,7 +8,7 @@ VERSION = $(MAJOR).$(MINOR)
 # not, make it clear that we're working from a release.
 GIT_DIR ?= .git
 ifneq ($(and $(wildcard $(GIT_DIR)),$(shell which git)),)
-	GIT_BRANCH = $(shell git rev-parse --abbref-ref HEAD)
+	GIT_BRANCH = $(shell git rev-parse --abbrev-ref HEAD)
 	GIT_HASH = $(shell git rev-parse HEAD)
 	GIT_HASH_SHORT = $(shell git rev-parse --short HEAD)
 	GIT_TAG = $(shell git describe --abbrev=0 --tags)

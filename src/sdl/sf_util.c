@@ -831,7 +831,7 @@ char * sf_GetProfileString( const char *sect, const char *id, char * def)
     if (p)
 	{
 	int quoted = 0;
-	while (*p)
+	for (; *p; p++)
 		{
 		if (*p == '\"') { quoted = 1; p++; break;}
 		if ((byte)(*p) > ' ') break;

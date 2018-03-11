@@ -19,6 +19,8 @@ else
 	GIT_TAG = $(VERSION)
 endif
 
+BUILD_DATE_TIME = $(shell date +%Y%m%d.%k%M%S | sed s/\ //g)
+
 export CFLAGS
 
 # Enable compiler warnings. This is an absolute minimum.
@@ -212,6 +214,7 @@ $(SRCDIR)/blorblib.a: $(BLORB_OBJECT)
 $(COMMON_DIR)/defines.h:
 	@echo "Generating $@"
 	@echo "#define VERSION \"$(VERSION)\"" > $@
+	@echo "#define BUILD_DATE_TIME \"$(BUILD_DATE_TIME)\"" >> $@
 
 $(CURSES_DIR)/defines.h:
 	@echo "Generating $@"
@@ -291,4 +294,5 @@ help:
 .PHONY: all clean dist dumb hash help \
 	blorb_lib common_lib curses_lib dumb_lib \
 	install install_dfrotz install_dumb \
-	uninstall uninstall_dfrotz uninstall_dumb $(SUBDIRS) $(SUB_CLEAN)
+	uninstall uninstall_dfrotz uninstall_dumb $(SUBDIRS) $(SUB_CLEAN) \
+	$(COMMON_DIR)/defines.h $(CURSES_DIR)/defines.h

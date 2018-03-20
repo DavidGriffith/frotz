@@ -1,6 +1,9 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
+
+#include <sys/types.h>
+#include <sys/stat.h>
 #include <unistd.h>
 
 #define STATIC static
@@ -547,7 +550,7 @@ STATIC ENTRY * dodir(
 //printf("-%s\n",resdir);
     if (stat(resdir,&fst)) continue;
 //printf("--mode %x\n",fst.st_mode);
-    if (fst.st_mode & S_IFDIR)
+    if (S_ISDIR(fst.st_mode))
 	addentry(p,&dirs);
     else
 	{

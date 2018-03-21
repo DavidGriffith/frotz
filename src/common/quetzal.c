@@ -376,7 +376,9 @@ zword restore_quetzal (FILE *svf, FILE *stf)
 			progress |= GOT_MEMORY;	/* Only if succeeded. */
 		    break;
 	    }
-		/* Fall right thru (to default) if already GOT_MEMORY */
+		/* Already GOT_MEMORY */
+		(void) fseek (svf, currlen, SEEK_CUR);	/* Skip chunk. */
+		break;
 	    /* `UMem' uncompressed memory chunk; load it. */
 	    case ID_UMem:
 		if (!(progress & GOT_MEMORY))	/* Don't complain if two. */
@@ -391,10 +393,12 @@ zword restore_quetzal (FILE *svf, FILE *stf)
 			}
 		    }
 		    else
+		    	/* actually handle the problem outside if statement by skipping chunk. */
 			print_string ("`UMem' chunk wrong size!\n");
-		    /* Fall into default action (skip chunk) on errors. */
 		}
-		/* Fall thru (to default) if already GOT_MEMORY */
+		/* Already GOT_MEMORY */
+		(void) fseek (svf, currlen, SEEK_CUR);	/* Skip chunk. */
+		break;
 	    /* Unrecognised chunk type; skip it. */
 	    default:
 		(void) fseek (svf, currlen, SEEK_CUR);	/* Skip chunk. */

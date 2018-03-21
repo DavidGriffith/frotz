@@ -1091,6 +1091,7 @@ char *strrchr(const char *s, int c)
 	s++;
     }
     return (char *)save;
+}
 #endif	/* NO_STRRCHR */
 
 

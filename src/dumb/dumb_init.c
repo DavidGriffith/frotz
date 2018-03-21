@@ -23,6 +23,8 @@
 #include "dumb_frotz.h"
 #include "dumb_blorb.h"
 
+#include "../common/defines.h"
+
 f_setup_t f_setup;
 
 static char *my_strdup(char *);

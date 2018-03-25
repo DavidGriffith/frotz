@@ -1,6 +1,6 @@
 # For GNU Make.
 
-SDL_PKGS ?= libpng libjpeg sdl SDL_mixer freetype2 zlib
+SDL_PKGS ?= libpng libjpeg sdl2 SDL2_mixer freetype2 zlib
 
 # Dependency generation requires GCC.
 CC = gcc

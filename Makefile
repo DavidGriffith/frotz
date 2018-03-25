@@ -127,7 +127,7 @@ BLORB_LIB = $(BLORB_DIR)/blorblib.a
 
 SDL_DIR = $(SRCDIR)/sdl
 SDL_LIB = $(SDL_DIR)/frotz_sdl.a
-export SDL_PKGS = libpng libjpeg sdl SDL_mixer freetype2 zlib
+export SDL_PKGS = libpng libjpeg sdl2 SDL2_mixer freetype2 zlib
 SDL_LDFLAGS = `pkg-config $(SDL_PKGS) --libs` -lm
 
 

@@ -226,12 +226,12 @@ static EFFECT *getmodule( FILE *f, size_t pos, int len, int num)
 		res->destroy(res);
 		return NULL;
 		}
-	res->mod = Mix_LoadMUS_RW(SDL_RWFromMem( data, size));
+	res->mod = Mix_LoadMUS_RW(SDL_RWFromMem( data, size), true);
 	free(data);
 	}
   else
 	{
-	res->mod = Mix_LoadMUS_RW(SDL_RWFromFP(f, false));
+	res->mod = Mix_LoadMUS_RW(SDL_RWFromFP(f, false), true);
 	}
   if (!res->mod)
 	{

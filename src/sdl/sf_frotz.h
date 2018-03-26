@@ -160,6 +160,12 @@ typedef struct {
 
 SF_textsetting * sf_curtextsetting(void);
 
+/**
+ * Return the advance width of character c.
+ * Store glyph width minus advance width to oh ("overhang").
+ */
+int sf_charwidth( zword c, int *oh);
+
 void sf_writeglyph( SF_glyph *g);
 
 void sf_fillrect( unsigned long color, int x, int y, int w, int h);

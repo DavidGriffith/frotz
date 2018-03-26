@@ -218,7 +218,7 @@ ulong * sf_savearea( int x, int y, int w, int h);
 void sf_restoreareaandfree( ulong *s);
 #define SF_NOTIMP (-9999)
 
-zword sf_read_key( int timeout, int cursor, int allowed);
+zword sf_read_key( int timeout, bool cursor, bool allowed, bool text);
 
 int sf_user_fdialog( bool exist, const char *def, const char *filt, const char *title, char **res);
 extern int (*sf_osdialog)( bool ex, const char *def, const char *filt, const char *tit, char **res,

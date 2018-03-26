@@ -680,7 +680,7 @@ static zword goodzkey( SDL_Event *e, int allowed)
     }
 }
 
-zword sf_read_key( int timeout, int cursor, int allowed)
+zword sf_read_key( int timeout, bool cursor, bool allowed, bool text)
   {
   SDL_Event event;
   zword inch = 0;
@@ -695,24 +695,25 @@ zword sf_read_key( int timeout, int cursor, int allowed)
   if (timeout) mytimeout = sf_ticks() + m_timerinterval*timeout;
 //	InputTimer timer(timeout);
 //	FrotzWnd::Input input;
-  while (true)
-    {
-		// Get the next input
-    while (SDL_PollEvent(&event)) 
-	{
-//if (event.type == SDL_QUIT) printf("got SDL_QUIT\n");
-	if ((inch = goodzkey(&event,allowed))) 
-		break;
-	}
-    if (inch) break;
-    if ((timeout) && (sf_ticks() >= mytimeout))
-	{
-	inch = ZC_TIME_OUT;
-	break;
-	}
-    sf_checksound();
-    sf_sleep(10);
-    }
+  if (text)
+      SDL_StartTextInput();
+  while (true) {
+      // Get the next input
+      while (SDL_PollEvent(&event)) {
+//          if (event.type == SDL_QUIT) printf("got SDL_QUIT\n");
+          if ((inch = goodzkey(&event,allowed)))
+              break;
+      }
+      if (inch) break;
+      if ((timeout) && (sf_ticks() >= mytimeout)) {
+          inch = ZC_TIME_OUT;
+          break;
+      }
+      sf_checksound();
+      sf_sleep(10);
+  }
+  if (text)
+      SDL_StopTextInput();
 
   if (cursor)
 	sf_drawcursor(false);
@@ -730,7 +731,7 @@ zword sf_read_key( int timeout, int cursor, int allowed)
  */
 zchar os_read_key(int timeout, int cursor)
   {
-  return sf_read_key(timeout,cursor,0);
+  return sf_read_key(timeout, cursor, false, true);
   }
 
 
@@ -1036,7 +1037,7 @@ void os_more_prompt(void)
 // 	sf_flushdisplay();
 
 		// Wait for a key press
-	os_read_key(0,1);
+	sf_read_key(0, true, false, false);
 		// Remove the [More] prompt
 	sf_fillrect(ts->back,x,y,ts->cx-x,h);
 // 	sf_drawcursor(false);

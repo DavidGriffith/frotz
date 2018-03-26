@@ -74,7 +74,7 @@ void os_reset_screen(void)
 
 	while (*hit)
 		os_display_char((*hit++));
-	os_read_key(0,1);
+        sf_read_key(0, true, false, false);
 	}
 
   sf_cleanup_all();

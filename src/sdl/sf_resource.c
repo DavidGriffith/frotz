@@ -391,7 +391,7 @@ void os_restart_game(int stage)
 		{
 		sf_fillrect(0,0,0,10000,10000);
 		os_draw_picture(1,1,1);
-		os_read_key(0,0);
+	        sf_read_key(0, false, false, false);
 		}
 	}
   }

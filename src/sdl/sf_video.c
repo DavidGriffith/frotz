@@ -400,12 +400,6 @@ static void cleanvideo()
 #define GM 0x00ff00
 #define BM 0xff0000
 
-static int check( int R, int G, int B){
-  if (R==RM && G==GM && B==BM) return 0;
-  if (R==BM && G==GM && B==RM) return -1;
-  return 1;
-  }
-
 extern char stripped_story_name[];
 
 void sf_initvideo( int W, int H, int full)
@@ -448,13 +442,13 @@ void sf_initvideo( int W, int H, int full)
         os_fatal("Couldn't create %dx%d window: %s",
                  reqW, reqH, SDL_GetError());
     }
-    if (reqW != W || reqH != H) {
+    if (full) {
         SDL_SetHint(SDL_HINT_RENDER_SCALE_QUALITY, "linear");
         if (SDL_RenderSetLogicalSize(renderer, W, H))
             os_fatal("Failed to set logical rendering size to %dx%d: %s",
                      W, H, SDL_GetError());
     }
-    pixfmt = SDL_MasksToPixelFormatEnum(32, 0xff, 0xff00, 0xff0000, 0);
+    pixfmt = SDL_MasksToPixelFormatEnum(32, RM, GM, BM, 0);
     if (!(texture = SDL_CreateTexture(renderer, pixfmt,
                                       SDL_TEXTUREACCESS_STREAMING, W, H)))
         os_fatal("Failed to create texture: %s", SDL_GetError());
@@ -554,7 +548,8 @@ static int numAltQ = 0;
 
 static void set_mouse_xy(int x, int y)
 {
-    //TODO Scale to logical coordinates.
+    /* This is enough even in fullscreen:
+       SDL maps mouse events to logical coordinates. */
     mouse_x = x + 1;
     mouse_y = y + 1;
 }

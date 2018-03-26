@@ -554,57 +554,80 @@ static void set_mouse_xy(int x, int y)
     mouse_y = y + 1;
 }
 
+/**
+ * Return the first character in the UTF-8-encoded str.
+ * Return 0 on encoding error or if the first character > U+FFFF.
+ */
+static zword decode_utf8(char *str)
+{
+    int i, n = 0;
+    zword res;
+    if (!(*str & 0200))
+        return *str;
+    if (!(*str & 0100))
+        return 0;
+    if (!(*str & 040)) {
+        n = 2;
+        res = *str & 037;
+    } else if (!(*str & 020)) {
+        n = 3;
+        res = *str & 017;
+    } else
+        return 0;
+    for (i = 1; i < n; ++i) {
+        if ((str[i] & 0300) != 0200)
+            return 0;
+        res <<= 6;
+        res |= (str[i] & 077);
+    }
+    return res;
+}
+
 static zword goodzkey( SDL_Event *e, int allowed)
-  {
-  SDL_Keycode c;
-  if (e->type == SDL_QUIT)
-	{
-	sf_quitconf();
+{
+    SDL_Keycode c;
+    zword res;
+
+    switch (e->type) {
+    case SDL_QUIT:
+        sf_quitconf();
 // 	if (allowed) return ZC_HKEY_QUIT;
 	return 0;
-	}
-  if (e->type == SDL_MOUSEBUTTONDOWN)
-	{
-//printf("down %d\n",e->button.button);
-	if (true)	//(e->button.button == SDL_BUTTON_LEFT)
-		{
-		mouse_button = e->button.button;
-		set_mouse_xy(e->button.x, e->button.y);
-		return ZC_SINGLE_CLICK;
-		}
-	return 0;
-	}
-  if (e->type != SDL_KEYDOWN) return 0;
-	// emergency exit
-  if (((e->key.keysym.mod & 0xfff) == (KMOD_LALT | KMOD_LCTRL)) && (e->key.keysym.sym == 'x'))
-	os_fatal("Emergency exit!\n\n(Control-Alt-X pressed)");
-  if (((e->key.keysym.mod & KMOD_LALT) == KMOD_LALT) ||
-	((e->key.keysym.mod & KMOD_RALT) == KMOD_RALT))
-	{
-	if (e->key.keysym.sym == 'q')
-		{
-		numAltQ++;
-		if (numAltQ > 2)
-			os_fatal("Emergency exit!\n\n(Alt-Q pressed 3 times in succession)");
-		}
-	else numAltQ = 0;
-	if (!allowed) return 0;
-	switch (e->key.keysym.sym)
-	  {
-	  case 'x': return ZC_HKEY_QUIT;
-	  case 'p': return ZC_HKEY_PLAYBACK;
-	  case 'r': return ZC_HKEY_RECORD;
-	  case 's': return ZC_HKEY_SEED;
-	  case 'u': return ZC_HKEY_UNDO;
-	  case 'n': return ZC_HKEY_RESTART;
-	  case 'd': return ZC_HKEY_DEBUG;
-	  case 'h': return ZC_HKEY_HELP;
-	  default: return 0;
-	  }
-	}
-  else numAltQ = 0;
-  switch (e->key.keysym.sym)
-	{
+    case SDL_MOUSEBUTTONDOWN:
+//        printf("down %d\n",e->button.button);
+	if (true) {	//(e->button.button == SDL_BUTTON_LEFT)
+	    mouse_button = e->button.button;
+	    set_mouse_xy(e->button.x, e->button.y);
+	    return ZC_SINGLE_CLICK;
+	} else
+	    return 0;
+    case SDL_KEYDOWN:
+        if ((e->key.keysym.mod & 0xfff) == (KMOD_LALT | KMOD_LCTRL)
+                && e->key.keysym.sym == 'x')
+            os_fatal("Emergency exit!\n\n(Control-Alt-X pressed)");
+        if (e->key.keysym.mod & (KMOD_LALT | KMOD_RALT)) {
+            if (e->key.keysym.sym == 'q') {
+                numAltQ++;
+                if (numAltQ > 2)
+                    os_fatal("Emergency exit!\n\n"
+                             "(Alt-Q pressed 3 times in succession)");
+            } else
+                numAltQ = 0;
+            if (!allowed) return 0;
+            switch (e->key.keysym.sym) {
+            case 'x': return ZC_HKEY_QUIT;
+            case 'p': return ZC_HKEY_PLAYBACK;
+            case 'r': return ZC_HKEY_RECORD;
+            case 's': return ZC_HKEY_SEED;
+            case 'u': return ZC_HKEY_UNDO;
+            case 'n': return ZC_HKEY_RESTART;
+            case 'd': return ZC_HKEY_DEBUG;
+            case 'h': return ZC_HKEY_HELP;
+            default: return 0;
+            }
+	} else
+	    numAltQ = 0;
+        switch (e->key.keysym.sym) {
 	case SDLK_INSERT:	return (allowed ? VK_INS : 0);
 	case SDLK_BACKSPACE:	return ZC_BACKSPACE;
 	case SDLK_ESCAPE:	return ZC_ESCAPE;
@@ -639,11 +662,23 @@ static zword goodzkey( SDL_Event *e, int allowed)
 	case SDLK_F11:		return ZC_FKEY_MIN+10;
 	case SDLK_F12:		return ZC_FKEY_MIN+11;
 	}
-  c = e->key.keysym.sym;
-  if (c >= 32 && c <= 126)
-      return c;
-  return 0;
-  }
+        //XXX Maybe we should just always have text input on.
+        if (!SDL_IsTextInputActive()) {
+            c = e->key.keysym.sym;
+            if (c >= 32 && c <= 126)
+                return c;
+        }
+        return 0;
+    case SDL_TEXTINPUT:
+        res = decode_utf8(e->text.text);
+        if ((res >= 32 && res <= 126) || res >= 160)
+            return res;
+        else
+            return 0;
+    default:
+        return 0;
+    }
+}
 
 zword sf_read_key( int timeout, int cursor, int allowed)
   {
@@ -777,6 +812,7 @@ zchar os_read_line(int max, zchar *buf, int timeout, int width, int continued)
 
     if (timeout) mytimeout = sf_ticks() + m_timerinterval*timeout;
     //	InputTimer timer(timeout);
+    SDL_StartTextInput();
     while (true) {
         // Get the next input
         while (SDL_PollEvent(&event)) {
@@ -868,18 +904,18 @@ zchar os_read_line(int max, zchar *buf, int timeout, int width, int continued)
                     } else if (c == ZC_RETURN)
                         gen_add_to_history(buf);
                     //                      theWnd->SetLastInput(buf);
+                    SDL_StopTextInput();
                     return c;
                 }
             }
         }
         if ((timeout) && (sf_ticks() >= mytimeout)) {
+            SDL_StopTextInput();
             return ZC_TIME_OUT;
         }
         sf_checksound();
         sf_sleep(10);
     }
-
-    return 0;
 }
 
 // Draw the current input line

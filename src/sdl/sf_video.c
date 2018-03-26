@@ -417,6 +417,9 @@ void sf_initvideo( int W, int H, int full)
     if ( SDL_Init(initflags) < 0 ) {
         os_fatal("Couldn't initialize SDL: %s", SDL_GetError());
     }
+    /* We don't handle text edit events.  Not that I know why anyone would
+       want to use such an IME with Frotz. */
+    SDL_SetHint(SDL_HINT_IME_INTERNAL_EDITING, "1");
 
     CLEANREG(cleanvideo);
 

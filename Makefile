@@ -118,7 +118,7 @@ SRCDIR = src
 
 COMMON_DIR = $(SRCDIR)/common
 COMMON_LIB = $(COMMON_DIR)/frotz_common.a
-COMMON_DEFINES = $(COMMON_DIR)/defines.h
+COMMON_DEFINES = $(COMMON_DIR)/version.c
 HASH = $(COMMON_DIR)/git_hash.h
 
 CURSES_DIR = $(SRCDIR)/curses
@@ -152,19 +152,19 @@ $(SUBDIRS):
 	$(MAKE) -C $@
 
 $(SUB_CLEAN):
-	$(MAKE) -C $(@:%-clean=%) clean
+	-$(MAKE) -C $(@:%-clean=%) clean
 
 
 # Main programs
 
-frotz:  $(COMMON_LIB) $(CURSES_LIB) $(BLORB_LIB)
-	$(CC) $(CFLAGS) $^ -o $@$(EXTENSION) $(CURSES) $(LDFLAGS)
+frotz: $(COMMON_LIB) $(CURSES_LIB) $(BLORB_LIB) $(COMMON_LIB)
+	$(CC) $(CFLAGS) $+ -o $@$(EXTENSION) $(CURSES) $(LDFLAGS)
 
-dfrotz: $(COMMON_LIB) $(DUMB_LIB) $(BLORB_LIB)
-	$(CC) $(CFLAGS) $^ -o $@$(EXTENSION)
+dfrotz: $(COMMON_LIB) $(DUMB_LIB) $(BLORB_LIB) $(COMMON_LIB)
+	$(CC) $(CFLAGS) $+ -o $@$(EXTENSION)
 
-sfrotz: $(COMMON_LIB) $(SDL_LIB) $(BLORB_LIB)
-	$(CC) $(CFLAGS) $^ -o $@$(EXTENSION) $(LDFLAGS) $(SDL_LDFLAGS)
+sfrotz: $(COMMON_LIB) $(SDL_LIB) $(BLORB_LIB) $(COMMON_LIB)
+	$(CC) $(CFLAGS) $+ -o $@$(EXTENSION) $(LDFLAGS) $(SDL_LDFLAGS)
 
 
 # Libs
@@ -177,16 +177,12 @@ sfrotz: $(COMMON_LIB) $(SDL_LIB) $(BLORB_LIB)
 	$(CC) $(CFLAGS) -fPIC -fpic -o $@ -c $<
 
 common_lib:	$(COMMON_LIB)
-$(COMMON_LIB):
 
 curses_lib:	$(CURSES_LIB)
-$(CURSES_LIB):
 
 dumb_lib:	$(DUMB_LIB)
-$(DUMB_LIB):
 
 blorb_lib:	$(BLORB_LIB)
-$(BLORB_LIB):
 
 
 # Defines
@@ -194,10 +190,11 @@ $(BLORB_LIB):
 common_defines:	$(COMMON_DEFINES)
 $(COMMON_DEFINES):
 	@echo "Generating $@"
-	@echo "#define VERSION \"$(VERSION)\"" > $@
-	@echo "#define VERSION_MAJOR \"$(MAJOR)\"" >> $@
-	@echo "#define VERSION_MINOR \"$(MINOR)\"" >> $@
-	@echo "#define BUILD_DATE_TIME \"$(BUILD_DATE_TIME)\"" >> $@
+	@echo "#include \"frotz.h\"" > $@
+	@echo "const char frotz_version[] = \"$(VERSION)\";" >> $@
+	@echo "const char frotz_v_major[] = \"$(MAJOR)\";" >> $@
+	@echo "const char frotz_v_minor[] = \"$(MINOR)\";" >> $@
+	@echo "const char frotz_v_build[] = \"$(BUILD_DATE_TIME)\";" >> $@
 
 curses_defines: $(CURSES_DEFINES)
 $(CURSES_DEFINES):
@@ -258,8 +255,8 @@ frotz-$(GIT_TAG).tar.gz:
 	git archive --format=tar.gz -o "frotz-$(GIT_TAG).tar.gz" "$(GIT_TAG)"
 
 clean: $(SUB_CLEAN)
-	rm -f $(SRCDIR)/*.h $(SRCDIR)/*.a $(COMMON_DIR)/defines.h \
-		$(COMMON_DIR)/git_hash.h $(CURSES_DIR)/defines.h \
+	rm -f $(SRCDIR)/*.h $(SRCDIR)/*.a $(COMMON_DEFINES) \
+		$(COMMON_DIR)/git_hash.h $(CURSES_DEFINES) \
 		$(OBJECTS) frotz*.tar.gz
 
 help:
@@ -281,4 +278,4 @@ help:
 	blorb_lib common_lib curses_lib dumb_lib \
 	install install_dfrotz install_dumb \
 	uninstall uninstall_dfrotz uninstall_dumb $(SUBDIRS) $(SUB_CLEAN) \
-	$(COMMON_DIR)/defines.h $(CURSES_DIR)/defines.h
+	$(COMMON_DIR)/version.c $(CURSES_DIR)/defines.h

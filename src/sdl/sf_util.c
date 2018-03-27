@@ -12,7 +12,6 @@
 #include <io.h>
 #endif
 
-#include "../common/defines.h"
 #include "sf_frotz.h"
 
 f_setup_t f_setup;
@@ -147,7 +146,7 @@ static char *info2 =
 static void usage()
   {
   char **p = infos; int i=0,len=0;
-  printf(info1,VERSION,BUILD_DATE_TIME);
+  printf(info1, frotz_version, frotz_v_build);
   while (*p)
 	{
 	if (i)

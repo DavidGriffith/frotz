@@ -214,6 +214,8 @@ $(SRCDIR)/blorblib.a: $(BLORB_OBJECT)
 $(COMMON_DIR)/defines.h:
 	@echo "Generating $@"
 	@echo "#define VERSION \"$(VERSION)\"" > $@
+	@echo "#define VERSION_MAJOR \"$(MAJOR)\"" >> $@
+	@echo "#define VERSION_MINOR \"$(MINOR)\"" >> $@
 	@echo "#define BUILD_DATE_TIME \"$(BUILD_DATE_TIME)\"" >> $@
 
 $(CURSES_DIR)/defines.h:

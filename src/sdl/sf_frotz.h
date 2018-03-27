@@ -4,10 +4,6 @@
 #include "../common/frotz.h"
 #include "../blorb/blorb.h"
 
-// version info
-#define SFROTZ_MAJOR 0
-#define SFROTZ_MINOR 2
-
 // typedef unsigned char byte;
 // typedef unsigned short word;
 // typedef unsigned long ulong;

@@ -93,7 +93,7 @@ COLOR ?= yes
 # If this matters, you can choose -lcurses or -lncurses
 CURSES ?= -lncurses
 
-# Uncomment this if you're compiling Unix Frotz on a machine that lacks 
+# Uncomment this if you're compiling Unix Frotz on a machine that lacks
 # the strrchr() libc library call.  If you don't know what this means,
 # leave it alone.
 #
@@ -115,6 +115,7 @@ CURSES ?= -lncurses
 SRCDIR = src
 
 COMMON_DIR = $(SRCDIR)/common
+COMMON_DEFINES = $(COMMON_DIR)/defines.h
 COMMON_OBJECT = $(COMMON_DIR)/buffer.o \
 	$(COMMON_DIR)/err.o \
 	$(COMMON_DIR)/fastmem.o \
@@ -136,16 +137,19 @@ COMMON_OBJECT = $(COMMON_DIR)/buffer.o \
 	$(COMMON_DIR)/variable.o
 
 CURSES_DIR = $(SRCDIR)/curses
-CURSES_OBJECT = $(CURSES_DIR)/ux_init.o \
-	$(CURSES_DIR)/ux_input.o \
-	$(CURSES_DIR)/ux_pic.o \
-	$(CURSES_DIR)/ux_screen.o \
-	$(CURSES_DIR)/ux_text.o \
-	$(CURSES_DIR)/ux_blorb.o \
-	$(CURSES_DIR)/ux_audio.o \
-	$(CURSES_DIR)/ux_resource.o \
-	$(CURSES_DIR)/ux_audio_none.o \
-	$(CURSES_DIR)/ux_locks.o
+CURSES_LIB = $(CURSES_DIR)/frotz_curses.a
+CURSES_DEFINES = $(CURSES_DIR)/defines.h
+
+#CURSES_OBJECT = $(CURSES_DIR)/ux_init.o \
+#	$(CURSES_DIR)/ux_input.o \
+#	$(CURSES_DIR)/ux_pic.o \
+#	$(CURSES_DIR)/ux_screen.o \
+#	$(CURSES_DIR)/ux_text.o \
+#	$(CURSES_DIR)/ux_blorb.o \
+#	$(CURSES_DIR)/ux_audio.o \
+#	$(CURSES_DIR)/ux_resource.o \
+#	$(CURSES_DIR)/ux_audio_none.o \
+#	$(CURSES_DIR)/ux_locks.o
 
 DUMB_DIR = $(SRCDIR)/dumb
 DUMB_LIB = $(DUMB_DIR)/frotz_dumb.a
@@ -165,13 +169,14 @@ SDL_LIB = $(SDL_DIR)/frotz_sdl.a
 export SDL_PKGS = libpng libjpeg sdl SDL_mixer freetype2 zlib
 SDL_LDFLAGS = `pkg-config $(SDL_PKGS) --libs`
 
-OBJECTS = $(COMMON_OBJECT) $(CURSES_OBJECT) $(DUMB_OBJECT) $(BLORB_OBJECT)
+OBJECTS = $(COMMON_OBJECT)# $(CURSES_OBJECT)
 
-SUBDIRS = $(SDL_DIR) $(DUMB_DIR) $(BLORB_DIR)
+SUBDIRS = $(CURSES_DIR) $(SDL_DIR) $(DUMB_DIR) $(BLORB_DIR)
 SUB_CLEAN = $(SUBDIRS:%=%-clean)
 
 all: frotz dfrotz sfrotz
 
+$(CURSES_LIB): $(CURSES_DIR);
 $(SDL_LIB): $(SDL_DIR);
 $(DUMB_LIB): $(DUMB_DIR);
 $(BLORB_LIB): $(BLORB_DIR);
@@ -184,8 +189,8 @@ $(SUB_CLEAN):
 
 # Main programs
 
-frotz: $(SRCDIR)/frotz_common.a $(SRCDIR)/frotz_curses.a $(BLORB_LIB)
-	$(CC) $(CFLAGS) $^ -o $@$(EXTENSION) $(CURSES) $(LDFLAGS) $(CURSES_LDFLAGS)
+frotz:  $(CURSES_DEFINES) $(SRCDIR)/frotz_common.a $(CURSES_LIB) $(BLORB_LIB)
+	$(CC) $(CFLAGS) $^ -o $@$(EXTENSION) $(CURSES) $(LDFLAGS)
 
 dfrotz:  $(SRCDIR)/frotz_common.a $(DUMB_LIB) $(BLORB_LIB)
 	$(CC) $(CFLAGS) $^ -o $@$(EXTENSION)
@@ -203,16 +208,19 @@ sfrotz: $(SRCDIR)/frotz_common.a $(SDL_LIB) $(BLORB_LIB)
 	$(CC) $(CFLAGS) -fPIC -fpic -o $@ -c $<
 
 common_lib: $(SRCDIR)/frotz_common.a
-$(SRCDIR)/frotz_common.a: $(COMMON_DIR)/git_hash.h $(COMMON_DIR)/defines.h $(COMMON_OBJECT)
+$(SRCDIR)/frotz_common.a: $(COMMON_DIR)/git_hash.h $(COMMON_DEFINES) $(COMMON_OBJECT)
 
-curses_lib: $(SRCDIR)/frotz_curses.a
-$(SRCDIR)/frotz_curses.a: $(CURSES_DIR)/defines.h $(CURSES_OBJECT)
+curses_lib:	$(CURSES_LIB)
+$(CURSES_LIB):
 
 dumb_lib:	$(DUMB_LIB)
 $(DUMB_LIB):
 
 blorb_lib:	$(BLORB_LIB)
 $(BLORB_LIB):
+
+#curses_lib: $(SRCDIR)/frotz_curses.a
+#$(SRCDIR)/frotz_curses.a: $(CURSES_DIR)/defines.h $(CURSES_OBJECT)
 
 
 #$(SRCDIR)/frotz_dumb.a: $(DUMB_OBJECT)
@@ -223,14 +231,16 @@ $(BLORB_LIB):
 
 # Defines
 
-$(COMMON_DIR)/defines.h:
+common_defines:	$(COMMON_DEFINES)
+$(COMMON_DEFINES):
 	@echo "Generating $@"
 	@echo "#define VERSION \"$(VERSION)\"" > $@
 	@echo "#define VERSION_MAJOR \"$(MAJOR)\"" >> $@
 	@echo "#define VERSION_MINOR \"$(MINOR)\"" >> $@
 	@echo "#define BUILD_DATE_TIME \"$(BUILD_DATE_TIME)\"" >> $@
 
-$(CURSES_DIR)/defines.h:
+curses_defines: $(CURSES_DEFINES)
+$(CURSES_DEFINES):
 	@echo "Generating $@"
 	@echo "#define CONFIG_DIR \"$(SYSCONFDIR)\"" > $@
 	@echo "#define SOUND \"$(SOUND)\"" >> $@
@@ -306,6 +316,7 @@ help:
 .SUFFIXES: .c .o .h
 
 .PHONY: all clean dist dumb hash help \
+	curses_defines \
 	blorb_lib common_lib curses_lib dumb_lib \
 	install install_dfrotz install_dumb \
 	uninstall uninstall_dfrotz uninstall_dumb $(SUBDIRS) $(SUB_CLEAN) \

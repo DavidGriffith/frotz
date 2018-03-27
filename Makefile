@@ -157,7 +157,8 @@ DUMB_LIB = $(DUMB_DIR)/frotz_dumb.a
 #	$(DUMB_DIR)/dumb_blorb.o
 
 BLORB_DIR = $(SRCDIR)/blorb
-BLORB_OBJECT =  $(BLORB_DIR)/blorblib.o
+BLORB_LIB = $(BLORB_DIR)/blorblib.a
+#BLORB_OBJECT =  $(BLORB_DIR)/blorblib.o
 
 SDL_DIR = $(SRCDIR)/sdl
 SDL_LIB = $(SDL_DIR)/frotz_sdl.a
@@ -166,13 +167,14 @@ SDL_LDFLAGS = `pkg-config $(SDL_PKGS) --libs`
 
 OBJECTS = $(COMMON_OBJECT) $(CURSES_OBJECT) $(DUMB_OBJECT) $(BLORB_OBJECT)
 
-SUBDIRS = $(SDL_DIR) $(DUMB_DIR)
+SUBDIRS = $(SDL_DIR) $(DUMB_DIR) $(BLORB_DIR)
 SUB_CLEAN = $(SUBDIRS:%=%-clean)
 
 all: frotz dfrotz sfrotz
 
 $(SDL_LIB): $(SDL_DIR);
 $(DUMB_LIB): $(DUMB_DIR);
+$(BLORB_LIB): $(BLORB_DIR);
 
 $(SUBDIRS):
 	$(MAKE) -C $@
@@ -182,13 +184,13 @@ $(SUB_CLEAN):
 
 # Main programs
 
-frotz: $(SRCDIR)/frotz_common.a $(SRCDIR)/frotz_curses.a $(SRCDIR)/blorblib.a
+frotz: $(SRCDIR)/frotz_common.a $(SRCDIR)/frotz_curses.a $(BLORB_LIB)
 	$(CC) $(CFLAGS) $^ -o $@$(EXTENSION) $(CURSES) $(LDFLAGS) $(CURSES_LDFLAGS)
 
-dfrotz:  $(SRCDIR)/frotz_common.a $(DUMB_LIB) $(SRCDIR)/blorblib.a
+dfrotz:  $(SRCDIR)/frotz_common.a $(DUMB_LIB) $(BLORB_LIB)
 	$(CC) $(CFLAGS) $^ -o $@$(EXTENSION)
 
-sfrotz: $(SRCDIR)/frotz_common.a $(SDL_LIB) $(SRCDIR)/blorblib.a
+sfrotz: $(SRCDIR)/frotz_common.a $(SDL_LIB) $(BLORB_LIB)
 	$(CC) $(CFLAGS) $^ -o $@$(EXTENSION) $(LDFLAGS) $(SDL_LDFLAGS)
 
 # Libs
@@ -209,11 +211,15 @@ $(SRCDIR)/frotz_curses.a: $(CURSES_DIR)/defines.h $(CURSES_OBJECT)
 dumb_lib:	$(DUMB_LIB)
 $(DUMB_LIB):
 
+blorb_lib:	$(BLORB_LIB)
+$(BLORB_LIB):
+
 
 #$(SRCDIR)/frotz_dumb.a: $(DUMB_OBJECT)
 
-blorb_lib:	$(SRCDIR)/blorblib.a
-$(SRCDIR)/blorblib.a: $(BLORB_OBJECT)
+#blorb_lib:	$(SRCDIR)/blorblib.a
+#$(SRCDIR)/blorblib.a: $(BLORB_OBJECT)
+
 
 # Defines
 

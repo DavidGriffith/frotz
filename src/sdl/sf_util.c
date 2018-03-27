@@ -5,6 +5,7 @@
 
 #include <libgen.h>
 
+#include <SDL.h>
 #include <zlib.h>
 
 #ifdef __WIN32__
@@ -420,23 +421,18 @@ void os_process_arguments (int argc, char *argv[])
 #include <sys/time.h>
 #endif
 
-#ifdef WIN32
+void sf_sleep( int msecs)
+{
+  SDL_Delay(msecs);
+}
 
-void sf_sleep( int msecs){
-  Sleep(msecs);
-  }
+#ifdef WIN32
 
 unsigned long sf_ticks( void){
   return (GetTickCount());
   }
 
 #else
-
-//#include <unistd.h>
-
-void sf_sleep( int msecs){
-  usleep(msecs/1000);
-  }
 
 unsigned long sf_ticks (void) {
   struct timeval now;
@@ -831,7 +827,7 @@ char * sf_GetProfileString( const char *sect, const char *id, char * def)
     if (p)
 	{
 	int quoted = 0;
-	while (*p)
+	for (; *p; p++)
 		{
 		if (*p == '\"') { quoted = 1; p++; break;}
 		if ((byte)(*p) > ' ') break;

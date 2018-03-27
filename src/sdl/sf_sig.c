@@ -78,7 +78,7 @@ static void bt_sighandler(int sig, siginfo_t *info,
   void *trace[16];
   char *nam;
   int i, trace_size = 0;
-  ucontext_t *uc = (ucontext_t *)secret;
+//  ucontext_t *uc = (ucontext_t *)secret;
 
   if (sig == SIGINT)
     os_fatal("Emergency exit!\n\n(Signal SIGINT received)");
@@ -87,7 +87,7 @@ static void bt_sighandler(int sig, siginfo_t *info,
 
   printf("\nInterpreter bug!\nSignal %d ", sig);
   if ((nam = getsigname(sig))) printf("[%s] ",nam);
-  printf("from %p", (void *)uc->uc_mcontext.gregs[_PROG_COUNTER]);
+//  printf("from %p", (void *)uc->uc_mcontext.gregs[_PROG_COUNTER]);
 
   if (sig == SIGSEGV)
         printf(" [faulty address is %p]",info->si_addr);
@@ -96,7 +96,7 @@ static void bt_sighandler(int sig, siginfo_t *info,
 
   trace_size = backtrace(trace, 16);
   /* overwrite sigaction with caller's address */
-  trace[1] = (void *) uc->uc_mcontext.gregs[_PROG_COUNTER];
+//  trace[1] = (void *) uc->uc_mcontext.gregs[_PROG_COUNTER];
 
   /* skip first stack frame (points here) */
   printf("Backtrace:\n");

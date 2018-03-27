@@ -45,6 +45,8 @@
 #include "ux_frotz.h"
 #include "ux_blorb.h"
 
+#include "../common/defines.h"
+
 volatile sig_atomic_t terminal_resized = 0;
 
 static void sigwinch_handler(int);

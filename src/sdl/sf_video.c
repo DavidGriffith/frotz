@@ -928,8 +928,8 @@ void sf_DrawInput(zchar * buffer, int pos, int ptx, int pty, int width, bool cur
 
   if (cursor)
 	{
-	int wid=0, i=0;
-	while (i<pos) wid += os_char_width(buffer[i++]);
+	int wid=0, i=0, oh;
+	while (i<pos) wid += sf_charwidth(buffer[i++], &oh);
 	drawthecursor(ptx+wid,pty,1);
 	}
 

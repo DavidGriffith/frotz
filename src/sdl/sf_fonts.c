@@ -439,11 +439,11 @@ int os_check_unicode(int font, zword c)
   return ((current.font->hasglyph(current.font,c,0) != 0) ? 3 : 2);
   }
 
-static int charwidth( zword c, int *oh)
+int sf_charwidth( zword c, int *oh)
   {
   SF_glyph *g; int ww = 0;
-  if (c == ZC_INDENT) return (3*charwidth(' ',oh));
-  if (c == ZC_GAP) return (2*charwidth(' ',oh));
+  if (c == ZC_INDENT) return (3*sf_charwidth(' ',oh));
+  if (c == ZC_GAP) return (2*sf_charwidth(' ',oh));
   *oh = 0;
   g = current.font->getglyph(current.font,c,1);
   if (g)
@@ -464,7 +464,7 @@ static int charwidth( zword c, int *oh)
 int os_char_width(zchar c)
   {
   int w, oh;
-  w = charwidth( c, &oh);
+  w = sf_charwidth( c, &oh);
   return (w+oh);
   }
 
@@ -583,7 +583,7 @@ int os_string_width(const zchar *s)
 		os_set_font(*s++);
 		}
 	else
-		width += charwidth(c,&oh);
+		width += sf_charwidth(c,&oh);
 	}
   sf_poptextsettings();
 

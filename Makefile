@@ -111,6 +111,7 @@ CURSES ?= -lncurses
 # Under normal circumstances, nothing in this section should be changed.
 #########################################################################
 
+
 # Source locations
 
 SRCDIR = src
@@ -120,60 +121,21 @@ COMMON_LIB = $(COMMON_DIR)/frotz_common.a
 COMMON_DEFINES = $(COMMON_DIR)/defines.h
 HASH = $(COMMON_DIR)/git_hash.h
 
-#COMMON_OBJECT = $(COMMON_DIR)/buffer.o \
-#	$(COMMON_DIR)/err.o \
-#	$(COMMON_DIR)/fastmem.o \
-#	$(COMMON_DIR)/files.o \
-#	$(COMMON_DIR)/hotkey.o \
-#	$(COMMON_DIR)/input.o \
-#	$(COMMON_DIR)/main.o \
-#	$(COMMON_DIR)/math.o \
-#	$(COMMON_DIR)/object.o \
-#	$(COMMON_DIR)/process.o \
-#	$(COMMON_DIR)/quetzal.o \
-#	$(COMMON_DIR)/random.o \
-#	$(COMMON_DIR)/redirect.o \
-#	$(COMMON_DIR)/screen.o \
-#	$(COMMON_DIR)/sound.o \
-#	$(COMMON_DIR)/stream.o \
-#	$(COMMON_DIR)/table.o \
-#	$(COMMON_DIR)/text.o \
-#	$(COMMON_DIR)/variable.o
-
 CURSES_DIR = $(SRCDIR)/curses
 CURSES_LIB = $(CURSES_DIR)/frotz_curses.a
 CURSES_DEFINES = $(CURSES_DIR)/defines.h
 
-#CURSES_OBJECT = $(CURSES_DIR)/ux_init.o \
-#	$(CURSES_DIR)/ux_input.o \
-#	$(CURSES_DIR)/ux_pic.o \
-#	$(CURSES_DIR)/ux_screen.o \
-#	$(CURSES_DIR)/ux_text.o \
-#	$(CURSES_DIR)/ux_blorb.o \
-#	$(CURSES_DIR)/ux_audio.o \
-#	$(CURSES_DIR)/ux_resource.o \
-#	$(CURSES_DIR)/ux_audio_none.o \
-#	$(CURSES_DIR)/ux_locks.o
-
 DUMB_DIR = $(SRCDIR)/dumb
 DUMB_LIB = $(DUMB_DIR)/frotz_dumb.a
 
-#DUMB_OBJECT = $(DUMB_DIR)/dumb_init.o \
-#	$(DUMB_DIR)/dumb_input.o \
-#	$(DUMB_DIR)/dumb_output.o \
-#	$(DUMB_DIR)/dumb_pic.o \
-#	$(DUMB_DIR)/dumb_blorb.o
-
 BLORB_DIR = $(SRCDIR)/blorb
 BLORB_LIB = $(BLORB_DIR)/blorblib.a
-#BLORB_OBJECT =  $(BLORB_DIR)/blorblib.o
 
 SDL_DIR = $(SRCDIR)/sdl
 SDL_LIB = $(SDL_DIR)/frotz_sdl.a
 export SDL_PKGS = libpng libjpeg sdl SDL_mixer freetype2 zlib
 SDL_LDFLAGS = `pkg-config $(SDL_PKGS) --libs`
 
-#OBJECTS = $(COMMON_OBJECT)# $(CURSES_OBJECT)
 
 SUBDIRS = $(COMMON_DIR) $(CURSES_DIR) $(SDL_DIR) $(DUMB_DIR) $(BLORB_DIR)
 SUB_CLEAN = $(SUBDIRS:%=%-clean)
@@ -204,6 +166,7 @@ dfrotz: $(COMMON_LIB) $(DUMB_LIB) $(BLORB_LIB)
 sfrotz: $(COMMON_LIB) $(SDL_LIB) $(BLORB_LIB)
 	$(CC) $(CFLAGS) $^ -o $@$(EXTENSION) $(LDFLAGS) $(SDL_LDFLAGS)
 
+
 # Libs
 
 %.a:
@@ -224,19 +187,6 @@ $(DUMB_LIB):
 
 blorb_lib:	$(BLORB_LIB)
 $(BLORB_LIB):
-
-
-#common_lib: $(SRCDIR)/frotz_common.a
-#$(SRCDIR)/frotz_common.a: $(COMMON_DIR)/git_hash.h $(COMMON_DEFINES) $(COMMON_OBJECT)
-
-#curses_lib: $(SRCDIR)/frotz_curses.a
-#$(SRCDIR)/frotz_curses.a: $(CURSES_DIR)/defines.h $(CURSES_OBJECT)
-
-
-#$(SRCDIR)/frotz_dumb.a: $(DUMB_OBJECT)
-
-#blorb_lib:	$(SRCDIR)/blorblib.a
-#$(SRCDIR)/blorblib.a: $(BLORB_OBJECT)
 
 
 # Defines
@@ -281,6 +231,7 @@ $(HASH):
 	@echo "#define GIT_HASH \"$(GIT_HASH)\"" >> $(COMMON_DIR)/git_hash.h
 	@echo "#define GIT_HASH_SHORT \"$(GIT_HASH_SHORT)\"" >> $(COMMON_DIR)/git_hash.h
 	@echo "#define GIT_TAG \"$(GIT_TAG)\"" >> $(COMMON_DIR)/git_hash.h
+
 
 # Administrative stuff
 

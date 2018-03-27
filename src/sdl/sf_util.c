@@ -951,21 +951,6 @@ int sf_pkread( FILE *f, int foffs,  void ** out, int *size)
 #include <unistd.h>
 #endif
 
-static char * getexepath( char *buf){
-#ifdef WIN32
-  buf[0] = 0;
-  GetModuleFileName(NULL,buf,262);
-#else
-  char baf[80];
-  int n;
-  sprintf(baf,"/proc/%d/exe",getpid());
-  n = readlink(baf,buf,262);
-  if (n < 0) n = 0;
-  buf[n] = 0;
-#endif
-  return buf;
-  }
-
 #ifndef WIN32
 #define _stat stat
 #endif

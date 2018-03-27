@@ -2,6 +2,8 @@
 
 SDL_PKGS ?= libpng libjpeg sdl SDL_mixer freetype2 zlib
 
+# Dependency generation requires GCC.
+CC = gcc
 CFLAGS += `pkg-config $(SDL_PKGS) --cflags`
 
 SOURCES = sf_fonts.c sf_msg_en.c sf_resource.c sf_util.c \
@@ -12,9 +14,11 @@ HEADERS = samplerate.h  sf_frotz.h
 
 OBJECTS = $(SOURCES:.c=.o)
 
+DEPS = $(SOURCES:.c=.d)
+
 TARGET = frotz_sdl.a
 
-.PHONY: clean distclean
+.PHONY: clean
 .DELETE_ON_ERROR:
 
 $(TARGET): $(OBJECTS)
@@ -22,7 +26,12 @@ $(TARGET): $(OBJECTS)
 	ranlib $@
 
 clean:
-	rm -f $(TARGET) $(OBJECTS)
+	-rm -f $(TARGET) $(OBJECTS) $(DEPS)
 
 %.o: %.c
-	$(CC) $(CFLAGS) -fPIC -fpic -o $@ -c $<
+%.o: %.c %.d
+	$(CC) -MMD -MF $*.d $(CFLAGS) -c $<
+
+$(DEPS):;
+
+include $(wildcard $(DEPS))

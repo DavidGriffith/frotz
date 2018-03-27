@@ -56,7 +56,7 @@ RANLIB ?= $(shell which ranlib)
 
 # Choose your sound support
 # OPTIONS: ao, none
-SOUND ?= ao
+export SOUND ?= ao
 
 # Default sample rate for sound effects.
 # All modern sound interfaces can be expected to support 44100 Hz sample
@@ -71,14 +71,8 @@ BUFFSIZE ?= 4096
 DEFAULT_CONVERTER ?= SRC_SINC_MEDIUM_QUALITY
 
 ifeq ($(SOUND), ao)
-	LDFLAGS += -lao -ldl -lpthread -lm -lsndfile -lvorbisfile -lmodplug -lsamplerate
-	CFLAGS += -pthread
-else ifeq ($(SOUND), none)
-	CFLAGS += -DNO_SOUND
-else ifndef SOUND
-	CFLAGS += -DNO_SOUND
-else
-	@echo "Invalid sound choice $(SOUND)."
+  CURSES_LDFLAGS = -lao -ldl -lpthread -lm \
+	-lsndfile -lvorbisfile -lmodplug -lsamplerate
 endif
 
 ##########################################################################
@@ -158,7 +152,8 @@ $(SUB_CLEAN):
 # Main programs
 
 frotz: $(COMMON_LIB) $(CURSES_LIB) $(BLORB_LIB) $(COMMON_LIB)
-	$(CC) $(CFLAGS) $+ -o $@$(EXTENSION) $(CURSES) $(LDFLAGS)
+	$(CC) $(CFLAGS) $+ -o $@$(EXTENSION) $(CURSES) $(LDFLAGS) \
+		$(CURSES_LDFLAGS)
 
 dfrotz: $(COMMON_LIB) $(DUMB_LIB) $(BLORB_LIB) $(COMMON_LIB)
 	$(CC) $(CFLAGS) $+ -o $@$(EXTENSION)

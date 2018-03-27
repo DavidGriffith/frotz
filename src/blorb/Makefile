@@ -6,23 +6,19 @@ HEADERS = blorb.h blorblow.h
 
 OBJECTS = $(SOURCES:.c=.o)
 
-DEPS = $(SOURCES:.c=.d)
-
 TARGET = blorblib.a
 
 ARFLAGS = rc
 
 .PHONY: clean
-#.DELETE_ON_ERROR:
+.DELETE_ON_ERROR:
 
 $(TARGET): $(OBJECTS)
 	$(AR) $(ARFLAGS) $@ $?
 	ranlib $@
 
 clean:
-	-rm -f $(TARGET) $(OBJECTS) $(DEPS)
+	rm -f $(TARGET) $(OBJECTS)
 
-%.d: %.c
-	$(CC) -MM $(CFLAGS) $< > $@
-
-include $(DEPS)
+%.o: %.c
+	$(CC) $(CFLAGS) -fPIC -fpic -o $@ -c $<

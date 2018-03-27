@@ -12,8 +12,6 @@ HEADERS = samplerate.h  sf_frotz.h
 
 OBJECTS = $(SOURCES:.c=.o)
 
-DEPS = $(SOURCES:.c=.d)
-
 TARGET = frotz_sdl.a
 
 .PHONY: clean distclean
@@ -24,9 +22,7 @@ $(TARGET): $(OBJECTS)
 	ranlib $@
 
 clean:
-	-rm -f $(TARGET) $(OBJECTS) $(DEPS)
+	rm -f $(TARGET) $(OBJECTS)
 
-%.d: %.c
-	gcc -MM $(CFLAGS) $< > $@
-
-include $(DEPS)
+%.o: %.c
+	$(CC) $(CFLAGS) -fPIC -fpic -o $@ -c $<

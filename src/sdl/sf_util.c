@@ -5,12 +5,14 @@
 
 #include <libgen.h>
 
+#include <SDL.h>
 #include <zlib.h>
 
 #ifdef __WIN32__
 #include <io.h>
 #endif
 
+#include "../common/defines.h"
 #include "sf_frotz.h"
 
 f_setup_t f_setup;
@@ -105,7 +107,7 @@ extern int option_scrollback_buffer;
 
 static char *info1 =
 	"\n"
-	"SDL Frotz V%d.%02d build %s - interpreter for z-code games.\n"
+	"SDL Frotz V%s build %s - interpreter for z-code games.\n"
 	"Complies with Standard 1.0; supports Blorb resources and Quetzal save files.\n"
 	"Based on Frotz 2.40 by Stefan Jokisch and WindowsFrotz2000 by David Kinder.\n"
 	"\n"
@@ -137,17 +139,15 @@ static char *infos[] = {
 	"-Z # error checking (see below)",
 	NULL};
 
-static char *info2 = 
+static char *info2 =
 	"\nError checking: 0 none, 1 first only (default), 2 all, 3 exit after any error.\n"
 	"For more options and explanations, please read the HTML manual.\n";
-
-static char * getbuilddatetime( int tf);
 
 #define WIDCOL 40
 static void usage()
   {
   char **p = infos; int i=0,len=0;
-  printf(info1,SFROTZ_MAJOR,SFROTZ_MINOR,getbuilddatetime(1));
+  printf(info1,VERSION,BUILD_DATE_TIME);
   while (*p)
 	{
 	if (i)
@@ -420,23 +420,18 @@ void os_process_arguments (int argc, char *argv[])
 #include <sys/time.h>
 #endif
 
-#ifdef WIN32
+void sf_sleep( int msecs)
+{
+  SDL_Delay(msecs);
+}
 
-void sf_sleep( int msecs){
-  Sleep(msecs);
-  }
+#ifdef WIN32
 
 unsigned long sf_ticks( void){
   return (GetTickCount());
   }
 
 #else
-
-//#include <unistd.h>
-
-void sf_sleep( int msecs){
-  usleep(msecs/1000);
-  }
 
 unsigned long sf_ticks (void) {
   struct timeval now;
@@ -831,7 +826,7 @@ char * sf_GetProfileString( const char *sect, const char *id, char * def)
     if (p)
 	{
 	int quoted = 0;
-	while (*p)
+	for (; *p; p++)
 		{
 		if (*p == '\"') { quoted = 1; p++; break;}
 		if ((byte)(*p) > ' ') break;
@@ -974,25 +969,4 @@ static char * getexepath( char *buf){
 #ifndef WIN32
 #define _stat stat
 #endif
-
-static char * getbuilddatetime( int tf){
-  time_t t; struct tm *tm;
-  struct _stat sta;
-  static char buf[263];
-
-  getexepath(buf);
-  _stat(buf,&sta);
-  t = sta.st_mtime;
-  tm = localtime(&t);
-  buf[0] = 0;
-  sprintf(buf,"%04d%02d%02d",
-		tm->tm_year + 1900, tm->tm_mon + 1, tm->tm_mday);
-  if (tf){
-    strcat(buf,".");
-    sprintf(buf+strlen(buf),"%02d%02d%02d",
-	tm->tm_hour, tm->tm_min, tm->tm_sec);
-    }
-  return buf;
-  }
-
 

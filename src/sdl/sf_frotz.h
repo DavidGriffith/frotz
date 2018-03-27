@@ -4,10 +4,6 @@
 #include "../common/frotz.h"
 #include "../blorb/blorb.h"
 
-// version info
-#define SFROTZ_MAJOR 0
-#define SFROTZ_MINOR 2
-
 // typedef unsigned char byte;
 // typedef unsigned short word;
 // typedef unsigned long ulong;
@@ -159,6 +155,12 @@ typedef struct {
   } SF_textsetting;
 
 SF_textsetting * sf_curtextsetting(void);
+
+/**
+ * Return the advance width of character c.
+ * Store glyph width minus advance width to oh ("overhang").
+ */
+int sf_charwidth( zword c, int *oh);
 
 void sf_writeglyph( SF_glyph *g);
 

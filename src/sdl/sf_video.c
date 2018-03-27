@@ -9,6 +9,7 @@
 
 #include "generic.h"
 
+#include "../common/defines.h"
 #include "sf_frotz.h"
 
 static SDL_Rect blitrect = {0,0,0,0};
@@ -421,8 +422,8 @@ void sf_initvideo( int W, int H, int full)
   Uint32 initflags = SDL_INIT_VIDEO | SDL_INIT_NOPARACHUTE | SDL_INIT_TIMER |
 	SDL_INIT_AUDIO;
 
-  sprintf(banner,"SDL Frotz v%d.%02d - %s (z%d)",SFROTZ_MAJOR,SFROTZ_MINOR,
-	stripped_story_name,h_version);
+  sprintf(banner,"SDL Frotz v%s - %s (z%d)",VERSION,
+	f_setup.story_name,h_version);
   desired_bpp = 32;
   video_flags = 0;
 
@@ -928,8 +929,8 @@ void sf_DrawInput(zchar * buffer, int pos, int ptx, int pty, int width, bool cur
 
   if (cursor)
 	{
-	int wid=0, i=0;
-	while (i<pos) wid += os_char_width(buffer[i++]);
+	int wid=0, i=0, oh;
+	while (i<pos) wid += sf_charwidth(buffer[i++], &oh);
 	drawthecursor(ptx+wid,pty,1);
 	}
 

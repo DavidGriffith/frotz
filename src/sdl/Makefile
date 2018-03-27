@@ -1,6 +1,6 @@
 # For GNU Make.
 
-SDL_PKGS ?= libpng libjpeg libsdl SDL_mixer freetype2 zlib
+SDL_PKGS ?= libpng libjpeg sdl SDL_mixer freetype2 zlib
 
 CFLAGS += `pkg-config $(SDL_PKGS) --cflags`
 
@@ -24,10 +24,7 @@ $(TARGET): $(OBJECTS)
 	ranlib $@
 
 clean:
-	-rm -f $(TARGET) $(OBJECTS)
-
-distclean: clean
-	-rm -f $(DEPS)
+	-rm -f $(TARGET) $(OBJECTS) $(DEPS)
 
 %.d: %.c
 	gcc -MM $(CFLAGS) $< > $@

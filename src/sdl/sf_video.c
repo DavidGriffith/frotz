@@ -410,8 +410,8 @@ void sf_initvideo( int W, int H, int full)
     Uint32 initflags = SDL_INIT_VIDEO | SDL_INIT_NOPARACHUTE | SDL_INIT_TIMER
             | SDL_INIT_AUDIO;
 
-  sprintf(banner, "SDL Frotz v%s - %s (z%d)",
-          frotz_version, f_setup.story_name, h_version);
+    sprintf(banner, "SDL Frotz v%s - %s (z%d)",
+            frotz_version, f_setup.story_name, h_version);
     video_flags = 0;
 
     if ( SDL_Init(initflags) < 0 ) {

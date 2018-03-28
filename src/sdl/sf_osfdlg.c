@@ -155,7 +155,8 @@ STATIC void writetext( ulong color, const char *s, int x, int y, int w, int cent
   ts->cy = y;
   ts->fore = color;
 //printf("3\n"); fflush(stdout);
-  while (*s) sf_writeglyph(ts->font->getglyph(ts->font,(*s++),1));
+  while (*s)
+      sf_writeglyph(ts->font->getglyph(ts->font, (unsigned char)(*s++), 1));
 //printf("4\n");
   sf_setclip(ox,oy,ow,oh);
 //printf("5\n");

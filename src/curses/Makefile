@@ -11,6 +11,18 @@ TARGET = frotz_curses.a
 
 ARFLAGS = rc
 
+SOUND ?= ao
+
+ifeq ($(SOUND), ao)
+  CFLAGS += -pthread
+else ifeq ($(SOUND), none)
+  CFLAGS += -DNO_SOUND
+else ifndef SOUND
+  CFLAGS += -DNO_SOUND
+else
+  $(error Invalid sound choice $(SOUND))
+endif
+
 .PHONY: clean
 .DELETE_ON_ERROR:
 

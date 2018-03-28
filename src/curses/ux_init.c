@@ -45,8 +45,6 @@
 #include "ux_frotz.h"
 #include "ux_blorb.h"
 
-#include "../common/defines.h"
-
 volatile sig_atomic_t terminal_resized = 0;
 
 static void sigwinch_handler(int);
@@ -298,7 +296,7 @@ void os_process_arguments (int argc, char *argv[])
     } while (c != EOF);
 
     if (zoptind != argc - 1) {
-	printf("FROTZ V%s\t", VERSION);
+	printf("FROTZ V%s\t", frotz_version);
 
 #ifndef NO_SOUND
 	printf("Audio output enabled.");
@@ -1135,7 +1133,7 @@ error:
 
 static void print_version(void)
 {
-    printf("FROTZ V%s\t", VERSION);
+    printf("FROTZ V%s\t", frotz_version);
 #ifndef NO_SOUND
         printf("Audio output enabled.");
 #else
@@ -1144,7 +1142,7 @@ static void print_version(void)
     printf("\nGit commit:\t%s\n", GIT_HASH);
     printf("Git tag:\t%s\n", GIT_TAG);
     printf("Git branch:\t%s\n", GIT_BRANCH);
-    printf("Build:\t\t%s\n", BUILD_DATE_TIME);
+    printf("Build:\t\t%s\n", frotz_v_build);
     printf("  Frotz was originally written by Stefan Jokisch.\n");
     printf("  It complies with standard 1.0 of Graham Nelson's specification.\n");
     printf("  It was ported to Unix by Galen Hazelwood.\n");

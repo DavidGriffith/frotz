@@ -12,7 +12,6 @@
 #include <io.h>
 #endif
 
-#include "../common/defines.h"
 #include "sf_frotz.h"
 
 f_setup_t f_setup;
@@ -147,7 +146,7 @@ static char *info2 =
 static void usage()
   {
   char **p = infos; int i=0,len=0;
-  printf(info1,VERSION,BUILD_DATE_TIME);
+  printf(info1, frotz_version, frotz_v_build);
   while (*p)
 	{
 	if (i)
@@ -950,21 +949,6 @@ int sf_pkread( FILE *f, int foffs,  void ** out, int *size)
 #else
 #include <unistd.h>
 #endif
-
-static char * getexepath( char *buf){
-#ifdef WIN32
-  buf[0] = 0;
-  GetModuleFileName(NULL,buf,262);
-#else
-  char baf[80];
-  int n;
-  sprintf(baf,"/proc/%d/exe",getpid());
-  n = readlink(baf,buf,262);
-  if (n < 0) n = 0;
-  buf[n] = 0;
-#endif
-  return buf;
-  }
 
 #ifndef WIN32
 #define _stat stat

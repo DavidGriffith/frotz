@@ -23,8 +23,6 @@
 #include "dumb_frotz.h"
 #include "dumb_blorb.h"
 
-#include "../common/defines.h"
-
 f_setup_t f_setup;
 
 static char *my_strdup(char *);
@@ -130,7 +128,7 @@ void os_process_arguments(int argc, char *argv[])
     } while (c != EOF);
 
     if (((argc - zoptind) != 1) && ((argc - zoptind) != 2)) {
-	printf("FROTZ V%s\tDumb interface.\n", VERSION);
+	printf("FROTZ V%s\tDumb interface.\n", frotz_version);
 	puts(INFORMATION);
 	printf("\t-Z # error checking mode (default = %d)\n"
 	    "\t     %d = don't report errors   %d = report first error\n"
@@ -302,7 +300,7 @@ char *my_strdup(char *src)
 
 static void print_version(void)
 {
-    printf("FROTZ V%s\t", VERSION);
+    printf("FROTZ V%s\t", frotz_version);
     printf("Dumb interface.\n");
     printf("Git commit:\t%s\n", GIT_HASH);
     printf("Git tag:\t%s\n", GIT_TAG);

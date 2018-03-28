@@ -56,7 +56,7 @@ RANLIB ?= $(shell which ranlib)
 
 # Choose your sound support
 # OPTIONS: ao, none
-SOUND ?= ao
+export SOUND ?= ao
 
 # Default sample rate for sound effects.
 # All modern sound interfaces can be expected to support 44100 Hz sample
@@ -71,14 +71,8 @@ BUFFSIZE ?= 4096
 DEFAULT_CONVERTER ?= SRC_SINC_MEDIUM_QUALITY
 
 ifeq ($(SOUND), ao)
-	LDFLAGS += -lao -ldl -lpthread -lm -lsndfile -lvorbisfile -lmodplug -lsamplerate
-	CFLAGS += -pthread
-else ifeq ($(SOUND), none)
-	CFLAGS += -DNO_SOUND
-else ifndef SOUND
-	CFLAGS += -DNO_SOUND
-else
-	@echo "Invalid sound choice $(SOUND)."
+  CURSES_LDFLAGS = -lao -ldl -lpthread -lm \
+	-lsndfile -lvorbisfile -lmodplug -lsamplerate
 endif
 
 ##########################################################################
@@ -118,7 +112,7 @@ SRCDIR = src
 
 COMMON_DIR = $(SRCDIR)/common
 COMMON_LIB = $(COMMON_DIR)/frotz_common.a
-COMMON_DEFINES = $(COMMON_DIR)/defines.h
+COMMON_DEFINES = $(COMMON_DIR)/version.c
 HASH = $(COMMON_DIR)/git_hash.h
 
 CURSES_DIR = $(SRCDIR)/curses
@@ -134,7 +128,7 @@ BLORB_LIB = $(BLORB_DIR)/blorblib.a
 SDL_DIR = $(SRCDIR)/sdl
 SDL_LIB = $(SDL_DIR)/frotz_sdl.a
 export SDL_PKGS = libpng libjpeg sdl SDL_mixer freetype2 zlib
-SDL_LDFLAGS = `pkg-config $(SDL_PKGS) --libs`
+SDL_LDFLAGS = `pkg-config $(SDL_PKGS) --libs` -lm
 
 
 SUBDIRS = $(COMMON_DIR) $(CURSES_DIR) $(SDL_DIR) $(DUMB_DIR) $(BLORB_DIR)
@@ -152,19 +146,20 @@ $(SUBDIRS):
 	$(MAKE) -C $@
 
 $(SUB_CLEAN):
-	$(MAKE) -C $(@:%-clean=%) clean
+	-$(MAKE) -C $(@:%-clean=%) clean
 
 
 # Main programs
 
-frotz:  $(COMMON_LIB) $(CURSES_LIB) $(BLORB_LIB)
-	$(CC) $(CFLAGS) $^ -o $@$(EXTENSION) $(CURSES) $(LDFLAGS)
+frotz: $(COMMON_LIB) $(CURSES_LIB) $(BLORB_LIB) $(COMMON_LIB)
+	$(CC) $(CFLAGS) $+ -o $@$(EXTENSION) $(CURSES) $(LDFLAGS) \
+		$(CURSES_LDFLAGS)
 
-dfrotz: $(COMMON_LIB) $(DUMB_LIB) $(BLORB_LIB)
-	$(CC) $(CFLAGS) $^ -o $@$(EXTENSION)
+dfrotz: $(COMMON_LIB) $(DUMB_LIB) $(BLORB_LIB) $(COMMON_LIB)
+	$(CC) $(CFLAGS) $+ -o $@$(EXTENSION)
 
-sfrotz: $(COMMON_LIB) $(SDL_LIB) $(BLORB_LIB)
-	$(CC) $(CFLAGS) $^ -o $@$(EXTENSION) $(LDFLAGS) $(SDL_LDFLAGS)
+sfrotz: $(COMMON_LIB) $(SDL_LIB) $(BLORB_LIB) $(COMMON_LIB)
+	$(CC) $(CFLAGS) $+ -o $@$(EXTENSION) $(LDFLAGS) $(SDL_LDFLAGS)
 
 
 # Libs
@@ -177,16 +172,12 @@ sfrotz: $(COMMON_LIB) $(SDL_LIB) $(BLORB_LIB)
 	$(CC) $(CFLAGS) -fPIC -fpic -o $@ -c $<
 
 common_lib:	$(COMMON_LIB)
-$(COMMON_LIB):
 
 curses_lib:	$(CURSES_LIB)
-$(CURSES_LIB):
 
 dumb_lib:	$(DUMB_LIB)
-$(DUMB_LIB):
 
 blorb_lib:	$(BLORB_LIB)
-$(BLORB_LIB):
 
 
 # Defines
@@ -194,10 +185,11 @@ $(BLORB_LIB):
 common_defines:	$(COMMON_DEFINES)
 $(COMMON_DEFINES):
 	@echo "Generating $@"
-	@echo "#define VERSION \"$(VERSION)\"" > $@
-	@echo "#define VERSION_MAJOR \"$(MAJOR)\"" >> $@
-	@echo "#define VERSION_MINOR \"$(MINOR)\"" >> $@
-	@echo "#define BUILD_DATE_TIME \"$(BUILD_DATE_TIME)\"" >> $@
+	@echo "#include \"frotz.h\"" > $@
+	@echo "const char frotz_version[] = \"$(VERSION)\";" >> $@
+	@echo "const char frotz_v_major[] = \"$(MAJOR)\";" >> $@
+	@echo "const char frotz_v_minor[] = \"$(MINOR)\";" >> $@
+	@echo "const char frotz_v_build[] = \"$(BUILD_DATE_TIME)\";" >> $@
 
 curses_defines: $(CURSES_DEFINES)
 $(CURSES_DEFINES):
@@ -258,8 +250,8 @@ frotz-$(GIT_TAG).tar.gz:
 	git archive --format=tar.gz -o "frotz-$(GIT_TAG).tar.gz" "$(GIT_TAG)"
 
 clean: $(SUB_CLEAN)
-	rm -f $(SRCDIR)/*.h $(SRCDIR)/*.a $(COMMON_DIR)/defines.h \
-		$(COMMON_DIR)/git_hash.h $(CURSES_DIR)/defines.h \
+	rm -f $(SRCDIR)/*.h $(SRCDIR)/*.a $(COMMON_DEFINES) \
+		$(COMMON_DIR)/git_hash.h $(CURSES_DEFINES) \
 		$(OBJECTS) frotz*.tar.gz
 
 help:
@@ -281,4 +273,4 @@ help:
 	blorb_lib common_lib curses_lib dumb_lib \
 	install install_dfrotz install_dumb \
 	uninstall uninstall_dfrotz uninstall_dumb $(SUBDIRS) $(SUB_CLEAN) \
-	$(COMMON_DIR)/defines.h $(CURSES_DIR)/defines.h
+	$(COMMON_DIR)/version.c $(CURSES_DIR)/defines.h

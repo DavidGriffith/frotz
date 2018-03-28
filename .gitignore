@@ -11,6 +11,7 @@ sfrotz
 *.EXE
 *.LIB
 *.a
+src/common/version.c
 src/*/defines.h
 src/common/git_hash.h
 *.z?

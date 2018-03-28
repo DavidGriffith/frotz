@@ -233,7 +233,7 @@ void sf_poptextsettings(void);
 
 void sf_chline( int x, int y, ulong c, int n);
 void sf_cvline( int x, int y, ulong c, int n);
-void sf_flushdisplay(void);
+bool sf_flushdisplay(void);
 void sf_getclip( int *x, int *y, int *w, int *h);
 void sf_rect( unsigned long color, int x, int y, int w, int h);
 void sf_setclip( int x, int y, int w, int h);

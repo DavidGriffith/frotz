@@ -405,15 +405,5 @@ void sf_checksound()
 	}
   }
 
-void os_tick()
-  {
-  sf_checksound();
-  if (SFticked)
-	{
-	SFticked = false;
-	sf_flushdisplay();
-	}
-  }
-
 ///////////////////////////////////////
 

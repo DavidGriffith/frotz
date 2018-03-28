@@ -342,11 +342,18 @@ static void scroll( int x, int y, int w, int h, int n)
     }
   }
 
-void sf_flushdisplay()
-  {
-  if (dirty) myGrefresh();
-  dirty = 0;
-  }
+/**
+ * Update the display if contents have changed.
+ * Return whether contents had changed, i.e., display was updated.
+ */
+bool sf_flushdisplay() {
+    if (dirty) {
+        myGrefresh();
+        dirty = 0;
+        return true;
+    } else
+        return false;
+}
 
 /*
  * os_scroll_area
@@ -586,6 +593,14 @@ static zword decode_utf8(char *str)
     return res;
 }
 
+static void handle_window_event(SDL_Event *e)
+{
+    switch (e->window.event) {
+    case SDL_WINDOWEVENT_EXPOSED:
+        SDL_RenderPresent(renderer);
+    }
+}
+
 static zword goodzkey( SDL_Event *e, int allowed)
 {
     SDL_Keycode c;
@@ -678,9 +693,10 @@ static zword goodzkey( SDL_Event *e, int allowed)
             return res;
         else
             return 0;
-    default:
-        return 0;
+    case SDL_WINDOWEVENT:
+        handle_window_event(e);
     }
+    return 0;
 }
 
 zword sf_read_key( int timeout, bool cursor, bool allowed, bool text)
@@ -1136,3 +1152,16 @@ static void sf_quitconf()
 	}
   }
 
+void os_tick() {
+    sf_checksound();
+    if (SFticked) {
+        SFticked = false;
+        if (!sf_flushdisplay()) {
+            SDL_Event ev;
+            SDL_PumpEvents();
+            while (SDL_PeepEvents(&ev, 1, SDL_GETEVENT,
+                                  SDL_WINDOWEVENT, SDL_WINDOWEVENT) > 0)
+                handle_window_event(&ev);
+        }
+    }
+}

@@ -11,17 +11,14 @@
 
 #include "sf_frotz.h"
 
-static SDL_Rect blitrect = {0,0,0,0};
 static char banner[256];
 static int isfullscreen;
 static ulong *sbuffer = NULL;
 static int sbpitch;		// in longs
 static int dirty = 0;
-static int bitsperpixel = 32;
-static int RBswap = 0;
 static int ewidth, eheight;
-static SDL_Surface *screen, *off = NULL;
-static int mustlockscreen = 0;
+static SDL_Renderer *renderer = NULL;
+static SDL_Texture *texture = NULL;
 int m_timerinterval = 100;
 
 static void sf_quitconf();
@@ -53,12 +50,10 @@ static int mywcslen( zchar *b)
   }
 
 static void myGrefresh(){
-  if (off) {
-    if (mustlockscreen) SDL_LockSurface(screen);
-    SDL_BlitSurface(off,NULL,screen,&blitrect);
-    if (mustlockscreen) SDL_UnlockSurface(screen);
-    }
-  SDL_UpdateRect(screen,0,0,0,0);
+    SDL_UpdateTexture(texture, NULL, sbuffer, sbpitch * sizeof(ulong));
+    SDL_RenderClear(renderer);
+    SDL_RenderCopy(renderer, texture, NULL, NULL);
+    SDL_RenderPresent(renderer);
   }
 
 void sf_wpixel( int x, int y, ulong c)
@@ -347,11 +342,18 @@ static void scroll( int x, int y, int w, int h, int n)
     }
   }
 
-void sf_flushdisplay()
-  {
-  if (dirty) myGrefresh();
-  dirty = 0;
-  }
+/**
+ * Update the display if contents have changed.
+ * Return whether contents had changed, i.e., display was updated.
+ */
+bool sf_flushdisplay() {
+    if (dirty) {
+        myGrefresh();
+        dirty = 0;
+        return true;
+    } else
+        return false;
+}
 
 /*
  * os_scroll_area
@@ -405,104 +407,79 @@ static void cleanvideo()
 #define GM 0x00ff00
 #define BM 0xff0000
 
-static int check( int R, int G, int B){
-  if (R==RM && G==GM && B==BM) return 0;
-  if (R==BM && G==GM && B==RM) return -1;
-  return 1;
-  }
-
 extern char stripped_story_name[];
 
 void sf_initvideo( int W, int H, int full)
-  {
-  int desired_bpp, needoff, reqW, reqH;
-  Uint32 video_flags;
-  SDL_PixelFormat *format;
-  Uint32 initflags = SDL_INIT_VIDEO | SDL_INIT_NOPARACHUTE | SDL_INIT_TIMER |
-	SDL_INIT_AUDIO;
+{
+    int reqW, reqH;
+    Uint32 video_flags, pixfmt;
+    SDL_Window *win;
+    Uint32 initflags = SDL_INIT_VIDEO | SDL_INIT_NOPARACHUTE | SDL_INIT_TIMER
+            | SDL_INIT_AUDIO;
 
-  sprintf(banner, "SDL Frotz v%s - %s (z%d)",
-          frotz_version, f_setup.story_name, h_version);
-  desired_bpp = 32;
-  video_flags = 0;
+    sprintf(banner, "SDL Frotz v%s - %s (z%d)",
+            frotz_version, f_setup.story_name, h_version);
+    video_flags = 0;
 
-  if ( SDL_Init(initflags) < 0 ) {
-	os_fatal("Couldn't initialize SDL: %s", SDL_GetError());
-	}
+    if ( SDL_Init(initflags) < 0 ) {
+        os_fatal("Couldn't initialize SDL: %s", SDL_GetError());
+    }
+    /* We don't handle text edit events.  Not that I know why anyone would
+       want to use such an IME with Frotz. */
+    SDL_SetHint(SDL_HINT_IME_INTERNAL_EDITING, "1");
 
-  CLEANREG(cleanvideo);
+    CLEANREG(cleanvideo);
 
-  isfullscreen = full;
-  if (full) video_flags = SDL_FULLSCREEN;
-  reqW = W; reqH = H;
-  if (full)
-	{
-	if (m_reqW == -1)
-		{
-		const SDL_VideoInfo * v = SDL_GetVideoInfo();
-		if (v) { m_reqW = v->current_w; m_reqH = v->current_h;}
-		}
-	if (m_reqW > reqW) reqW = m_reqW;
-	if (m_reqH > reqH) reqH = m_reqH;
-	}
-  screen = SDL_SetVideoMode( reqW, reqH, desired_bpp, video_flags);
-  if ( screen == NULL ) {
-	os_fatal("Couldn't set %dx%dx%d video mode: %s",
-		reqW, reqH, desired_bpp, SDL_GetError());
-	}
-  SDL_WM_SetCaption(banner,NULL);
-  bitsperpixel = 32;
-
-  mustlockscreen = SDL_MUSTLOCK(screen);
-  format = screen->format;
-
-  needoff = (mustlockscreen) || (screen->w != W) || (screen->h != H) ||
-	(format->BitsPerPixel != 24) ||
-	(screen->pitch != 3*W);
-
-  RBswap = 0;
-  if (!needoff) {
-    needoff = check(format->Rmask,format->Gmask,format->Bmask);
-    if ((needoff == -1)){
-	RBswap = 1;
-	needoff = 0;
-	}
+    isfullscreen = full;
+    reqW = W; reqH = H;
+    if (full) {
+        if (m_reqW == -1) {
+            video_flags = SDL_WINDOW_FULLSCREEN_DESKTOP;
+            reqW = reqH = 0;
+        } else {
+            video_flags = SDL_WINDOW_FULLSCREEN;
+	    if (m_reqW > reqW) reqW = m_reqW;
+	    if (m_reqH > reqH) reqH = m_reqH;
+        }
+    }
+    if ((win = SDL_CreateWindow(
+            banner, SDL_WINDOWPOS_UNDEFINED, SDL_WINDOWPOS_UNDEFINED,
+            reqW, reqH, video_flags)))
+        renderer = SDL_CreateRenderer(win, -1, 0);
     else
-	needoff = 1;
+        renderer = NULL;
+    if (renderer == NULL ) {
+        os_fatal("Couldn't create %dx%d window: %s",
+                 reqW, reqH, SDL_GetError());
     }
-// printf("setvideo: gm %dx%d rq %dx%d(f%d) got %dx%d needoff %d\n", W,H,reqW,reqH,full,screen->w,screen->h,needoff);
+    if (full) {
+        SDL_SetHint(SDL_HINT_RENDER_SCALE_QUALITY, "linear");
+        if (SDL_RenderSetLogicalSize(renderer, W, H))
+            os_fatal("Failed to set logical rendering size to %dx%d: %s",
+                     W, H, SDL_GetError());
+    }
+    pixfmt = SDL_MasksToPixelFormatEnum(32, RM, GM, BM, 0);
+    if (!(texture = SDL_CreateTexture(renderer, pixfmt,
+                                      SDL_TEXTUREACCESS_STREAMING, W, H)))
+        os_fatal("Failed to create texture: %s", SDL_GetError());
 
-  if (needoff) {
+//    printf("setvideo: gm %dx%d rq %dx%d(f%d)\n",W,H,reqW,reqH,full);
+
     sbuffer = calloc(W*H,sizeof(ulong));
-    if (!sbuffer){
-	os_fatal("Could not create gc");
-	}
-    off = SDL_CreateRGBSurfaceFrom(sbuffer,
-	W,H,32,4*W,0xff,0xff00,0xff0000,0);
-//     off = SDL_CreateRGBSurfaceFrom(sbuffer,
-// 	W,H,32,4*screen->w,0xff,0xff00,0xff0000,0);
-    if (!off){
-	os_fatal("Could not create offscreen surface");
-	}
-    }
-  else {
-    sbuffer = (ulong *)screen->pixels;
-    }
+    if (!sbuffer)
+        os_fatal("Could not create gc");
 
-  blitrect.w = W; blitrect.h = H;
-  blitrect.x = (screen->w - W)/2;
-  blitrect.y = (screen->h - H)/2;
-  SDL_EnableUNICODE(1);
-  SDL_EnableKeyRepeat(SDL_DEFAULT_REPEAT_DELAY, SDL_DEFAULT_REPEAT_INTERVAL);
+    //  SDL_EnableUNICODE(1);
+    //  SDL_EnableKeyRepeat(SDL_DEFAULT_REPEAT_DELAY, SDL_DEFAULT_REPEAT_INTERVAL);
 
-  SDL_AddTimer(SFdticks,mytimer,NULL);
+    SDL_AddTimer(SFdticks,mytimer,NULL);
 
-  xmin = ymin = 0;
-  xmax = ewidth = W;
-  ymax = eheight = H;
-  sbpitch = W;
-  dirty = 1;
-  }
+    xmin = ymin = 0;
+    xmax = ewidth = W;
+    ymax = eheight = H;
+    sbpitch = W;
+    dirty = 1;
+}
 
 /*
  * os_draw_picture
@@ -579,58 +556,96 @@ static ulong mytimeout;
 int mouse_button;
 static int numAltQ = 0;
 
+static void set_mouse_xy(int x, int y)
+{
+    /* This is enough even in fullscreen:
+       SDL maps mouse events to logical coordinates. */
+    mouse_x = x + 1;
+    mouse_y = y + 1;
+}
+
+/**
+ * Return the first character in the UTF-8-encoded str.
+ * Return 0 on encoding error or if the first character > U+FFFF.
+ */
+static zword decode_utf8(char *str)
+{
+    int i, n = 0;
+    zword res;
+    if (!(*str & 0200))
+        return *str;
+    if (!(*str & 0100))
+        return 0;
+    if (!(*str & 040)) {
+        n = 2;
+        res = *str & 037;
+    } else if (!(*str & 020)) {
+        n = 3;
+        res = *str & 017;
+    } else
+        return 0;
+    for (i = 1; i < n; ++i) {
+        if ((str[i] & 0300) != 0200)
+            return 0;
+        res <<= 6;
+        res |= (str[i] & 077);
+    }
+    return res;
+}
+
+static void handle_window_event(SDL_Event *e)
+{
+    switch (e->window.event) {
+    case SDL_WINDOWEVENT_EXPOSED:
+        SDL_RenderPresent(renderer);
+    }
+}
+
 static zword goodzkey( SDL_Event *e, int allowed)
-  {
-  zword c;
-  if (e->type == SDL_QUIT)
-	{
-	sf_quitconf();
+{
+    SDL_Keycode c;
+    zword res;
+
+    switch (e->type) {
+    case SDL_QUIT:
+        sf_quitconf();
 // 	if (allowed) return ZC_HKEY_QUIT;
 	return 0;
-	}
-  if (e->type == SDL_MOUSEBUTTONDOWN)
-	{
-//printf("down %d\n",e->button.button);
-	if (true)	//(e->button.button == SDL_BUTTON_LEFT)
-		{
-		mouse_button = e->button.button;
-		mouse_x = e->button.x+1-blitrect.x;
-		mouse_y = e->button.y+1-blitrect.y;
-		return ZC_SINGLE_CLICK;
-		}
-	return 0;
-	}
-  if (e->type != SDL_KEYDOWN) return 0;
-	// emergency exit
-  if (((e->key.keysym.mod & 0xfff) == (KMOD_LALT | KMOD_LCTRL)) && (e->key.keysym.sym == 'x'))
-	os_fatal("Emergency exit!\n\n(Control-Alt-X pressed)");
-  if (((e->key.keysym.mod & KMOD_LALT) == KMOD_LALT) ||
-	((e->key.keysym.mod & KMOD_RALT) == KMOD_RALT))
-	{
-	if (e->key.keysym.sym == 'q')
-		{
-		numAltQ++;
-		if (numAltQ > 2)
-			os_fatal("Emergency exit!\n\n(Alt-Q pressed 3 times in succession)");
-		}
-	else numAltQ = 0;
-	if (!allowed) return 0;
-	switch (e->key.keysym.sym)
-	  {
-	  case 'x': return ZC_HKEY_QUIT;
-	  case 'p': return ZC_HKEY_PLAYBACK;
-	  case 'r': return ZC_HKEY_RECORD;
-	  case 's': return ZC_HKEY_SEED;
-	  case 'u': return ZC_HKEY_UNDO;
-	  case 'n': return ZC_HKEY_RESTART;
-	  case 'd': return ZC_HKEY_DEBUG;
-	  case 'h': return ZC_HKEY_HELP;
-	  default: return 0;
-	  }
-	}
-  else numAltQ = 0;
-  switch (e->key.keysym.sym)
-	{
+    case SDL_MOUSEBUTTONDOWN:
+//        printf("down %d\n",e->button.button);
+	if (true) {	//(e->button.button == SDL_BUTTON_LEFT)
+	    mouse_button = e->button.button;
+	    set_mouse_xy(e->button.x, e->button.y);
+	    return ZC_SINGLE_CLICK;
+	} else
+	    return 0;
+    case SDL_KEYDOWN:
+        if ((e->key.keysym.mod & 0xfff) == (KMOD_LALT | KMOD_LCTRL)
+                && e->key.keysym.sym == 'x')
+            os_fatal("Emergency exit!\n\n(Control-Alt-X pressed)");
+        if (e->key.keysym.mod & (KMOD_LALT | KMOD_RALT)) {
+            if (e->key.keysym.sym == 'q') {
+                numAltQ++;
+                if (numAltQ > 2)
+                    os_fatal("Emergency exit!\n\n"
+                             "(Alt-Q pressed 3 times in succession)");
+            } else
+                numAltQ = 0;
+            if (!allowed) return 0;
+            switch (e->key.keysym.sym) {
+            case 'x': return ZC_HKEY_QUIT;
+            case 'p': return ZC_HKEY_PLAYBACK;
+            case 'r': return ZC_HKEY_RECORD;
+            case 's': return ZC_HKEY_SEED;
+            case 'u': return ZC_HKEY_UNDO;
+            case 'n': return ZC_HKEY_RESTART;
+            case 'd': return ZC_HKEY_DEBUG;
+            case 'h': return ZC_HKEY_HELP;
+            default: return 0;
+            }
+	} else
+	    numAltQ = 0;
+        switch (e->key.keysym.sym) {
 	case SDLK_INSERT:	return (allowed ? VK_INS : 0);
 	case SDLK_BACKSPACE:	return ZC_BACKSPACE;
 	case SDLK_ESCAPE:	return ZC_ESCAPE;
@@ -642,16 +657,16 @@ static zword goodzkey( SDL_Event *e, int allowed)
 	case SDLK_TAB:		return (allowed ? VK_TAB : 0);
 	case SDLK_PAGEUP:       return (allowed ? VK_PAGE_UP : 0);
 	case SDLK_PAGEDOWN:     return (allowed ? VK_PAGE_DOWN : 0);
-	case SDLK_KP0:		return ZC_NUMPAD_MIN+0;
-	case SDLK_KP1:		return ZC_NUMPAD_MIN+1;
-	case SDLK_KP2:		return ZC_NUMPAD_MIN+2;
-	case SDLK_KP3:		return ZC_NUMPAD_MIN+3;
-	case SDLK_KP4:		return ZC_NUMPAD_MIN+4;
-	case SDLK_KP5:		return ZC_NUMPAD_MIN+5;
-	case SDLK_KP6:		return ZC_NUMPAD_MIN+6;
-	case SDLK_KP7:		return ZC_NUMPAD_MIN+7;
-	case SDLK_KP8:		return ZC_NUMPAD_MIN+8;
-	case SDLK_KP9:		return ZC_NUMPAD_MIN+9;
+	case SDLK_KP_0:		return ZC_NUMPAD_MIN+0;
+	case SDLK_KP_1:		return ZC_NUMPAD_MIN+1;
+	case SDLK_KP_2:		return ZC_NUMPAD_MIN+2;
+	case SDLK_KP_3:		return ZC_NUMPAD_MIN+3;
+	case SDLK_KP_4:		return ZC_NUMPAD_MIN+4;
+	case SDLK_KP_5:		return ZC_NUMPAD_MIN+5;
+	case SDLK_KP_6:		return ZC_NUMPAD_MIN+6;
+	case SDLK_KP_7:		return ZC_NUMPAD_MIN+7;
+	case SDLK_KP_8:		return ZC_NUMPAD_MIN+8;
+	case SDLK_KP_9:		return ZC_NUMPAD_MIN+9;
 	case SDLK_F1:		return ZC_FKEY_MIN+0;
 	case SDLK_F2:		return ZC_FKEY_MIN+1;
 	case SDLK_F3:		return ZC_FKEY_MIN+2;
@@ -664,14 +679,27 @@ static zword goodzkey( SDL_Event *e, int allowed)
 	case SDLK_F10:		return ZC_FKEY_MIN+9;
 	case SDLK_F11:		return ZC_FKEY_MIN+10;
 	case SDLK_F12:		return ZC_FKEY_MIN+11;
-	default: break;
 	}
-  c = e->key.keysym.unicode;
-  if ((c >= 32 && c <= 126) || (c >= 160)) return c;
-  return 0;
-  }
+        //XXX Maybe we should just always have text input on.
+        if (!SDL_IsTextInputActive()) {
+            c = e->key.keysym.sym;
+            if (c >= 32 && c <= 126)
+                return c;
+        }
+        return 0;
+    case SDL_TEXTINPUT:
+        res = decode_utf8(e->text.text);
+        if ((res >= 32 && res <= 126) || res >= 160)
+            return res;
+        else
+            return 0;
+    case SDL_WINDOWEVENT:
+        handle_window_event(e);
+    }
+    return 0;
+}
 
-zword sf_read_key( int timeout, int cursor, int allowed)
+zword sf_read_key( int timeout, bool cursor, bool allowed, bool text)
   {
   SDL_Event event;
   zword inch = 0;
@@ -686,24 +714,25 @@ zword sf_read_key( int timeout, int cursor, int allowed)
   if (timeout) mytimeout = sf_ticks() + m_timerinterval*timeout;
 //	InputTimer timer(timeout);
 //	FrotzWnd::Input input;
-  while (true)
-    {
-		// Get the next input
-    while (SDL_PollEvent(&event)) 
-	{
-//if (event.type == SDL_QUIT) printf("got SDL_QUIT\n");
-	if ((inch = goodzkey(&event,allowed))) 
-		break;
-	}
-    if (inch) break;
-    if ((timeout) && (sf_ticks() >= mytimeout))
-	{
-	inch = ZC_TIME_OUT;
-	break;
-	}
-    sf_checksound();
-    sf_sleep(10);
-    }
+  if (text)
+      SDL_StartTextInput();
+  while (true) {
+      // Get the next input
+      while (SDL_PollEvent(&event)) {
+//          if (event.type == SDL_QUIT) printf("got SDL_QUIT\n");
+          if ((inch = goodzkey(&event,allowed)))
+              break;
+      }
+      if (inch) break;
+      if ((timeout) && (sf_ticks() >= mytimeout)) {
+          inch = ZC_TIME_OUT;
+          break;
+      }
+      sf_checksound();
+      sf_sleep(10);
+  }
+  if (text)
+      SDL_StopTextInput();
 
   if (cursor)
 	sf_drawcursor(false);
@@ -721,7 +750,7 @@ zword sf_read_key( int timeout, int cursor, int allowed)
  */
 zchar os_read_key(int timeout, int cursor)
   {
-  return sf_read_key(timeout,cursor,0);
+  return sf_read_key(timeout, cursor, false, true);
   }
 
 
@@ -803,6 +832,7 @@ zchar os_read_line(int max, zchar *buf, int timeout, int width, int continued)
 
     if (timeout) mytimeout = sf_ticks() + m_timerinterval*timeout;
     //	InputTimer timer(timeout);
+    SDL_StartTextInput();
     while (true) {
         // Get the next input
         while (SDL_PollEvent(&event)) {
@@ -894,18 +924,18 @@ zchar os_read_line(int max, zchar *buf, int timeout, int width, int continued)
                     } else if (c == ZC_RETURN)
                         gen_add_to_history(buf);
                     //                      theWnd->SetLastInput(buf);
+                    SDL_StopTextInput();
                     return c;
                 }
             }
         }
         if ((timeout) && (sf_ticks() >= mytimeout)) {
+            SDL_StopTextInput();
             return ZC_TIME_OUT;
         }
         sf_checksound();
         sf_sleep(10);
     }
-
-    return 0;
 }
 
 // Draw the current input line
@@ -983,8 +1013,7 @@ zword os_read_mouse(void)
 	// Get the mouse position
   SDL_PumpEvents();
   c = SDL_GetMouseState(&x,&y);
-  mouse_x = x+1-blitrect.x;
-  mouse_y = y+1-blitrect.y;
+  set_mouse_xy(x, y);
 	// Get the last selected menu item
 //	menu_selected = theWnd->GetMenuClick();
 //printf("%04x\n",c);
@@ -1027,7 +1056,7 @@ void os_more_prompt(void)
 // 	sf_flushdisplay();
 
 		// Wait for a key press
-	os_read_key(0,1);
+	sf_read_key(0, true, false, false);
 		// Remove the [More] prompt
 	sf_fillrect(ts->back,x,y,ts->cx-x,h);
 // 	sf_drawcursor(false);
@@ -1123,11 +1152,16 @@ static void sf_quitconf()
 	}
   }
 
-void os_check_events(void)
-  {
-  SDL_Event event;
-  SDL_PumpEvents();
-  if (SDL_PeepEvents(&event,1,SDL_GETEVENT,SDL_QUITMASK))
-	sf_quitconf();
-  }
-
+void os_tick() {
+    sf_checksound();
+    if (SFticked) {
+        SFticked = false;
+        if (!sf_flushdisplay()) {
+            SDL_Event ev;
+            SDL_PumpEvents();
+            while (SDL_PeepEvents(&ev, 1, SDL_GETEVENT,
+                                  SDL_WINDOWEVENT, SDL_WINDOWEVENT) > 0)
+                handle_window_event(&ev);
+        }
+    }
+}

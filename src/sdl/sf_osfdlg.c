@@ -155,7 +155,8 @@ STATIC void writetext( ulong color, const char *s, int x, int y, int w, int cent
   ts->cy = y;
   ts->fore = color;
 //printf("3\n"); fflush(stdout);
-  while (*s) sf_writeglyph(ts->font->getglyph(ts->font,(*s++),1));
+  while (*s)
+      sf_writeglyph(ts->font->getglyph(ts->font, (unsigned char)(*s++), 1));
 //printf("4\n");
   sf_setclip(ox,oy,ow,oh);
 //printf("5\n");
@@ -234,9 +235,9 @@ STATIC zword Zselect( int x, int y);
 STATIC zword yesnoover( int xc, int yc);
 STATIC zword Zentry( int x, int y);
 
-STATIC zword inputkey()
+STATIC zword inputkey(bool text)
   {
-  zword c = sf_read_key(0,0,1);
+  zword c = sf_read_key(0, false, true, text);
   if (c == ZC_SINGLE_CLICK)
     {
     switch (mouse_button)
@@ -356,7 +357,7 @@ STATIC int myosdialog( bool existing, const char *def, const char *filt, const c
   for (;;)
     {
     if (pushed) { c = pushed; pushed = 0;}
-    else c = inputkey();
+    else c = inputkey(false);
     if (c == ZC_SINGLE_CLICK) c = checkmouse(0);
     if (c == VK_INS) c = Zentry(0,-1);
     if (c == ZC_ARROW_LEFT) goleft();
@@ -812,7 +813,7 @@ zword sf_yesnooverlay( int xc, int yc, char *t, int saverest)
   addbutton(xc+SPC,yc+SPC,BUTTW,HTEXT,"No",Zcanc);
   for (;;)
     {
-    c = inputkey();
+    c = inputkey(false);
     if (c == 'n' || c == 'N') c = ZC_ESCAPE;
     if (c == 'y' || c == 'Y') c = ZC_RETURN;
     if (c == ZC_SINGLE_CLICK) c = checkmouse(nsav);
@@ -865,7 +866,7 @@ STATIC zword Zentry( int x, int y)
   showfilename(pos);
   for (;;)
     {
-    c = inputkey();
+    c = inputkey(true);
     if (c == ZC_SINGLE_CLICK)
 	{
 	pushed = c;

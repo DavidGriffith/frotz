@@ -219,10 +219,10 @@ endif
 hash: $(HASH)
 $(HASH):
 	@echo "Creating $@"
-	@echo "#define GIT_BRANCH \"$(GIT_BRANCH)\"" > $(COMMON_DIR)/git_hash.h
-	@echo "#define GIT_HASH \"$(GIT_HASH)\"" >> $(COMMON_DIR)/git_hash.h
-	@echo "#define GIT_HASH_SHORT \"$(GIT_HASH_SHORT)\"" >> $(COMMON_DIR)/git_hash.h
-	@echo "#define GIT_TAG \"$(GIT_TAG)\"" >> $(COMMON_DIR)/git_hash.h
+	@echo "#define GIT_BRANCH \"$(GIT_BRANCH)\"" > $@
+	@echo "#define GIT_HASH \"$(GIT_HASH)\"" >> $@
+	@echo "#define GIT_HASH_SHORT \"$(GIT_HASH_SHORT)\"" >> $@
+	@echo "#define GIT_TAG \"$(GIT_TAG)\"" >> $@
 
 
 # Administrative stuff

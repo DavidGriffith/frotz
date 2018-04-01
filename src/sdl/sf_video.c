@@ -17,6 +17,7 @@ static ulong *sbuffer = NULL;
 static int sbpitch;		// in longs
 static int dirty = 0;
 static int ewidth, eheight;
+static SDL_Window *window = NULL;
 static SDL_Renderer *renderer = NULL;
 static SDL_Texture *texture = NULL;
 int m_timerinterval = 100;
@@ -49,12 +50,12 @@ static int mywcslen( zchar *b)
   return n;
   }
 
-static void myGrefresh(){
+static void myGrefresh() {
     SDL_UpdateTexture(texture, NULL, sbuffer, sbpitch * sizeof(ulong));
     SDL_RenderClear(renderer);
     SDL_RenderCopy(renderer, texture, NULL, NULL);
     SDL_RenderPresent(renderer);
-  }
+}
 
 void sf_wpixel( int x, int y, ulong c)
   {
@@ -409,17 +410,27 @@ static void cleanvideo()
 
 extern char stripped_story_name[];
 
+static void sf_toggle_fullscreen()
+{
+    if (SDL_SetWindowFullscreen(
+            window, isfullscreen ? 0 : SDL_WINDOW_FULLSCREEN_DESKTOP))
+        os_warn("Error switching %s fullscreen: %s",
+                isfullscreen ? "off" : "to", SDL_GetError());
+    else {
+        isfullscreen = !isfullscreen;
+        if (!isfullscreen)
+            SDL_SetWindowSize(window, AcWidth, AcHeight);
+        myGrefresh();
+    }
+}
+
 void sf_initvideo( int W, int H, int full)
 {
-    int reqW, reqH;
-    Uint32 video_flags, pixfmt;
-    SDL_Window *win;
-    Uint32 initflags = SDL_INIT_VIDEO | SDL_INIT_NOPARACHUTE | SDL_INIT_TIMER
-            | SDL_INIT_AUDIO;
+    Uint32 video_flags = 0, pixfmt;
+    Uint32 initflags = SDL_INIT_VIDEO | SDL_INIT_TIMER | SDL_INIT_AUDIO;
 
     sprintf(banner, "SDL Frotz v%s - %s (z%d)",
             frotz_version, f_setup.story_name, h_version);
-    video_flags = 0;
 
     if ( SDL_Init(initflags) < 0 ) {
         os_fatal("Couldn't initialize SDL: %s", SDL_GetError());
@@ -431,33 +442,22 @@ void sf_initvideo( int W, int H, int full)
     CLEANREG(cleanvideo);
 
     isfullscreen = full;
-    reqW = W; reqH = H;
-    if (full) {
-        if (m_reqW == -1) {
-            video_flags = SDL_WINDOW_FULLSCREEN_DESKTOP;
-            reqW = reqH = 0;
-        } else {
-            video_flags = SDL_WINDOW_FULLSCREEN;
-	    if (m_reqW > reqW) reqW = m_reqW;
-	    if (m_reqH > reqH) reqH = m_reqH;
-        }
-    }
-    if ((win = SDL_CreateWindow(
+    if (full)
+        video_flags = SDL_WINDOW_FULLSCREEN_DESKTOP;
+    if ((window = SDL_CreateWindow(
             banner, SDL_WINDOWPOS_UNDEFINED, SDL_WINDOWPOS_UNDEFINED,
-            reqW, reqH, video_flags)))
-        renderer = SDL_CreateRenderer(win, -1, 0);
+            W, H, video_flags)))
+        renderer = SDL_CreateRenderer(window, -1, 0);
     else
         renderer = NULL;
     if (renderer == NULL ) {
         os_fatal("Couldn't create %dx%d window: %s",
-                 reqW, reqH, SDL_GetError());
+                 W, H, SDL_GetError());
     }
-    if (full) {
-        SDL_SetHint(SDL_HINT_RENDER_SCALE_QUALITY, "linear");
-        if (SDL_RenderSetLogicalSize(renderer, W, H))
-            os_fatal("Failed to set logical rendering size to %dx%d: %s",
-                     W, H, SDL_GetError());
-    }
+    SDL_SetHint(SDL_HINT_RENDER_SCALE_QUALITY, "linear");
+    if (SDL_RenderSetLogicalSize(renderer, W, H))
+        os_fatal("Failed to set logical rendering size to %dx%d: %s",
+                 W, H, SDL_GetError());
     pixfmt = SDL_MasksToPixelFormatEnum(32, RM, GM, BM, 0);
     if (!(texture = SDL_CreateTexture(renderer, pixfmt,
                                       SDL_TEXTUREACCESS_STREAMING, W, H)))
@@ -629,20 +629,25 @@ static zword goodzkey( SDL_Event *e, int allowed)
                 if (numAltQ > 2)
                     os_fatal("Emergency exit!\n\n"
                              "(Alt-Q pressed 3 times in succession)");
+                return 0;
             } else
                 numAltQ = 0;
-            if (!allowed) return 0;
-            switch (e->key.keysym.sym) {
-            case 'x': return ZC_HKEY_QUIT;
-            case 'p': return ZC_HKEY_PLAYBACK;
-            case 'r': return ZC_HKEY_RECORD;
-            case 's': return ZC_HKEY_SEED;
-            case 'u': return ZC_HKEY_UNDO;
-            case 'n': return ZC_HKEY_RESTART;
-            case 'd': return ZC_HKEY_DEBUG;
-            case 'h': return ZC_HKEY_HELP;
-            default: return 0;
+            if (e->key.keysym.sym == SDLK_RETURN) {
+                sf_toggle_fullscreen();
+                return 0;
             }
+            if (allowed)
+                switch (e->key.keysym.sym) {
+                case 'x': return ZC_HKEY_QUIT;
+                case 'p': return ZC_HKEY_PLAYBACK;
+                case 'r': return ZC_HKEY_RECORD;
+                case 's': return ZC_HKEY_SEED;
+                case 'u': return ZC_HKEY_UNDO;
+                case 'n': return ZC_HKEY_RESTART;
+                case 'd': return ZC_HKEY_DEBUG;
+                case 'h': return ZC_HKEY_HELP;
+                }
+            return 0;
 	} else
 	    numAltQ = 0;
         switch (e->key.keysym.sym) {

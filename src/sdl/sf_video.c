@@ -51,7 +51,6 @@ static int mywcslen( zchar *b)
   }
 
 static void myGrefresh() {
-    SDL_UpdateTexture(texture, NULL, sbuffer, sbpitch * sizeof(ulong));
     SDL_RenderClear(renderer);
     SDL_RenderCopy(renderer, texture, NULL, NULL);
     SDL_RenderPresent(renderer);
@@ -349,6 +348,7 @@ static void scroll( int x, int y, int w, int h, int n)
  */
 bool sf_flushdisplay() {
     if (dirty) {
+        SDL_UpdateTexture(texture, NULL, sbuffer, sbpitch * sizeof(ulong));
         myGrefresh();
         dirty = 0;
         return true;
@@ -597,7 +597,7 @@ static void handle_window_event(SDL_Event *e)
 {
     switch (e->window.event) {
     case SDL_WINDOWEVENT_EXPOSED:
-        SDL_RenderPresent(renderer);
+        myGrefresh();
     }
 }
 

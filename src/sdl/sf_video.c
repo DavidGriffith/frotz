@@ -652,6 +652,7 @@ static zword goodzkey( SDL_Event *e, int allowed)
 	    numAltQ = 0;
         switch (e->key.keysym.sym) {
 	case SDLK_INSERT:	return (allowed ? VK_INS : 0);
+	case SDLK_DELETE:       return (allowed ? VK_DEL : 0);
 	case SDLK_BACKSPACE:	return ZC_BACKSPACE;
 	case SDLK_ESCAPE:	return ZC_ESCAPE;
 	case SDLK_RETURN:	return ZC_RETURN;
@@ -848,8 +849,17 @@ zchar os_read_line(int max, zchar *buf, int timeout, int width, int continued)
                 case ZC_BACKSPACE:
                     // Delete the character to the left of the cursor
                     if (pos > 0) {
-                        memmove(buf+pos-1,buf+pos,sizeof(zword)*(mywcslen(buf)-pos+1));
+                        memmove(buf + pos - 1, buf + pos,
+                                sizeof(zword) * (mywcslen(buf) - pos + 1));
                         pos--;
+                        sf_DrawInput(buf,pos,ptx,pty,width,true);
+                    }
+                    continue;
+                case VK_DEL:
+                    // Delete the character to the right of the cursor
+                    if (pos < mywcslen(buf)) {
+                        memmove(buf + pos, buf + pos + 1,
+                                sizeof(zword) * (mywcslen(buf) - pos));
                         sf_DrawInput(buf,pos,ptx,pty,width,true);
                     }
                     continue;

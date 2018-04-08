@@ -253,6 +253,7 @@ void sf_FinishProfile(void);
 #define VK_INS	0x17
 #define VK_PAGE_UP 0x18
 #define VK_PAGE_DOWN 0x19
+#define VK_DEL 0x100
 
 // for AIFF resampling
 

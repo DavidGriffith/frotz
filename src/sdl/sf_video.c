@@ -408,8 +408,6 @@ static void cleanvideo()
 #define GM 0x00ff00
 #define BM 0xff0000
 
-extern char stripped_story_name[];
-
 static void sf_toggle_fullscreen()
 {
     if (SDL_SetWindowFullscreen(

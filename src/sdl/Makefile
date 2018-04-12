@@ -30,7 +30,7 @@ clean:
 
 %.o: %.c
 %.o: %.c %.d
-	$(CC) -MMD -MF $*.d $(CFLAGS) -c $<
+	$(CC) -MMD -MP $(CFLAGS) -c $<
 
 $(DEPS):;
 

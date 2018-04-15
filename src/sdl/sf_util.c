@@ -182,7 +182,7 @@ extern char *optarg;
 extern int optind;
 extern int m_timerinterval;
 
-static char *options = "@:aAb:B:c:D:f:Fh:iI:l:Lm:N:oOpqr:Rs:S:tTu:Vw:xZ:";
+static char *options = "@:aAb:B:c:f:Fh:iI:l:Lm:N:oOpqr:Rs:S:tTu:Vw:xZ:";
 
 static int limit( int v, int m, int M)
   {
@@ -217,12 +217,6 @@ static void parse_options (int argc, char **argv)
 	    option_scrollback_buffer = num;
 	if (c == 'c')
 	    f_setup.context_lines = num;
-	if (c == 'D')
-		{
-		if (copt == 'k') m_reqW = -1;
-		else sscanf(optarg,"%dx%d",&m_reqW,&m_reqH);
-		m_fullscreen = 1;
-		}
 	if (c == 'm')
 	    m_timerinterval = limit(num,10,1000000);
 	if (c == 'N')

@@ -81,7 +81,6 @@ extern int	AcWidth;
 extern int	AcHeight;
 extern int	m_random_seed;
 extern int	m_fullscreen;
-extern int	m_reqW, m_reqH;
 extern char *	m_fontfiles[9];
 extern bool	m_localfiles;
 extern int	m_no_sound;
@@ -253,6 +252,7 @@ void sf_FinishProfile(void);
 #define VK_INS	0x17
 #define VK_PAGE_UP 0x18
 #define VK_PAGE_DOWN 0x19
+#define VK_DEL 0x100
 
 // for AIFF resampling
 

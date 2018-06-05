@@ -26,7 +26,9 @@ For bug reports, check the Unix Frotz website to see if there's a new
 release.  If not, send your bug report to me at dave@661.org.
 
 The latest information on and source code of Unix Frotz is available at 
-https://github.com/DavidGriffith/frotz
+https://gitlab.com/DavidGriffith/frotz
+The old repository at Github is now deprecated. It will serve as a 
+mirror for the time being, but will eventually be deleted.
 
 The latest release of Unix Frotz is available from the Interactive
 Fiction Archive at:
